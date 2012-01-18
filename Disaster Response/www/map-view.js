@@ -24,7 +24,7 @@ var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 													pointRadius : 10,
-													externalGraphic : "15x15_Blue_Arrow.png",
+													externalGraphic : "images/15x15_Blue_Arrow.png",
 													fillOpacity: 1,
 													rotation: 0
 													});
