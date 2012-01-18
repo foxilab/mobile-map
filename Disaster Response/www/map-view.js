@@ -110,6 +110,7 @@ var compassError = function(error){
 		alert("compass not supported");
 	
 }
+
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
@@ -186,9 +187,10 @@ function onDeviceReady()
 					//alert("You clicked near " + lonlat.lat + " N, " + + lonlat.lon + " E");
 					navigator.camera.getPicture(function (imageURI) 
 					{
-						var $dlg = $('#queue-dialog');
-						$dlg.find('img').attr('src', imageURI);
-						$('#queue-dialog-link').click();
+						clearQueueDialog();
+						addToQueueDialog(imageURI);
+						// TODO: This flashes the map sometimes
+						$.mobile.changePage('#queue-dialog', 'pop');
 					},
 						function () { }, 
 						{
@@ -200,8 +202,52 @@ function onDeviceReady()
 						});
 		}
 	});
-	
+
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
 }
+
+function clearQueueDialog() {
+	$('#queue-dialog li').not('#queue-list-item-archetype').remove();
+}
+
+function addToQueueDialog(imageURI) {
+	var $clone = $('#queue-list-item-archetype').clone();	
+	$clone.removeAttr('id');
+	$clone.find('img').attr('src', imageURI);
+	$('#queue-dialog ul').append($clone);
+	$clone.show();
+}
+
+$(document).ready(function() {
+	$('.status-list-item').on('click', function(e) {
+		// TODO: This will be wrong later, but with just one it works for now
+		var $h3 = $('#queue-dialog h3');
+		$h3.not('#queue-list-item-archetype').text($(this).text());
+	});
+
+	$('#status-submit-button').on('click', function(e) {
+		var valid = 0;
+		var items = new Array();
+		$('#queue-dialog li').find('h3').filter(':visible').each(function() {
+			if ($(this).text() !== 'Select a Status') {
+				++valid;
+				items.push($(this));
+			}
+		});
+		
+		if (valid === 0) {
+			// TODO: This shouldn't close the current dialog
+			navigator.notification.alert('You must set the status for at least one location');
+		}
+		else {
+			var names = 'Submitted';
+			items.forEach(function(elem) {
+				// Submit them to the server
+				names += '\n' + $(elem).text();
+			});
+			navigator.notification.alert(names, function() {}, 'Debug', 'Okay');
+		}		
+	});
+});
