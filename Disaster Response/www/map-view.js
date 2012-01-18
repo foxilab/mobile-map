@@ -186,14 +186,9 @@ function onDeviceReady()
 					//alert("You clicked near " + lonlat.lat + " N, " + + lonlat.lon + " E");
 					navigator.camera.getPicture(function (imageURI) 
 					{
-						var $thumb = $('#statusThumb');
-						$thumb.children('img').attr('src', imageURI);
-						$thumb.show();
-						$thumb.position({
-							my:	'center',
-							at:	'center',
-							of:	$(window)
-						});
+						var $dlg = $('#queue-dialog');
+						$dlg.find('img').attr('src', imageURI);
+						$('#queue-dialog-link').click();
 					},
 						function () { }, 
 						{
