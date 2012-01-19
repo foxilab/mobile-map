@@ -224,7 +224,7 @@ $(document).ready(function() {
 	$('.status-list-item').on('click', function(e) {
 		// TODO: This will be wrong later, but with just one it works for now
 		var $h3 = $('#queue-dialog h3');
-		$h3.not('#queue-list-item-archetype').text($(this).text());
+		$h3.not(':first').text($(this).text());
 	});
 
 	$('#status-submit-button').on('click', function(e) {
