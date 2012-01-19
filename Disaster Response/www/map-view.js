@@ -24,7 +24,7 @@ var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 													pointRadius : 10,
-													externalGraphic : "images/15x15_Blue_Arrow.png",
+													externalGraphic : "css/images/15x15_Blue_Arrow.png",
 													fillOpacity: 1,
 													rotation: 0
 													});
@@ -137,7 +137,6 @@ function onDeviceReady()
 	}
 	};
 	
-	
 	var options = {
 	div: "map",
 	projection: WGS84,
@@ -189,7 +188,7 @@ function onDeviceReady()
 					{
 						clearQueueDialog();
 						addToQueueDialog(imageURI);
-						// TODO: This flashes the map sometimes
+						// TODO: This sometimes flashes the map
 						$.mobile.changePage('#queue-dialog', 'pop');
 					},
 						function () { }, 
@@ -206,6 +205,10 @@ function onDeviceReady()
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
+	
+	$('#queue-dialog').live('pagehide', function() {
+		// TODO: Refresh map
+	});
 }
 
 function clearQueueDialog() {
@@ -221,13 +224,18 @@ function addToQueueDialog(imageURI) {
 }
 
 $(document).ready(function() {
-	$('.status-list-item').on('click', function(e) {
-		// TODO: This will be wrong later, but with just one it works for now
-		var $h3 = $('#queue-dialog h3');
-		$h3.not(':first').text($(this).text());
+	$('.queue-list-item').live('click', function(e) {
+		// Store the clicked queue list item in a global variable to be used on status click
+		$queue_item = $(this);
 	});
 
-	$('#status-submit-button').on('click', function(e) {
+	$('.status-list-item').live('click', function(e) {
+		// See the text for the currently selected queue list item
+		var $h3 = $queue_item.find('h3');
+		$h3.text($(this).text());
+	});
+
+	$('#status-submit-button').live('click', function(e) {
 		var valid = 0;
 		var items = new Array();
 		$('#queue-dialog li').find('h3').filter(':visible').each(function() {
@@ -236,10 +244,12 @@ $(document).ready(function() {
 				items.push($(this));
 			}
 		});
-		
+
 		if (valid === 0) {
-			// TODO: This shouldn't close the current dialog
 			navigator.notification.alert('You must set the status for at least one location');
+			e.preventDefault();
+			e.stopPropagation();
+			$(this).removeClass('ui-btn-active');
 		}
 		else {
 			var names = 'Submitted';
@@ -247,7 +257,7 @@ $(document).ready(function() {
 				// Submit them to the server
 				names += '\n' + $(elem).text();
 			});
-			navigator.notification.alert(names, function() {}, 'Debug', 'Okay');
+			navigator.notification.alert(names, function() { }, 'Debug', 'Okay');
 		}		
 	});
 });
