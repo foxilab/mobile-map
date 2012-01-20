@@ -224,8 +224,9 @@ function addToQueueDialog(imageURI) {
 }
 
 $(document).ready(function() {
+	var $queue_item;
+
 	$('.queue-list-item').live('click', function(e) {
-		// Store the clicked queue list item in a global variable to be used on status click
 		$queue_item = $(this);
 	});
 
