@@ -36,7 +36,7 @@
 			<div data-role='content'>
 				<ul data-role='listview'>
 					<li id='queue-list-item-archetype' style='display: none'>
-						<a class='queue-list-item' href='#status-dialog' data-rel='dialog' data-transition='slide'>
+						<a class='queue-list-item' href='#status-dialog' data-rel='dialog' data-transition='slidedown'>
 							<img style='width: 100%; height: 100%' />
 							<h3>Select a Status</h3>
 						</a>
@@ -49,17 +49,14 @@
 		</div>
 
 		<div data-role='dialog' id='status-dialog'>
-			<div data-role='header'>
-				<h1>Status</h1>
-			</div>
-			
 			<div data-role='content'>
-				<ul data-role='listview'>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Operational</a></li>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Limited Capabilities</a></li>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Intact but Uninhabited</a></li>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Non-operational</a></li>
-				</ul>
+				<h3>Building Status</h3>
+				<a class='status-list-item' status-ref='1' data-role='button' data-rel='back'>Operational</a>
+				<a class='status-list-item' status-ref='2' data-role='button' data-rel='back'>Limited Capabilities</a>
+				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
+				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-operational</a>
+				
+				<a data-role='button' data-rel='back'>Cancel</a>
 			</div>
 		</div>
 	</body>
@@ -72,5 +69,6 @@
 	<script type="text/javascript" charset="utf-8" defer="defer" src="jquery.mobile-1.0.min.js"></script>
 	<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC6566"></script>
 	
+	<script type="text/javascript" charset="utf-8" defer="defer" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" defer="defer" src="map-view.js"></script>
 </html>
