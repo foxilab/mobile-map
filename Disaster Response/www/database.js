@@ -16,17 +16,17 @@ var StatusRef = new function () {
 	this.limited = function () { return new ref(2, 'Limited Capabilities'); }
 	this.uninhabited = function () { return new ref(3, 'Intact, but Uninhabited'); }
 	this.nonoperational = function () { return new ref(4, 'Non-operational'); }
-	
-	function fromId(id) {
+
+	this.fromId = function (id) {
 		switch (id) {
 			case 1:
-				return operational();
+				return this.operational();
 			case 2:
-				return limited();
+				return this.limited();
 			case 3:
-				return uninhabited();
+				return this.uninhabited();
 			case 4:
-				return nonoperational();
+				return this.nonoperational();
 		}
 		return null;
 	}
@@ -74,7 +74,6 @@ function forAllLocations(db, f) {
 		tx.executeSql('SELECT * FROM locationqueue', [], function(t, results) {
 			if (f) {
 				for (var i = 0; i < results.rows.length; ++i) {
-					console.log(results.rows.item(i));
 					f.call(f, results.rows.item(i));
 				}
 			}

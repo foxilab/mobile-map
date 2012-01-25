@@ -221,7 +221,7 @@ function onDeviceReady()
 	map.addControl(click);
 	click.activate();
 
-	$('#queue-dialog').live('pageshow', function() {
+	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		clearQueueDialog();
@@ -237,12 +237,12 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	$clone.find('img').attr('src', locRow.photo);
-	
+
 	if (locRow.status >= 1) {
 		$clone.find('h3').text(StatusRef.fromId(locRow.status).toString());
 	}
-	
-	$clone.data('row', locRow);
+
+	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
 	$clone.show();
 }
@@ -250,21 +250,22 @@ function addToQueueDialog(locRow) {
 $(document).ready(function() {
 	var $queue_item;
 
+	// TODO: Why does this only work with live() and not on() ?
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
 	});
 
-	$('.status-list-item').live('click', function(e) {
+	$('.status-list-item').on('click', function(e) {
 		// See the text for the currently selected queue list item
 		var $h3 = $queue_item.find('h3');
 		$h3.text($(this).text());
 		
 		// Store back to local DB
-		var data = $queue_item.data();
-		updateLocationStatus(sqlDb, data.id, $h3.attr('status-ref'));
+		var id = $queue_item.attr('rowid');
+		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('.status-submit-button').live('click', function(e) {
+	$('.status-submit-button').on('click', function(e) {
 		var valid = 0;
 		var items = new Array();
 		// TODO: this should probably be a class we search for, not h3
