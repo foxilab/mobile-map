@@ -77,7 +77,7 @@ var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 
 function onBodyLoad()
 {		
-	document.addEventListener("deviceready", onDeviceReady, false);
+    document.addEventListener("deviceready", onDeviceReady, false);
 }
 
 var geolocationSuccess = function(position){
@@ -115,8 +115,19 @@ var compassError = function(error){
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
+
+var getDeviceUID = function() {
+    window.plugins.MyPlugin.getUDID(
+        function(udid)      { alert("Passed "+udid.value); return udid.value; },
+        function(errorCode) { alert("Failed"); return -1; } );
+}
+
 function onDeviceReady()
 {
+    //ChildBrowser code to open Google.com
+    //var cb = ChildBrowser.install();
+    //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+        
 	// do your thing!
 	var docHeight = $(window).height();
 	var headerHeight = $("#header").height();
