@@ -127,7 +127,25 @@ function onDeviceReady()
     //ChildBrowser code to open Google.com
     //var cb = ChildBrowser.install();
     //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
-        
+
+	// The Local Database (global for a reason)
+	try {
+		if (!window.openDatabase) {
+			// Do we need to support this?
+			navigator.notification.alert('Local databases not supported');
+		}
+		else {
+			// Open or create a 3MB database and store in global variable
+			sqlDb = window.openDatabase('mobdisapp', '0.1', 'MobDisAppDB', 3145728);
+			createStatusRefTable(sqlDb);
+			createQueueTable(sqlDb);
+		}
+	}
+	catch (e) {
+		// Do we need to handle this?
+		navigator.notification.alert('Error opening database: ' + e);
+	}
+
 	// do your thing!
 	var docHeight = $(window).height();
 	var headerHeight = $("#header").height();
@@ -137,15 +155,14 @@ function onDeviceReady()
 	$("#map").height(mapHeight +"px");
 	$("#canvas").height(mapHeight + "px");
 	
-	
 	var maxResolution = 15543.0339;
 	var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 	var restrictedExtent = maxExtent.clone();
 	var touchNavOptions = {
-	dragPanOptions: {
-	interval: 0, //non-zero kills performance on some mobile phones
-	enableKinetic: true
-	}
+		dragPanOptions: {
+			interval: 0, //non-zero kills performance on some mobile phones
+			enableKinetic: true
+		}
 	};
 	
 	var options = {
@@ -189,36 +206,37 @@ function onDeviceReady()
 			this.handler = new OpenLayers.Handler.Click( this, {
 				'click' : this.trigger 
 			},
-				this.handlerOptions );
+			this.handlerOptions );
+		},
+		trigger : function (e) 
+		{
+			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+			navigator.camera.getPicture(function (imageURI) 
+			{
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+				// TODO: This sometimes flashes the map
+				$.mobile.changePage('#queue-dialog', 'pop');
 			},
-				trigger : function (e) 
-				{
-					var lonlat = map.getLonLatFromViewPortPx(e.xy);
-					//alert("You clicked near " + lonlat.lat + " N, " + + lonlat.lon + " E");
-					navigator.camera.getPicture(function (imageURI) 
-					{
-						clearQueueDialog();
-						addToQueueDialog(imageURI);
-						// TODO: This sometimes flashes the map
-						$.mobile.changePage('#queue-dialog', 'pop');
-					},
-						function () { }, 
-						{
-							quality : 100,
-							destinationType : Camera.DestinationType.FILE_URI,
-							// DEBUG: This should be CAMERA to force a new pic
-							sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
-							allowEdit : false
-						});
+			function () { },
+			{
+				quality : 100,
+				destinationType : Camera.DestinationType.FILE_URI,
+				// DEBUG: This should be CAMERA to force a new pic
+				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+				allowEdit : false
+			});
 		}
 	});
 
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
-	
-	$('#queue-dialog').live('pagehide', function() {
-		// TODO: Refresh map
+
+	$('#queue-dialog').on('pageshow', function() {
+		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
+		// rather than doing it every time.
+		clearQueueDialog();
+		forAllLocations(sqlDb, addToQueueDialog);
 	});
 }
 
@@ -226,10 +244,16 @@ function clearQueueDialog() {
 	$('#queue-dialog li').not('#queue-list-item-archetype').remove();
 }
 
-function addToQueueDialog(imageURI) {
+function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
-	$clone.find('img').attr('src', imageURI);
+	$clone.find('img').attr('src', locRow.photo);
+
+	if (locRow.status >= 1) {
+		$clone.find('h3').text(StatusRef.fromId(locRow.status).toString());
+	}
+
+	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
 	$clone.show();
 }
@@ -237,19 +261,25 @@ function addToQueueDialog(imageURI) {
 $(document).ready(function() {
 	var $queue_item;
 
+	// TODO: Why does this only work with live() and not on() ?
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
 	});
 
-	$('.status-list-item').live('click', function(e) {
+	$('.status-list-item').on('click', function(e) {
 		// See the text for the currently selected queue list item
 		var $h3 = $queue_item.find('h3');
 		$h3.text($(this).text());
+		
+		// Store back to local DB
+		var id = $queue_item.attr('rowid');
+		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('#status-submit-button').live('click', function(e) {
+	$('.status-submit-button').on('click', function(e) {
 		var valid = 0;
 		var items = new Array();
+		// TODO: this should probably be a class we search for, not h3
 		$('#queue-dialog li').find('h3').filter(':visible').each(function() {
 			if ($(this).text() !== 'Select a Status') {
 				++valid;
@@ -266,7 +296,7 @@ $(document).ready(function() {
 		else {
 			var names = 'Submitted';
 			items.forEach(function(elem) {
-				// Submit them to the server
+				// Submit them to the server - if successful remove from local database
 				names += '\n' + $(elem).text();
 			});
 			navigator.notification.alert(names, function() { }, 'Debug', 'Okay');

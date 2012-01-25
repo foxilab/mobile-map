@@ -32,11 +32,12 @@
 		<div data-role='dialog' id='queue-dialog'>
 			<div data-role='header'>
 				<h1>Locations</h1>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' style='float: right'>Submit</a>
 			</div>
 			<div data-role='content'>
 				<ul data-role='listview'>
-					<li id='queue-list-item-archetype' style='display: none'>
-						<a class='queue-list-item' href='#status-dialog' data-rel='dialog' data-transition='slide'>
+					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none'>
+						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown'>
 							<img style='width: 100%; height: 100%' />
 							<h3>Select a Status</h3>
 						</a>
@@ -44,37 +45,38 @@
 				</ul>
 			</div>
 			<div data-role='footer'>
-				<a id='status-submit-button' href='#map-page' data-rel='back' data-role='button' data-icon='check' style='float: right'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' style='float: right'>Submit</a>
+				<a data-role='button' data-rel='back' data-icon='delete' style='float: right'>Cancel</a>
 			</div>
 		</div>
 
 		<div data-role='dialog' id='status-dialog'>
-			<div data-role='header'>
-				<h1>Status</h1>
-			</div>
-			
 			<div data-role='content'>
-				<ul data-role='listview'>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Operational</a></li>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Limited Capabilities</a></li>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Intact but Uninhabited</a></li>
-					<li data-icon='back'><a class='status-list-item' data-rel='back'>Non-operational</a></li>
-				</ul>
+				<h3>Building Status</h3>
+				<a class='status-list-item' status-ref='1' data-role='button' data-rel='back'>Operational</a>
+				<a class='status-list-item' status-ref='2' data-role='button' data-rel='back'>Limited Capabilities</a>
+				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
+				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-operational</a>
+				
+				<a data-role='button' data-rel='back' data-icon='delete'>Cancel</a>
 			</div>
 		</div>
 	</body>
 
-	<script type="text/javascript" charset="utf-8" defer="defer" src="json2.js"></script>
-	<script type="text/javascript" charset="utf-8" defer="defer" src="phonegap-1.3.0.js"></script>
-	<script type="text/javascript" charset="utf-8" defer="defer" src="http://openlayers.org/api/OpenLayers.js"></script>
-	<script type="text/javascript" charset="utf-8" defer="defer" src="jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" charset="utf-8" defer="defer" src="jquery-ui-1.8.17.min.js"></script>
-	<script type="text/javascript" charset="utf-8" defer="defer" src="jquery.mobile-1.0.min.js"></script>
-	<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC6566"></script>
+	<script type="text/javascript" charset="utf-8" src="json2.js"></script>
+	<script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
+	<script type="text/javascript" charset="utf-8" src="http://openlayers.org/api/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
     
     <!-- Plugins -->
     <script type="text/javascript" charset="utf-8" src="PGUIDevice.js"></script>
     <script type="text/javascript" charset="utf-8" src="ChildBrowser.js"></script>
-	
-	<script type="text/javascript" charset="utf-8" defer="defer" src="map-view.js"></script>
+    
+	<script type="text/javascript" charset="utf-8" src="database.js"></script>
+	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
+
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+
 </html>
