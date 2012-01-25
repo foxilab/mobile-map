@@ -1,12 +1,12 @@
 function errorSql(e) {
-	navigator.notification.alert('Error processing SQL: ' + e.code);
+	navigator.notification.alert('Error processing SQL: ' + e.code + ' in function ' + arguments.callee.caller.toString());
 }
 
 function quote(str) {
 	return '"' + str + '"';
 }
 
-var StatusRef = function () {
+var StatusRef = new function () {
 	function ref (i, str) {
 		this.id = function () { return i; }
 		this.toString = function () { return str; }
@@ -30,7 +30,7 @@ var StatusRef = function () {
 		}
 		return null;
 	}
-}
+};
 
 function createStatusRefTable(db) {
 	/* STATUSREF
@@ -71,7 +71,7 @@ function createQueueTable(db) {
 
 function forAllLocations(db, f) {
 	var query = function (tx) {
-		tx.execute('SELECT * FROM locationqueue', [], function(t, results) {
+		tx.executeSql('SELECT * FROM locationqueue', [], function(t, results) {
 			if (f) {
 				for (var i = 0; i < results.rows.length; ++i) {
 					console.log(results.rows.item(i));

@@ -148,10 +148,10 @@ function onDeviceReady()
 	var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 	var restrictedExtent = maxExtent.clone();
 	var touchNavOptions = {
-	dragPanOptions: {
-	interval: 0, //non-zero kills performance on some mobile phones
-	enableKinetic: true
-	}
+		dragPanOptions: {
+			interval: 0, //non-zero kills performance on some mobile phones
+			enableKinetic: true
+		}
 	};
 	
 	var options = {
@@ -264,7 +264,7 @@ $(document).ready(function() {
 		updateLocationStatus(sqlDb, data.id, $h3.attr('status-ref'));
 	});
 
-	$('#status-submit-button').live('click', function(e) {
+	$('.status-submit-button').live('click', function(e) {
 		var valid = 0;
 		var items = new Array();
 		// TODO: this should probably be a class we search for, not h3

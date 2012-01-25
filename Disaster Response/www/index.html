@@ -32,6 +32,7 @@
 		<div data-role='dialog' id='queue-dialog'>
 			<div data-role='header'>
 				<h1>Locations</h1>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' style='float: right'>Submit</a>
 			</div>
 			<div data-role='content'>
 				<ul data-role='listview'>
@@ -44,7 +45,8 @@
 				</ul>
 			</div>
 			<div data-role='footer'>
-				<a id='status-submit-button' href='#map-page' data-rel='back' data-role='button' data-icon='check' style='float: right'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' style='float: right'>Submit</a>
+				<a data-role='button' data-rel='back' data-icon='delete' style='float: right'>Cancel</a>
 			</div>
 		</div>
 
@@ -56,7 +58,7 @@
 				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
 				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-operational</a>
 				
-				<a data-role='button' data-rel='back'>Cancel</a>
+				<a data-role='button' data-rel='back' data-icon='delete'>Cancel</a>
 			</div>
 		</div>
 	</body>
@@ -67,7 +69,7 @@
 	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
-	
+
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 
