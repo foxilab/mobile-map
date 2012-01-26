@@ -91,6 +91,9 @@ var geolocationSuccess = function(position){
 	
 	map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
 				  .transform(WGS84, WGS84_google_mercator), 17);
+    
+    //iPhone Quirks
+    //  position.timestamp returns seconds instead of milliseconds.
 }
 
 var geolocationError = function(error){
@@ -116,18 +119,25 @@ var compassError = function(error){
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
-var getDeviceUID = function() {
-    window.plugins.MyPlugin.getUDID(
-        function(udid)      { alert("Passed "+udid.value); return udid.value; },
-        function(errorCode) { alert("Failed"); return -1; } );
-}
-
+var plugin;
 function onDeviceReady()
 {
+    //Now that the device is ready, lets set up our event listeners.
+        document.addEventListener("pause"  , onAppPause  , false);
+        document.addEventListener("resume" , onAppResume , false);
+        document.addEventListener("online" , onAppOnline , false);
+        document.addEventListener("offline", onAppOffline, false);
+        window.addEventListener("batterycritical", onBatteryCritical, false);
+        window.addEventListener("batterylow"     , onBatteryLow     , false);
+        window.addEventListener("batterystatus"  , onBatteryStatus  , false);
+    
     //ChildBrowser code to open Google.com
-    //var cb = ChildBrowser.install();
-    //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
-
+        //var cb = ChildBrowser.install();
+        //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+    
+    plugin = window.plugins.MyPlugin;
+    plugin.getDeviceUID("getDeviceUIDSuccess");
+    
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -181,6 +191,8 @@ function onDeviceReady()
 		//zoom: 2
 	};
 	map = new OpenLayers.Map(options);
+    
+    
 	
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -303,3 +315,72 @@ $(document).ready(function() {
 		}		
 	});
 });
+
+/*
+        ==============================================
+                      Plugin Callbacks
+        ==============================================
+ */
+function getDeviceUIDSuccess(device) {
+    alert(10); //return device.uid;
+}
+
+/*
+        ==============================================
+                  Event Listener Callbacks
+        ==============================================
+
+    When the application is put into the background via the home button, phone call, app switch, etc. it is paused. Any Objective-C code or PhoneGap code (like alert()) will not run. This callback will allow us to pause anything we need to to avoid time based errors.
+ 
+ */
+function onAppPause() {
+    
+}
+
+/*
+    When the user resumes the app from the background this callback is called, allowing us to resume anything that we stopped.
+ */
+function onAppResume() {
+    
+}
+
+/*
+    Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
+    #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
+ */
+function onAppOnline() {
+    
+}
+
+/*
+    This function is called whenever the device loses internet connection (be it WiFi or 3G or EDGE). With this we can keep the current map tiles cached to avoid losing them.
+    #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
+ */
+function onAppOffline() {
+    
+}
+
+/*
+    Called when the device hits the critical level threshold. This is device specific. (10 on iDevices)
+ */
+function onBatteryCritical(info) {
+    //info.level = % of battery (0-100).
+    //info.isPlugged = true if the device is plugged in.
+}
+
+/*
+    Called when the device hits the low level threshold. This is device specific. (20 on iDevices).
+ */
+function onBatteryLow(info) {
+    //info.level = % of battery (0-100).
+    //info.isPlugged = true if the device is plugged in.
+}
+
+/*
+    Whenever the battery changes status (either info.level changes by one, or info.isPlugged is toggled) this function is called.
+    Example: If they plug in, that means they have power where they are. The building locations that are close by are now operational (if they weren't already labled as such).
+ */
+function onBatteryStatus(info) {
+    //info.level = % of battery (0-100).
+    //info.isPlugged = true if the device is plugged in.
+}
