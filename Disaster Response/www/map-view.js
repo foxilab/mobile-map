@@ -135,9 +135,6 @@ function onDeviceReady()
         //var cb = ChildBrowser.install();
         //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
     
-    plugin = window.plugins.MyPlugin;
-    plugin.getDeviceUID("getDeviceUIDSuccess");
-    
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
