@@ -72,8 +72,7 @@ function createQueueTable(db) {
 
 function forAllLocations(db, f) {
 	var query = function (tx) {
-		// TODO:  ORDER BY convert(datetime, date, 120) ASC
-		tx.executeSql('SELECT * FROM locationqueue', [], function(t, results) {
+		tx.executeSql('SELECT * FROM locationqueue ORDER BY id DESC', [], function(t, results) {
 			if (f) {
 				for (var i = 0; i < results.rows.length; ++i) {
 					f.call(f, results.rows.item(i));
