@@ -1,82 +1,117 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <head>
-  <title></title>
-	<link rel="stylesheet" href="jquery.mobile-1.0.min.css" type="text/css"/>
-    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
-	<meta charset="utf-8">
-	<style type="text/css">
-#zoomPanel{
-	position:absolute;
-	z-index:1999;
-    background-image: url("http://openlayers.org/api/theme/default/img/zoom-panel.png");
-    height:54px;
-    width:18px;
-    cursor:pointer;
-  }
-  .olControlZoomInItemInactive { 
-            position: absolute;
-            height: 18px;
-            width: 18px;
-        }
-        
-    .olControlZoomToMaxExtentItemInactive {
-            position: absolute;
-            top:18px;
-            height: 18px;
-            width: 18px;
-        }
-        
-        .olControlZoomOutItemInactive {
-            position: absolute;
-            top:36px;
-            height: 18px;
-            width: 18px;
-        }
+	<head>
+		<title></title>
+
+		<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+		<meta charset="utf-8">
+
+		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
+		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
+		<link rel="stylesheet" href="css/mda.css" type="text/css" />
+		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+		<style type="text/css">
+			#zoomPanel{
+				position:absolute;
+				z-index:1999;
+				background-image: url("http://openlayers.org/api/theme/default/img/zoom-panel.png");
+				height:54px;
+				width:18px;
+				cursor:pointer;
+			  }
+			.olControlZoomInItemInactive { 
+				position: absolute;
+				height: 18px;
+				width: 18px;
+			}
+				
+			.olControlZoomToMaxExtentItemInactive {
+				position: absolute;
+				top:18px;
+				height: 18px;
+				width: 18px;
+			}
+				
+			.olControlZoomOutItemInactive {
+				position: absolute;
+				top:36px;
+				height: 18px;
+				width: 18px;
+			}
 	</style>
-  </head>
-  <body onload="onBodyLoad()">
-	<div data-role="page"> 
-          <div data-role="header" id="header"> 
-               <h1> Header Content </h1>
-          </div>
-          <div data-role="content" id="content">
-			<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
+		<!-- iPad/iPhone specific css below, add after your main css >
+		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
+		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
+		-->
+		<!-- If your application is targeting iOS BEFORE 4.0 you MUST put json2.js from http://www.JSON.org/json2.js into your www directory and include it here -->
+	</head>
+
+	<body onload="onBodyLoad()">
+		<div data-role="page" id='map-page' data-theme='a'> 
+			<div data-role="header" id="header"> 
+				<h1> Header Content </h1>
+			</div>
+			<div data-role="content" id="content"> 
+				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
 				<div id="map" style="position:absolute;"></div>
 				<div id="zoomPanel"></div>
 			</div>
-				<div id='statusThumb' class='dialog' style='display: none; position: absolute; width: 200px; z-index: 2000'>
-				<img style='padding: 10px; min-width: 60px; width:60px; min-height: 60px; height: 60px; float: left; border: none'></img>
-				<span style='float: left; text-index: 1em;'>Building Status</span>
-				<ul class='dropdown'>
-					<li><a href='#'>Testing 1</a></li>
-					<li><a href='#'>Testing 2</a></li>
-					<li><a href='#'>Testing 3</a></li>
+			</div>
+			<div data-role="footer" id="footer"> 
+				<h1> Footer Content </h1>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='queue-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Locations</h1>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='c' style='float: right'>Submit</a>
+			</div>
+			<div data-role='content'>
+				<ul data-role='listview'>
+					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none'>
+						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown'>
+							<img style='width: 100%; height: 100%' />
+							<h3>Select a Status</h3>
+						</a>
+					</li>
 				</ul>
 			</div>
-          </div>
-          <div data-role="footer" id="footer"> 
-               <h1> Footer Content </h1>
-          </div>
-     </div>
-	 
-	 <!-- iPad/iPhone specific css below, add after your main css >
-	<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
-	<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
-	-->
-	<!-- If your application is targeting iOS BEFORE 4.0 you MUST put json2.js from http://www.JSON.org/json2.js into your www directory and include it here -->
-	<link rel="stylesheet" href="css/mda.css" type="text/css" />
-	<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+			<div data-role='footer'>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='c' style='float: right'>Submit</a>
+				<a href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
+			</div>
+			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
+		</div>
+
+		<div data-role='dialog' id='status-dialog' data-theme='a'>
+			<div data-role='content'>
+				<h3>Building Status</h3>
+				<a class='status-list-item' status-ref='1' data-role='button' data-rel='back'>Operational</a>
+				<a class='status-list-item' status-ref='2' data-role='button' data-rel='back'>Limited Capabilities</a>
+				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
+				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-operational</a>
+
+				<a data-role='button' data-rel='back' data-icon='delete'>Cancel</a>
+			</div>
+		</div>
+	</body>
+	
 	<script type="text/javascript" charset="utf-8" src="json2.js"></script>
 	<script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" charset="utf-8" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
-	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+	<!-- Plugins -->
+    <script type="text/javascript" charset="utf-8" src="PGUIDevice.js"></script>
+    <script type="text/javascript" charset="utf-8" src="ChildBrowser.js"></script>
+    
+	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
-	<script type="text/javascript" src="jquery-css-transform.js"></script>
-    <script type="text/javascript" src="map-view.js"></script>
-  </body>
+	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
+    <script type="text/javascript" charset="utf-8" src="map-view.js"></script>
+
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>

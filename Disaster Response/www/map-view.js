@@ -24,9 +24,10 @@ var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 10,
-	externalGraphic : "images/15x15_Blue_Arrow.png",
+	externalGraphic : "css/images/15x15_Blue_Arrow.png",
 	fillOpacity: 1,
 	rotation: 0
+	});
 });
 
 var navStyle = new OpenLayers.StyleMap({
@@ -117,7 +118,7 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 
 function onBodyLoad()
 {		
-	document.addEventListener("deviceready", onDeviceReady, false);
+    document.addEventListener("deviceready", onDeviceReady, false);
 }
 
 var geolocationSuccess = function(position){
@@ -132,6 +133,9 @@ var geolocationSuccess = function(position){
 	
 	map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
 				  .transform(WGS84, WGS84_google_mercator), 17);
+    
+    //iPhone Quirks
+    //  position.timestamp returns seconds instead of milliseconds.
 }
 
 var geolocationError = function(error){
@@ -168,8 +172,41 @@ var compassError = function(error){
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
+
+var plugin;
 function onDeviceReady()
 {
+    //Now that the device is ready, lets set up our event listeners.
+        document.addEventListener("pause"  , onAppPause  , false);
+        document.addEventListener("resume" , onAppResume , false);
+        document.addEventListener("online" , onAppOnline , false);
+        document.addEventListener("offline", onAppOffline, false);
+        window.addEventListener("batterycritical", onBatteryCritical, false);
+        window.addEventListener("batterylow"     , onBatteryLow     , false);
+        window.addEventListener("batterystatus"  , onBatteryStatus  , false);
+    
+    //ChildBrowser code to open Google.com
+        //var cb = ChildBrowser.install();
+        //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+    
+	// The Local Database (global for a reason)
+	try {
+		if (!window.openDatabase) {
+			// Do we need to support this?
+			navigator.notification.alert('Local databases not supported');
+		}
+		else {
+			// Open or create a 3MB database and store in global variable
+			sqlDb = window.openDatabase('mobdisapp', '0.1', 'MobDisAppDB', 3145728);
+			createStatusRefTable(sqlDb);
+			createQueueTable(sqlDb);
+		}
+	}
+	catch (e) {
+		// Do we need to handle this?
+		navigator.notification.alert('Error opening database: ' + e);
+	}
+
 	// do your thing!
 	var docHeight = $(window).height();
 	var headerHeight = $("#header").height();
@@ -218,40 +255,206 @@ function onDeviceReady()
 			this.handler = new OpenLayers.Handler.Click( this, {
 				'click' : this.trigger 
 			},
-				this.handlerOptions );
+			this.handlerOptions );
+		},
+		trigger : function (e) 
+		{
+			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+			navigator.camera.getPicture(function (imageURI) 
+			{
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+				// TODO: This sometimes flashes the map
+				$.mobile.changePage('#queue-dialog', 'pop');
 			},
-				trigger : function (e) 
-				{
-					var lonlat = map.getLonLatFromViewPortPx(e.xy);
-					//alert("You clicked near " + lonlat.lat + " N, " + + lonlat.lon + " E");
-					navigator.camera.getPicture(function (imageURI) 
-					{
-						var $thumb = $('#statusThumb');
-						$thumb.children('img').attr('src', imageURI);
-						$thumb.show();
-						$thumb.position({
-							my:	'center',
-							at:	'center',
-							of:	$(window)
-						});
-					},
-						function () { }, 
-						{
-							quality : 100,
-							destinationType : Camera.DestinationType.FILE_URI,
-							// DEBUG: This should be CAMERA to force a new pic
-							sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
-							allowEdit : false
-						});
+			function () { },
+			{
+				quality : 100,
+				destinationType : Camera.DestinationType.FILE_URI,
+				// DEBUG: This should be CAMERA to force a new pic
+				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+				allowEdit : false
+			});
 		}
 	});
-	
+
 	var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
 	map.addControl(zoomPanel);
 	var zoomRight = .05 * mapHeight;
 	$("#zoomPanel").css("right", "5%");
 	$("#zoomPanel").css("bottom", zoomRight + "px");
+
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
+
+	$('#queue-dialog').on('pageshow', function() {
+		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
+		// rather than doing it every time.
+		clearQueueDialog();
+		forAllLocations(sqlDb, addToQueueDialog);
+	});
+}
+
+function clearQueueDialog() {
+	$('#queue-dialog li').not('#queue-list-item-archetype').remove();
+}
+
+function addToQueueDialog(locRow) {
+	var $clone = $('#queue-list-item-archetype').clone();	
+	$clone.removeAttr('id');
+	$clone.find('img').attr('src', locRow.photo);
+
+	if (locRow.status >= 1) {
+		$clone.find('h3').text(StatusRef.fromId(locRow.status).toString());
+	}
+
+	$clone.attr('rowid', locRow.id);
+	$('#queue-dialog ul').append($clone);
+	$clone.show();
+}
+
+function hideQueueItemDelete(e) {
+	$('#queue-item-delete').hide();
+}
+
+function showQueueItemDelete(e) {
+	var $del = $('#queue-item-delete');
+	$del.attr('rowid', $(this).attr('rowid'));
+	$del.show();
+	$del.position({
+		my:	'right center',
+		at:	'right center',
+		of:	$(this),
+		offet:'0, 0'
+	});
+}
+
+$(document).ready(function() {
+	$(document).click(function() {
+		$('#queue-item-delete').hide();
+	});
+
+	var $queue_item;
+
+	// TODO: Why do some of these only work with live() and not on() ?
+	$('.queue-list-item').live('click', function(e) {
+		$queue_item = $(this);
+	});
+
+	$('.queue-list-item').live('swipeleft', showQueueItemDelete)
+	$('.queue-list-item').live('swiperight', hideQueueItemDelete);
+	$('.queue-list-item').live('blur', hideQueueItemDelete);
+
+	$('#queue-item-delete').live('click', function(e) {
+		var id = $(this).attr('rowid');
+		deleteLocation(sqlDb, id);
+		$(this).hide();
+		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
+	});
+
+	$('.status-list-item').on('click', function(e) {
+		// See the text for the currently selected queue list item
+		var $h3 = $queue_item.find('h3');
+		$h3.text($(this).text());
+		
+		// Store back to local DB
+		var id = $queue_item.attr('rowid');
+		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
+	});
+
+	$('.status-submit-button').on('click', function(e) {
+		var valid = 0;
+		var items = new Array();
+		// TODO: this should probably be a class we search for, not h3
+		$('#queue-dialog li').find('h3').filter(':visible').each(function() {
+			if ($(this).text() !== 'Select a Status') {
+				++valid;
+				items.push($(this));
+			}
+		});
+
+		if (valid === 0) {
+			navigator.notification.alert('You must set the status for at least one location');
+			e.preventDefault();
+			e.stopPropagation();
+			$(this).removeClass('ui-btn-active');
+		}
+		else {
+			var names = 'Submitted';
+			items.forEach(function(elem) {
+				// Submit them to the server - if successful remove from local database
+				names += '\n' + $(elem).text();
+			});
+			navigator.notification.alert(names, function() { }, 'Debug', 'Okay');
+		}		
+	});
+});
+
+/*
+        ==============================================
+                      Plugin Callbacks
+        ==============================================
+ */
+function getDeviceUIDSuccess(device) {
+    alert(10); //return device.uid;
+}
+
+/*
+        ==============================================
+                  Event Listener Callbacks
+        ==============================================
+
+    When the application is put into the background via the home button, phone call, app switch, etc. it is paused. Any Objective-C code or PhoneGap code (like alert()) will not run. This callback will allow us to pause anything we need to to avoid time based errors.
+ 
+ */
+function onAppPause() {
+    
+}
+
+/*
+    When the user resumes the app from the background this callback is called, allowing us to resume anything that we stopped.
+ */
+function onAppResume() {
+    
+}
+
+/*
+    Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
+    #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
+ */
+function onAppOnline() {
+    
+}
+
+/*
+    This function is called whenever the device loses internet connection (be it WiFi or 3G or EDGE). With this we can keep the current map tiles cached to avoid losing them.
+    #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
+ */
+function onAppOffline() {
+    
+}
+
+/*
+    Called when the device hits the critical level threshold. This is device specific. (10 on iDevices)
+ */
+function onBatteryCritical(info) {
+    //info.level = % of battery (0-100).
+    //info.isPlugged = true if the device is plugged in.
+}
+
+/*
+    Called when the device hits the low level threshold. This is device specific. (20 on iDevices).
+ */
+function onBatteryLow(info) {
+    //info.level = % of battery (0-100).
+    //info.isPlugged = true if the device is plugged in.
+}
+
+/*
+    Whenever the battery changes status (either info.level changes by one, or info.isPlugged is toggled) this function is called.
+    Example: If they plug in, that means they have power where they are. The building locations that are close by are now operational (if they weren't already labled as such).
+ */
+function onBatteryStatus(info) {
+    //info.level = % of battery (0-100).
+    //info.isPlugged = true if the device is plugged in.
 }
