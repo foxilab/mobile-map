@@ -247,12 +247,43 @@ function addToQueueDialog(locRow) {
 	$clone.show();
 }
 
+function hideQueueItemDelete(e) {
+	$('#queue-item-delete').hide();
+}
+
+function showQueueItemDelete(e) {
+	var $del = $('#queue-item-delete');
+	$del.attr('rowid', $(this).attr('rowid'));
+	$del.show();
+	$del.position({
+		my:	'right center',
+		at:	'right center',
+		of:	$(this),
+		offet:'0, 0'
+	});
+}
+
 $(document).ready(function() {
+	$(document).click(function() {
+		$('#queue-item-delete').hide();
+	});
+
 	var $queue_item;
 
-	// TODO: Why does this only work with live() and not on() ?
+	// TODO: Why do some of these only work with live() and not on() ?
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
+	});
+
+	$('.queue-list-item').live('swipeleft', showQueueItemDelete)
+	$('.queue-list-item').live('swiperight', hideQueueItemDelete);
+	$('.queue-list-item').live('blur', hideQueueItemDelete);
+
+	$('#queue-item-delete').live('click', function(e) {
+		var id = $(this).attr('rowid');
+		deleteLocation(sqlDb, id);
+		$(this).hide();
+		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
 	});
 
 	$('.status-list-item').on('click', function(e) {
