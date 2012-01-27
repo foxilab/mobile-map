@@ -23,26 +23,56 @@
 var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-													pointRadius : 10,
-													externalGraphic : "images/15x15_Blue_Arrow.png",
-													fillOpacity: 1,
-													rotation: 0
-													});
+	pointRadius : 10,
+	externalGraphic : "images/15x15_Blue_Arrow.png",
+	fillOpacity: 1,
+	rotation: 0
+});
 
 var navStyle = new OpenLayers.StyleMap({
-									   "default" : new OpenLayers.Style(null, {
-																		rules : [ new OpenLayers.Rule({
-																									  symbolizer : navSymbolizer
-																									  })]
-																		})
-									   });
+	"default" : new OpenLayers.Style(null, {
+		rules : [ new OpenLayers.Rule({
+					symbolizer : navSymbolizer
+				})]
+	})
+});
 
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
 {
   styleMap: navStyle
 });
 
-/*OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
+
+var WGS84 = new OpenLayers.Projection("EPSG:4326");
+var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
+var maxResolution = 15543.0339;
+var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
+var restrictedExtent = maxExtent.clone();
+
+var touchNavOptions = {
+dragPanOptions: {
+interval: 0, //non-zero kills performance on some mobile phones
+enableKinetic: true
+}
+};
+
+
+var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
+
+var options = {
+div: "map",
+projection: WGS84,
+	numZoomLevels : 20,
+maxResolution: maxResolution,
+maxExtent: maxExtent,
+restrictedExtent: restrictedExtent,
+controls: [
+		   rotatingTouchNav
+		   ]
+};
+
+/*var gimmyHeading = 315;
+OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
 	defaultHandlerOptions: {
 		'single': true,
 		'double': false,
@@ -66,14 +96,24 @@ var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
 	}, 
 											
 	trigger: function(e) {
-		navSymbolizer.rotation += 10;
-		navigationLayer.redraw();
+		//navSymbolizer.rotation += 10;
+		//navigationLayer.redraw();
+									
+		//Rotate map
+											var heading = gimmyHeading;
+											var mapRotation = 360 - heading;
+											var diff = (-1 * mapRotation) - map.events.rotationAngle;
+											if(diff > -180)
+											$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+											else
+											$("#map").animate({rotate: (-1 * heading) + 'deg'}, 1000);
+											
+											map.events.rotationAngle = -1 * mapRotation;
+											gimmyHeading = 90;
 	}
 										
 });*/
 
-var WGS84 = new OpenLayers.Projection("EPSG:4326");
-var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 
 function onBodyLoad()
 {		
@@ -87,6 +127,7 @@ var geolocationSuccess = function(position){
 	var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
 	var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
 	
+	navigationLayer.removeAllFeatures();
 	navigationLayer.addFeatures([currentPosition]);
 	
 	map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
@@ -98,8 +139,20 @@ var geolocationError = function(error){
 }
 
 var compassSuccess = function(heading){
-	navSymbolizer.rotation = heading.magneticHeading;
-	navigationLayer.redraw();
+	//Rotate arrow
+	/*navSymbolizer.rotation = heading.magneticHeading;
+	navigationLayer.redraw();*/
+	
+	//Rotate map
+	var heading = heading.magneticHeading;
+	var mapRotation = 360 - heading;
+	var diff = (-1 * mapRotation) - map.events.rotationAngle;
+	if(diff > -180)
+		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+	else
+		$("#map").animate({rotate: (-1 * heading) + 'deg'}, 1000);
+	
+	map.events.rotationAngle = -1 * mapRotation;
 }
 
 var compassError = function(error){
@@ -110,6 +163,7 @@ var compassError = function(error){
 		alert("compass not supported");
 	
 }
+
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
@@ -122,37 +176,23 @@ function onDeviceReady()
 	var footerHeight = $("#footer").height();
 	var mapHeight = docHeight - headerHeight - footerHeight - 50;
 	
-	$("#map").height(mapHeight +"px");
-	$("#canvas").height(mapHeight + "px");
+	var mapContainer = $("#mapContainer");
+	mapContainer.height(mapHeight +"px");
+	var mapDiv = $("#map");
+	mapHeight = mapHeight*1.7;
+	mapDiv.height(mapHeight+"px");
+	mapDiv.width(mapHeight+"px");
+
+	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+	mapDiv.css('top', mapTopPosition);
+	mapDiv.css('left', mapLeftPosition);
 	
-	
-	var maxResolution = 15543.0339;
-	var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
-	var restrictedExtent = maxExtent.clone();
-	var touchNavOptions = {
-	dragPanOptions: {
-	interval: 0, //non-zero kills performance on some mobile phones
-	enableKinetic: true
-	}
-	};
-	
-	
-	var options = {
-	div: "map",
-	projection: WGS84,
-		numZoomLevels : 20,
-	maxResolution: maxResolution,
-	maxExtent: maxExtent,
-	restrictedExtent: restrictedExtent,
-	controls: [
-			   new OpenLayers.Control.TouchNavigation(touchNavOptions),
-			   //new OpenLayers.Control.ZoomPanel()
-			   ],
-	layers: [new OpenLayers.Layer.OSM(), navigationLayer]
-		//center: new OpenLayers.LonLat(-77.020000, 38.890000).transform(WGS84, WGS84_google_mercator),
-		//zoom: 2
-	};
 	map = new OpenLayers.Map(options);
+	map.events.mapSideLength = mapHeight;
+	
+	var mapLayerOSM = new OpenLayers.Layer.OSM();
+	map.addLayers([mapLayerOSM, navigationLayer]);
 	
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -161,7 +201,7 @@ function onDeviceReady()
 	});
 	
 	var compassOptions = {
-	frequency: 3000
+		frequency: 3000
 	};
 	
 	//navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
@@ -206,6 +246,11 @@ function onDeviceReady()
 		}
 	});
 	
+	var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
+	map.addControl(zoomPanel);
+	var zoomRight = .05 * mapHeight;
+	$("#zoomPanel").css("right", "5%");
+	$("#zoomPanel").css("bottom", zoomRight + "px");
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
