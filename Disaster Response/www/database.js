@@ -12,6 +12,7 @@ var StatusRef = new function () {
 		this.toString = function () { return str; }
 	}
 
+	// TODO: Figure out a way to keep this table in-sync with the fusion table
 	this.operational = function () { return new ref(1, 'Operational'); }
 	this.limited = function () { return new ref(2, 'Limited Capabilities'); }
 	this.uninhabited = function () { return new ref(3, 'Intact, but Uninhabited'); }
@@ -71,7 +72,7 @@ function createQueueTable(db) {
 
 function forAllLocations(db, f) {
 	var query = function (tx) {
-		tx.executeSql('SELECT * FROM locationqueue', [], function(t, results) {
+		tx.executeSql('SELECT * FROM locationqueue ORDER BY id DESC', [], function(t, results) {
 			if (f) {
 				for (var i = 0; i < results.rows.length; ++i) {
 					f.call(f, results.rows.item(i));
@@ -152,10 +153,18 @@ function insertToLocationQueueTable(db, lon, lat, name, photo, status) {
 	return key;
 }
 
+function deleteLocation(db, rowid) {
+	var remove = function(tx) {
+		tx.executeSql('DELETE FROM locationqueue WHERE id=' + rowid);
+	};
+	
+	db.transaction(remove, errorSql);
+}
+
 // TODO: remove this since it's debug only?
 function clearLocationQueueTable(db) {
 	var remove = function (tx) {
-		tx.executeSql('DELETE * FROM locationqueue');
+		tx.executeSql('DELETE FROM locationqueue');
 	};
 	
 	db.transaction(remove, errorSql);
