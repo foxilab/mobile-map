@@ -116,9 +116,9 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 
 
 //  NativeControl Variables
-//var nativeControls;
-//var tempLon;
-//var tempLat;
+var nativeControls;
+var tempLon;
+var tempLat;
 
 // Phone Variables
 var isAppPaused = false;
@@ -135,8 +135,8 @@ var geolocationSuccess = function(position){
 	var lat = position.coords.latitude;
     
     //Quick and Dirty to get lat/lon to center the map
-    //tempLat = lat;
-    //tempLon = lon;
+    tempLat = lat;
+    tempLon = lon;
 	
 	var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
 	var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
@@ -175,9 +175,9 @@ var compassSuccess = function(heading){
 var compassError = function(error){
 	//error handling
 	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
-		alert("compass internal error");
+        navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
 	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
-		alert("compass not supported");
+        navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
 	
 }
 
@@ -189,19 +189,19 @@ var compassError = function(error){
 function onDeviceReady()
 {
     //Now that the device is ready, lets set up our event listeners.
-        document.addEventListener("pause"             , onAppPause         , false);
-        document.addEventListener("resume"            , onAppResume        , false);
-        document.addEventListener("online"            , onAppOnline        , false);
-        document.addEventListener("offline"           , onAppOffline       , false);
-        document.addEventListener("batterycritical"   , onBatteryCritical  , false);
-        document.addEventListener("batterylow"        , onBatteryLow       , false);
-        document.addEventListener("batterystatus"     , onBatteryStatus    , false);
-        document.addEventListener("orientationChanged", onOrientationChange, false);
+        document.addEventListener("pause"            , onAppPause         , false);
+        document.addEventListener("resume"           , onAppResume        , false);
+        document.addEventListener("online"           , onAppOnline        , false);
+        document.addEventListener("offline"          , onAppOffline       , false);
+        document.addEventListener("batterycritical"  , onBatteryCritical  , false);
+        document.addEventListener("batterylow"       , onBatteryLow       , false);
+        document.addEventListener("batterystatus"    , onBatteryStatus    , false);
+          window.addEventListener("orientationchange", onOrientationChange,  true);
     
     //Set up NativeControls
-        //nativeControls = window.plugins.nativeControls;
-            //setupTabBar();
-            //setupNavBar();
+        nativeControls = window.plugins.nativeControls;
+            setupTabBar();
+            setupNavBar();
     
     //ChildBrowser code to open Google.com
         //var cb = ChildBrowser.install();
@@ -407,7 +407,7 @@ $(document).ready(function() {
 				// Submit them to the server - if successful remove from local database
 				names += '\n' + $(elem).text();
 			});
-			navigator.notification.alert(names, function() { }, 'Debug', 'Okay');
+			navigator.notification.alert(names, function(){}, 'Debug', 'Okay');
 		}		
 	});
 });
@@ -422,8 +422,11 @@ function getDeviceUIDSuccess(device) {
 }
 
 var tabBarItems = { tabs: [
-      {'name': 'Map', 'image': '/www/css/images/15x15_Blue_Arrow.png', 'onSelect': onClick_MapTab},
-      {'name': 'More', 'image': 'tabButton:More', 'onSelect': onClick_MoreTab}]};
+      {'name': 'Map'  , 'image': '/www/tabs/Map.png'  , 'onSelect': onClick_MapTab},
+      {'name': 'Queue', 'image': '/www/tabs/Queue.png', 'onSelect': onClick_QueueTab},
+      {'name': 'User' , 'image': '/www/tabs/User.png' , 'onSelect': onClick_UserTab},
+      {'name': 'Debug', 'image': '/www/tabs/Debug.png', 'onSelect': onClick_DebugTab},
+      {'name': 'More' , 'image': 'tabButton:More'     , 'onSelect': onClick_MoreTab}]};
 
 function setupTabBar() {
     nativeControls.createTabBar();
@@ -432,7 +435,7 @@ function setupTabBar() {
     {
         setUpButton(tabBarItems.tabs[i]);
     }
-    nativeControls.showTabBarItems('Map', 'More');   
+    nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');   
     showTabBar();
 }
 
@@ -446,12 +449,27 @@ function setUpButton(tab)
 }
 
 function onClick_MapTab() {
-    //map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
-	//			  .transform(WGS84, WGS84_google_mercator), 17);
+    //navigator.notification.alert('Map tab clicked.', function(){}, 'Debug', 'Okay');
+    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
+				  .transform(WGS84, WGS84_google_mercator), 17);
+}
+
+function onClick_QueueTab() {
+    navigator.notification.alert('Queue tab clicked.', function(){}, 'Debug', 'Okay');
+}
+
+function onClick_UserTab() {
+    navigator.notification.alert('User tab clicked.', function(){}, 'Debug', 'Okay');
 }
 
 function onClick_MoreTab() {
-    navigator.notification.alert('More tab clicked.', function() { }, 'Debug', 'Okay');
+    navigator.notification.alert('More tab clicked.', function(){}, 'Debug', 'Okay');
+}
+
+//Temporary option to allow us to open a different tab and access debug information
+// like Device, iOS version, current location, etc.
+function onClick_DebugTab() {
+    navigator.notification.alert('Debug tab clicked.', function(){}, 'Debug', 'Okay');
 }
 
 function showTabBar() {
@@ -465,19 +483,45 @@ function hideTabBar() {
 }
 
 function setupNavBar() {
-    //nativeControls.createNavBar();
-    //nativeControls.setupLeftNavButton("Left","","onSelectLeftNavBarButton");
-    //nativeControls.setupRightNavButton("Settings","", "onSelectRightNavBarButton");
-    //nativeControls.setNavBarTitle("Disaster Response");
-    //nativeControls.setNavBarLogo("css/images/15x15_Blue_Arrow.png");
+    nativeControls.createNavBar();
+    nativeControls.setupLeftNavButton('Left','', 'onSelectLeftNavBarButton');
+    nativeControls.setupRightNavButton('Settings','', 'onSelectRightNavBarButton');
+    nativeControls.setNavBarTitle('Disaster Response');
+    nativeControls.setNavBarLogo('');
+    hideLeftNavButton();
+    showNavBar();
+}
+
+function showNavBar() {
+    nativeControls.showNavBar();
+}
+
+function hideNavBar() {
+    nativeControls.hideNavBar();
+}
+
+function showLeftNavButton() {
+    nativeControls.showLeftNavButton();
+}
+
+function hideLeftNavButton() {
+    nativeControls.hideLeftNavButton();
+}
+
+function showRightNavButton() {
+    nativeControls.showRightNavButton();
+}
+
+function hideRightNavButton() {
+    nativeControls.hideRightNavButton();
 }
 
 function onSelectLeftNavBarButton() {
-    navigator.notification.alert('Left NavBar button was selected.', function() { }, 'Debug', 'Okay');
+    navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
 function onSelectRightNavBarButton() {
-    navigator.notification.alert('Right NavBar button was selected.', function() { }, 'Debug', 'Okay');
+    navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
 /*
@@ -510,7 +554,7 @@ function onAppResume() {
         if(isDataToPush)
         {
             //#TODO: Upload the local queue to the Google Fusion Table.
-            console.log('Debug: Wrote to fusion table onAppResume().');
+            console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
             
             //Mark that we pushed the data.
             isDataToPush = false;
@@ -533,7 +577,7 @@ function onAppOnline() {
     if(isDataToPush)
     {
         //#TODO: Upload the local queue to the Google Fusion Table.
-        console.log('Debug: Wrote to fusion table onAppOnline().');
+        console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
         
         //Mark that we pushed the data.
         isDataToPush = false;
@@ -551,60 +595,78 @@ function onAppOffline() {
 
 /*
     Called when the orientation of the iDevice is changed.
-    #QUIRK: Currently broken in PhoneGap 1.3.0
+    #QUIRK: Triggered twice on 1 rotation.
  */
-function onOrientationChange(o)
+var orDirtyToggle = false;
+function onOrientationChange(_error)
 {
-    console.log('Listener: App has changed orientation to '+o.orientation+'.');
-    
-    switch(o.orientation)
+    //Prevent the function from running multiple times.
+    orDirtyToggle = !orDirtyToggle;
+    if(orDirtyToggle)
     {
-        //Default view
-        case 0: {
-            break;}
-        
-        //Landscape with the screen turned to the left.
-        case -90: {
-            break;}
-            s
-        //Landscape with the screen turned to the right.
-        case 90: {
-            break;}
+        switch(window.orientation)
+        {
+            case -90:   //Landscape with the screen turned to the left.
+                onOrientationLandscape(window.orientation);
+                break;
             
-        //Upside down.
-        case 180: {
-            break;}
+            case 0:     //Default view
+                onOrientationPortrait(window.orientation);
+                break;
+  
+            case 90:    //Landscape with the screen turned to the right.
+                onOrientationLandscape(window.orientation);
+                break;
             
-        default: {
-            navigator.notification.alert('Orientation issue.', function() { }, 'Error', 'Okay');
-            break;}
+            case 180:   //Upside down.
+                onOrientationPortrait(window.orientation);
+                break;
+            
+            default: 
+                navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
+                break;
+        }
     }
+}
+
+/*
+    This function is called whenever the device is switched over to landscape mode. Here we can do things like resize our viewport.
+ */
+function onOrientationLandscape(_o) {
+    console.log('Listener: App has changed orientation to Landscape '+_o+'.');
+}
+
+/*
+ This function is called whenever the device is switched over to portrait mode. Here we can do things like resize our viewport.
+ */
+function onOrientationPortrait(_o) {
+    console.log('Listener: App has changed orientation to Portrait '+_o+'.');
 }
 
 /*
     Called when the device hits the critical level threshold. This is device specific. (10 on iDevices)
  */
-function onBatteryCritical(info) {
+function onBatteryCritical(_info) {
     console.log('Listener: Device battery is now critical.');
-    //info.level = % of battery (0-100).
-    //info.isPlugged = true if the device is plugged in.
+    //_info.level = % of battery (0-100).
+    //_info.isPlugged = true if the device is plugged in.
 }
 
 /*
     Called when the device hits the low level threshold. This is device specific. (20 on iDevices).
  */
-function onBatteryLow(info) {
+function onBatteryLow(_info) {
     console.log('Listener: Device battery is now on low.');
-    //info.level = % of battery (0-100).
-    //info.isPlugged = true if the device is plugged in.
+    //_info.level = % of battery (0-100).
+    //_info.isPlugged = true if the device is plugged in.
 }
 
 /*
     Whenever the battery changes status (either info.level changes by one, or info.isPlugged is toggled) this function is called.
     Example: If they plug in, that means they have power where they are. The building locations that are close by are now operational (if they weren't already labled as such).
  */
-function onBatteryStatus(info) {
-    console.log('Listener: Device battery now at '+info.level+'.');
-    //info.level = % of battery (0-100).
-    //info.isPlugged = true if the device is plugged in.
+function onBatteryStatus(_info) {
+    console.log('Listener: Device battery now at '+_info.level+'.');
+    //_info.level = % of battery (0-100).
+    //_info.isPlugged = true if the device is plugged in.
 }
