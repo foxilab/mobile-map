@@ -27,7 +27,6 @@ var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	externalGraphic : "css/images/15x15_Blue_Arrow.png",
 	fillOpacity: 1,
 	rotation: 0
-	});
 });
 
 var navStyle = new OpenLayers.StyleMap({
