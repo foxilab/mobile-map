@@ -124,6 +124,7 @@ var tempLat;
 var isAppPaused = false;
 var isInternetConnection = false;
 var isDataToPush = false;
+var itemsToPush = 0;
 var isLandscape = false;
 
 function onBodyLoad()
@@ -284,6 +285,11 @@ function onDeviceReady()
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 				// TODO: This sometimes flashes the map
 				$.mobile.changePage('#queue-dialog', 'pop');
+                                        
+                //We just added an item to the queue, meaning we have new data to push.
+                isDataToPush = true;
+                itemsToPush += 1;
+                updateBadge('Queue', itemsToPush);
 			},
 			function () { },
 			{
@@ -330,9 +336,6 @@ function addToQueueDialog(locRow) {
 	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
 	$clone.show();
-    
-    //We just added an item to the queue, meaning we have new data to push.
-    isDataToPush = true;
 }
 
 function hideQueueItemDelete(e) {
@@ -409,6 +412,9 @@ $(document).ready(function() {
 				names += '\n' + $(elem).text();
 			});
 			navigator.notification.alert(names, function(){}, 'Debug', 'Okay');
+                                  
+            itemsToPush = 0;
+            hideBadge('Queue');
 		}		
 	});
 });
@@ -436,7 +442,8 @@ function setupTabBar() {
         for (var i = 0; i < _length; i++) {
             setUpButton(tabBarItems.tabs[i]);
         }
-    nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');   
+    nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
+    nativeControls.selectTabBarItem('Map');
     showTabBar();
 }
 
@@ -461,6 +468,22 @@ function setupNavBar() {
     nativeControls.setNavBarLogo('');
     hideLeftNavButton();
     showNavBar();
+}
+
+function updateBadge(_tabName, _amount) {
+    
+    if(0 ==_amount)
+        hideBadge();
+    else
+    {
+        var object = new Object();
+            object.badge = _amount.toString();
+        nativeControls.updateTabBarItem(_tabName, object);
+    }
+}
+
+function hideBadge(_tabName) {
+    nativeControls.updateTabBarItem(_tabName, null);
 }
 
 function showTabBar() {
@@ -544,6 +567,8 @@ function onClick_MoreTab() {
 function onClick_DebugTab() {
     console.log('onClick: DebugTab');
     navigator.notification.alert('Debug tab clicked.', function(){}, 'Debug', 'Okay');
+    
+    window.open ('Debug.html','_self',false);
 }
 
 /*
