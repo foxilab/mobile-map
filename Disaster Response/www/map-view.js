@@ -75,6 +75,11 @@ var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 
+//  NativeControl Variables
+//var nativeControls;
+//var tempLon;
+//var tempLat;
+
 function onBodyLoad()
 {		
     document.addEventListener("deviceready", onDeviceReady, false);
@@ -83,6 +88,10 @@ function onBodyLoad()
 var geolocationSuccess = function(position){
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
+    
+    //Quick and Dirty to get lat/lon to center the map
+    //tempLat = lat;
+    //tempLon = lon;
 	
 	var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
 	var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
@@ -119,7 +128,6 @@ var compassError = function(error){
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
-var plugin;
 function onDeviceReady()
 {
     //Now that the device is ready, lets set up our event listeners.
@@ -127,14 +135,21 @@ function onDeviceReady()
         document.addEventListener("resume" , onAppResume , false);
         document.addEventListener("online" , onAppOnline , false);
         document.addEventListener("offline", onAppOffline, false);
-        window.addEventListener("batterycritical", onBatteryCritical, false);
-        window.addEventListener("batterylow"     , onBatteryLow     , false);
-        window.addEventListener("batterystatus"  , onBatteryStatus  , false);
+        document.addEventListener("batterycritical", onBatteryCritical, false);
+        document.addEventListener("batterylow"     , onBatteryLow     , false);
+        document.addEventListener("batterystatus"  , onBatteryStatus  , false);
+    
+    window.onorientationChange = function() { onOrientationChange(window.orientation); }
+    
+    //Set up NativeControls
+        //nativeControls = window.plugins.nativeControls;
+            //setupTabBar();
+            //setupNavBar();
     
     //ChildBrowser code to open Google.com
         //var cb = ChildBrowser.install();
         //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
-    
+
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -276,6 +291,7 @@ $(document).ready(function() {
 	});
 
 	$('.status-list-item').on('click', function(e) {
+                            
 		// See the text for the currently selected queue list item
 		var $h3 = $queue_item.find('h3');
 		$h3.text($(this).text());
@@ -313,13 +329,77 @@ $(document).ready(function() {
 	});
 });
 
+function onOrientationChange(o)
+{
+    alert("O Change");
+}
+
 /*
         ==============================================
-                      Plugin Callbacks
+                  Plugin Callbacks/Functions
         ==============================================
  */
 function getDeviceUIDSuccess(device) {
     alert(10); //return device.uid;
+}
+
+var tabBarItems = { tabs: [
+      {"name": "Map", "image": "/www/css/images/15x15_Blue_Arrow.png", "onSelect": onClick_MapTab},
+      {"name": "More", "image": "tabButton:More", "onSelect": onClick_MoreTab}]};
+
+function setupTabBar() {
+    nativeControls.createTabBar();
+    var i = 0;
+    for (i = 0; i < tabBarItems.tabs.length; i++)
+    {
+        setUpButton(tabBarItems.tabs[i]);
+    }
+    nativeControls.showTabBarItems('Map', 'More');   
+    showTabBar();
+}
+
+function setUpButton(tab)
+{
+    var options = new Object();
+    options.onSelect = tab.onSelect;
+    
+    nativeControls.createTabBarItem(tab.name, tab.name, tab.image, options);
+    
+}
+
+function onClick_MapTab() {
+    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
+				  .transform(WGS84, WGS84_google_mercator), 17);
+}
+
+function onClick_MoreTab() {
+    alert("More tab clicked.");
+}
+
+function showTabBar() {
+    var options = new Object();
+    options.position = 'bottom';
+    nativeControls.showTabBar(options);
+}
+
+function hideTabBar() {
+    nativeControls.hideTabBar();
+}
+
+function setupNavBar() {
+    //nativeControls.createNavBar();
+    //nativeControls.setupLeftNavButton("Left","","onSelectLeftNavBarButton");
+    //nativeControls.setupRightNavButton("Settings","", "onSelectRightNavBarButton");
+    //nativeControls.setNavBarTitle("Disaster Response");
+    //nativeControls.setNavBarLogo("css/images/15x15_Blue_Arrow.png");
+}
+
+function onSelectLeftNavBarButton() {
+    
+}
+
+function onSelectRightNavBarButton() {
+    alert("Settings menu goes here");
 }
 
 /*
