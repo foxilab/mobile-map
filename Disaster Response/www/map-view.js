@@ -124,6 +124,7 @@ var tempLat;
 var isAppPaused = false;
 var isInternetConnection = false;
 var isDataToPush = false;
+var isLandscape = false;
 
 function onBodyLoad()
 {		
@@ -414,13 +415,11 @@ $(document).ready(function() {
 
 /*
         ==============================================
-                  Plugin Callbacks/Functions
+                  NativeControls Functions
         ==============================================
+ 
+    This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
  */
-function getDeviceUIDSuccess(device) {
-   return device.uid;
-}
-
 var tabBarItems = { tabs: [
       {'name': 'Map'  , 'image': '/www/tabs/Map.png'  , 'onSelect': onClick_MapTab},
       {'name': 'Queue', 'image': '/www/tabs/Queue.png', 'onSelect': onClick_QueueTab},
@@ -428,48 +427,40 @@ var tabBarItems = { tabs: [
       {'name': 'Debug', 'image': '/www/tabs/Debug.png', 'onSelect': onClick_DebugTab},
       {'name': 'More' , 'image': 'tabButton:More'     , 'onSelect': onClick_MoreTab}]};
 
+/*
+    This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
+ */
 function setupTabBar() {
     nativeControls.createTabBar();
-    var i = 0;
-    for (i = 0; i < tabBarItems.tabs.length; i++)
-    {
-        setUpButton(tabBarItems.tabs[i]);
-    }
+        var _length = tabBarItems.tabs.length;
+        for (var i = 0; i < _length; i++) {
+            setUpButton(tabBarItems.tabs[i]);
+        }
     nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');   
     showTabBar();
 }
 
-function setUpButton(tab)
+/*
+    Called by setupTabBar, this function creates the TabBarItems with the given params from our array.
+ */
+function setUpButton(_tabItem)
 {
     var options = new Object();
-    options.onSelect = tab.onSelect;
-    
-    nativeControls.createTabBarItem(tab.name, tab.name, tab.image, options);
-    
+        options.onSelect = _tabItem.onSelect;
+    nativeControls.createTabBarItem(_tabItem.name, _tabItem.name, _tabItem.image, options);
 }
 
-function onClick_MapTab() {
-    //navigator.notification.alert('Map tab clicked.', function(){}, 'Debug', 'Okay');
-    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
-				  .transform(WGS84, WGS84_google_mercator), 17);
-}
-
-function onClick_QueueTab() {
-    navigator.notification.alert('Queue tab clicked.', function(){}, 'Debug', 'Okay');
-}
-
-function onClick_UserTab() {
-    navigator.notification.alert('User tab clicked.', function(){}, 'Debug', 'Okay');
-}
-
-function onClick_MoreTab() {
-    navigator.notification.alert('More tab clicked.', function(){}, 'Debug', 'Okay');
-}
-
-//Temporary option to allow us to open a different tab and access debug information
-// like Device, iOS version, current location, etc.
-function onClick_DebugTab() {
-    navigator.notification.alert('Debug tab clicked.', function(){}, 'Debug', 'Okay');
+/*
+    This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
+ */
+function setupNavBar() {
+    nativeControls.createNavBar();
+    nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
+    nativeControls.setupRightNavButton('Settings','', 'onClick_RightNavBarButton');
+    nativeControls.setNavBarTitle('Disaster Response');
+    nativeControls.setNavBarLogo('');
+    hideLeftNavButton();
+    showNavBar();
 }
 
 function showTabBar() {
@@ -480,16 +471,6 @@ function showTabBar() {
 
 function hideTabBar() {
     nativeControls.hideTabBar();
-}
-
-function setupNavBar() {
-    nativeControls.createNavBar();
-    nativeControls.setupLeftNavButton('Left','', 'onSelectLeftNavBarButton');
-    nativeControls.setupRightNavButton('Settings','', 'onSelectRightNavBarButton');
-    nativeControls.setNavBarTitle('Disaster Response');
-    nativeControls.setNavBarLogo('');
-    hideLeftNavButton();
-    showNavBar();
 }
 
 function showNavBar() {
@@ -516,12 +497,53 @@ function hideRightNavButton() {
     nativeControls.hideRightNavButton();
 }
 
-function onSelectLeftNavBarButton() {
+/*
+        ==============================================
+            NativeControls Nav onClick Functions
+        ==============================================
+ */
+
+function onClick_LeftNavBarButton() {
+    console.log('onClick: LeftNavBarButton');
     navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
-function onSelectRightNavBarButton() {
+function onClick_RightNavBarButton() {
+    console.log('onClick: RightNavBarButton');
     navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
+}
+
+/*
+        ==============================================
+             NativeControls Tab onClick Functions
+        ==============================================
+ */
+function onClick_MapTab() {
+    console.log('onClick: MapTab');
+    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
+				  .transform(WGS84, WGS84_google_mercator), 17);
+}
+
+function onClick_QueueTab() {
+    console.log('onClick: QueueTab');
+    navigator.notification.alert('Queue tab clicked.', function(){}, 'Debug', 'Okay');
+}
+
+function onClick_UserTab() {
+    console.log('onClick: UserTab');
+    navigator.notification.alert('User tab clicked.', function(){}, 'Debug', 'Okay');
+}
+
+function onClick_MoreTab() {
+    console.log('onClick: MoreTab');
+    navigator.notification.alert('More tab clicked.', function(){}, 'Debug', 'Okay');
+}
+
+//Temporary option to allow us to open a different tab and access debug information
+// like Device, iOS version, current location, etc.
+function onClick_DebugTab() {
+    console.log('onClick: DebugTab');
+    navigator.notification.alert('Debug tab clicked.', function(){}, 'Debug', 'Okay');
 }
 
 /*
@@ -634,6 +656,7 @@ function onOrientationChange(_error)
  */
 function onOrientationLandscape(_o) {
     console.log('Listener: App has changed orientation to Landscape '+_o+'.');
+    isLandscape = true;
 }
 
 /*
@@ -641,6 +664,7 @@ function onOrientationLandscape(_o) {
  */
 function onOrientationPortrait(_o) {
     console.log('Listener: App has changed orientation to Portrait '+_o+'.');
+    isLandscape = false;
 }
 
 /*
