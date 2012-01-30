@@ -23,19 +23,16 @@
 var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-													pointRadius : 10,
-													externalGraphic : "css/images/15x15_Blue_Arrow.png",
-													fillOpacity: 1,
-													rotation: 0
-													});
+		pointRadius : 10, externalGraphic : "css/images/15x15_Blue_Arrow.png",
+		fillOpacity: 1, rotation: 0
+});
 
 var navStyle = new OpenLayers.StyleMap({
-									   "default" : new OpenLayers.Style(null, {
-																		rules : [ new OpenLayers.Rule({
-																									  symbolizer : navSymbolizer
-																									  })]
-																		})
-									   });
+    "default" : new OpenLayers.Style(null, {
+	rules : [ new OpenLayers.Rule({
+	    symbolizer : navSymbolizer })]
+	})
+});
 
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
 {
@@ -79,6 +76,11 @@ var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 //var nativeControls;
 //var tempLon;
 //var tempLat;
+
+// Phone Variables
+var isAppPaused = false;
+var isInternetConnection = false;
+var isDataToPush = false;
 
 function onBodyLoad()
 {		
@@ -131,15 +133,14 @@ var compassError = function(error){
 function onDeviceReady()
 {
     //Now that the device is ready, lets set up our event listeners.
-        document.addEventListener("pause"  , onAppPause  , false);
-        document.addEventListener("resume" , onAppResume , false);
-        document.addEventListener("online" , onAppOnline , false);
-        document.addEventListener("offline", onAppOffline, false);
-        document.addEventListener("batterycritical", onBatteryCritical, false);
-        document.addEventListener("batterylow"     , onBatteryLow     , false);
-        document.addEventListener("batterystatus"  , onBatteryStatus  , false);
-    
-    window.onorientationChange = function() { onOrientationChange(window.orientation); }
+        document.addEventListener("pause"             , onAppPause         , false);
+        document.addEventListener("resume"            , onAppResume        , false);
+        document.addEventListener("online"            , onAppOnline        , false);
+        document.addEventListener("offline"           , onAppOffline       , false);
+        document.addEventListener("batterycritical"   , onBatteryCritical  , false);
+        document.addEventListener("batterylow"        , onBatteryLow       , false);
+        document.addEventListener("batterystatus"     , onBatteryStatus    , false);
+        document.addEventListener("orientationChanged", onOrientationChange, false);
     
     //Set up NativeControls
         //nativeControls = window.plugins.nativeControls;
@@ -280,6 +281,9 @@ function addToQueueDialog(locRow) {
 	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
 	$clone.show();
+    
+    //We just added an item to the queue, meaning we have new data to push.
+    isDataToPush = true;
 }
 
 function hideQueueItemDelete(e) {
@@ -360,23 +364,18 @@ $(document).ready(function() {
 	});
 });
 
-function onOrientationChange(o)
-{
-    alert("O Change");
-}
-
 /*
         ==============================================
                   Plugin Callbacks/Functions
         ==============================================
  */
 function getDeviceUIDSuccess(device) {
-    alert(10); //return device.uid;
+   return device.uid;
 }
 
 var tabBarItems = { tabs: [
-      {"name": "Map", "image": "/www/css/images/15x15_Blue_Arrow.png", "onSelect": onClick_MapTab},
-      {"name": "More", "image": "tabButton:More", "onSelect": onClick_MoreTab}]};
+      {'name': 'Map', 'image': '/www/css/images/15x15_Blue_Arrow.png', 'onSelect': onClick_MapTab},
+      {'name': 'More', 'image': 'tabButton:More', 'onSelect': onClick_MoreTab}]};
 
 function setupTabBar() {
     nativeControls.createTabBar();
@@ -399,12 +398,12 @@ function setUpButton(tab)
 }
 
 function onClick_MapTab() {
-    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
-				  .transform(WGS84, WGS84_google_mercator), 17);
+    //map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
+	//			  .transform(WGS84, WGS84_google_mercator), 17);
 }
 
 function onClick_MoreTab() {
-    alert("More tab clicked.");
+    navigator.notification.alert('More tab clicked.', function() { }, 'Debug', 'Okay');
 }
 
 function showTabBar() {
@@ -426,11 +425,11 @@ function setupNavBar() {
 }
 
 function onSelectLeftNavBarButton() {
-    
+    navigator.notification.alert('Left NavBar button was selected.', function() { }, 'Debug', 'Okay');
 }
 
 function onSelectRightNavBarButton() {
-    alert("Settings menu goes here");
+    navigator.notification.alert('Right NavBar button was selected.', function() { }, 'Debug', 'Okay');
 }
 
 /*
@@ -442,14 +441,33 @@ function onSelectRightNavBarButton() {
  
  */
 function onAppPause() {
-    
+    console.log('Listener: App has been paused.');
+    isAppPaused = true;
+    //Because native code won't run while an app is paused, all code below this line
+    // will not run until the app is reopened again.
 }
 
 /*
     When the user resumes the app from the background this callback is called, allowing us to resume anything that we stopped.
  */
 function onAppResume() {
-    
+    console.log('Listener: App has been resumed.');
+    isAppPaused = false;
+
+    //Check to see if we have an internet connection
+    if(isInternetConnection)
+    {
+        //We do, now check to see if we have pushed our data already or not.
+        // no need to push data thats already there...
+        if(isDataToPush)
+        {
+            //#TODO: Upload the local queue to the Google Fusion Table.
+            console.log('Debug: Wrote to fusion table onAppResume().');
+            
+            //Mark that we pushed the data.
+            isDataToPush = false;
+        }
+    }
 }
 
 /*
@@ -457,7 +475,21 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
+    console.log('Listener: App has internet connection.');
+    isInternetConnection = true;
     
+    //Because native code won't run while an app is paused, this will not get called unless
+    // the app is running. Time to push data to the server.
+    
+    //Check to see if we have pushed our data already or not.
+    if(isDataToPush)
+    {
+        //#TODO: Upload the local queue to the Google Fusion Table.
+        console.log('Debug: Wrote to fusion table onAppOnline().');
+        
+        //Mark that we pushed the data.
+        isDataToPush = false;
+    }
 }
 
 /*
@@ -465,13 +497,47 @@ function onAppOnline() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOffline() {
+    console.log('Listener: App has lost internet connection.');
+    isInternetConnection = false;
+}
+
+/*
+    Called when the orientation of the iDevice is changed.
+    #QUIRK: Currently broken in PhoneGap 1.3.0
+ */
+function onOrientationChange(o)
+{
+    console.log('Listener: App has changed orientation to '+o.orientation+'.');
     
+    switch(o.orientation)
+    {
+        //Default view
+        case 0: {
+            break;}
+        
+        //Landscape with the screen turned to the left.
+        case -90: {
+            break;}
+            s
+        //Landscape with the screen turned to the right.
+        case 90: {
+            break;}
+            
+        //Upside down.
+        case 180: {
+            break;}
+            
+        default: {
+            navigator.notification.alert('Orientation issue.', function() { }, 'Error', 'Okay');
+            break;}
+    }
 }
 
 /*
     Called when the device hits the critical level threshold. This is device specific. (10 on iDevices)
  */
 function onBatteryCritical(info) {
+    console.log('Listener: Device battery is now critical.');
     //info.level = % of battery (0-100).
     //info.isPlugged = true if the device is plugged in.
 }
@@ -480,6 +546,7 @@ function onBatteryCritical(info) {
     Called when the device hits the low level threshold. This is device specific. (20 on iDevices).
  */
 function onBatteryLow(info) {
+    console.log('Listener: Device battery is now on low.');
     //info.level = % of battery (0-100).
     //info.isPlugged = true if the device is plugged in.
 }
@@ -489,6 +556,7 @@ function onBatteryLow(info) {
     Example: If they plug in, that means they have power where they are. The building locations that are close by are now operational (if they weren't already labled as such).
  */
 function onBatteryStatus(info) {
+    console.log('Listener: Device battery now at '+info.level+'.');
     //info.level = % of battery (0-100).
     //info.isPlugged = true if the device is plugged in.
 }
