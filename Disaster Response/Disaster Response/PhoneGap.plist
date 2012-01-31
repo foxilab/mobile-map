@@ -48,6 +48,12 @@
 		<string>PGCapture</string>
 		<key>com.phonegap.splashscreen</key>
 		<string>PGSplashScreen</string>
+		<key>NativeControls</key>
+		<string>NativeControls</string>
+		<key>Badge</key>
+		<string>Badge</string>
+		<key>ChildBrowserCommand</key>
+		<string>ChildBrowserCommand</string>
 	</dict>
 </dict>
 </plist>

@@ -287,9 +287,12 @@ function onDeviceReady()
 				$.mobile.changePage('#queue-dialog', 'pop');
                                         
                 //We just added an item to the queue, meaning we have new data to push.
+                //#TODO: Make it track items not pushed, not just items added
+                                        //QUick and dirty ATM
                 isDataToPush = true;
                 itemsToPush += 1;
-                updateBadge('Queue', itemsToPush);
+                updateTabItemBadge('Queue', itemsToPush);
+                updateAppBadge(itemsToPush);
 			},
 			function () { },
 			{
@@ -414,7 +417,8 @@ $(document).ready(function() {
 			navigator.notification.alert(names, function(){}, 'Debug', 'Okay');
                                   
             itemsToPush = 0;
-            hideBadge('Queue');
+            updateTabItemBadge('Queue',0);
+            updateAppBadge(0);
 		}		
 	});
 });
@@ -427,10 +431,10 @@ $(document).ready(function() {
     This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
  */
 var tabBarItems = { tabs: [
-      {'name': 'Map'  , 'image': '/www/tabs/Map.png'  , 'onSelect': onClick_MapTab},
-      {'name': 'Queue', 'image': '/www/tabs/Queue.png', 'onSelect': onClick_QueueTab},
-      {'name': 'User' , 'image': '/www/tabs/User.png' , 'onSelect': onClick_UserTab},
-      {'name': 'Debug', 'image': '/www/tabs/Debug.png', 'onSelect': onClick_DebugTab},
+      {'name': 'Map'  , 'image': '/www/TabImages/Map.png'  , 'onSelect': onClick_MapTab},
+      {'name': 'Queue', 'image': '/www/TabImages/Queue.png', 'onSelect': onClick_QueueTab},
+      {'name': 'User' , 'image': '/www/TabImages/User.png' , 'onSelect': onClick_UserTab},
+      {'name': 'Debug', 'image': '/www/TabImages/Debug.png', 'onSelect': onClick_DebugTab},
       {'name': 'More' , 'image': 'tabButton:More'     , 'onSelect': onClick_MoreTab}]};
 
 /*
@@ -470,30 +474,48 @@ function setupNavBar() {
     showNavBar();
 }
 
-function updateBadge(_tabName, _amount) {
-    
-    if(0 ==_amount)
-        hideBadge();
-    else
+function updateTabItemBadge(_tabName, _amount) {
+    if(_amount >= 1)
     {
+        console.log('TabBar: Badge with the value '+_amount+' added to '+_tabName+'.');
         var object = new Object();
             object.badge = _amount.toString();
         nativeControls.updateTabBarItem(_tabName, object);
     }
+    else
+        hideTabItemBadge(_tabName);
 }
 
-function hideBadge(_tabName) {
+function hideTabItemBadge(_tabName) {
+    console.log('TabBar: Badge removed from '+_tabName+'.');
     nativeControls.updateTabBarItem(_tabName, null);
+}
+
+function updateAppBadge(_amount) {
+    if(_amount >= 1)
+    {
+        console.log('App: Badge added with the value '+_amount+'.');
+        window.plugins.badge.set(_amount);
+    }
+    else
+        hideAppBadge();
+}
+
+function hideAppBadge() {
+    console.log('App: Badge removed from App.');
+    window.plugins.badge.clear();
 }
 
 function showTabBar() {
     var options = new Object();
     options.position = 'bottom';
     nativeControls.showTabBar(options);
+    console.log('TabBar: shown');
 }
 
 function hideTabBar() {
     nativeControls.hideTabBar();
+    console.log('TabBar: hidden');
 }
 
 function showNavBar() {
@@ -566,8 +588,6 @@ function onClick_MoreTab() {
 // like Device, iOS version, current location, etc.
 function onClick_DebugTab() {
     console.log('onClick: DebugTab');
-    navigator.notification.alert('Debug tab clicked.', function(){}, 'Debug', 'Okay');
-    
     window.open ('Debug.html','_self',false);
 }
 
@@ -646,7 +666,7 @@ function onAppOffline() {
  */
 var orDirtyToggle = false;
 function onOrientationChange(_error)
-{
+{    
     //Prevent the function from running multiple times.
     orDirtyToggle = !orDirtyToggle;
     if(orDirtyToggle)
