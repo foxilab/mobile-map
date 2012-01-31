@@ -1,3 +1,16 @@
+// Google OAuth 2.0 stuff (not used currently)
+var google_client_id = '693645881354.apps.googleusercontent.com';
+var google_client_secret = 'UZgTsVNjRMxZyiKSWSr_SOwc';
+var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
+var google_access_token = 'ya29.AHES6ZTgAuAWNZ__sr9qtS6g8qtBiP0rLQQvpWlGD4XjK3BDFiNbPg';
+var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
+
+// Fusion Table IDs
+var TableId = new function () {
+	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
+	this.locationqueue  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+}
+
 // If you want to prevent dragging, uncomment this section
 /*
  function preventBehavior(e) 
@@ -190,24 +203,24 @@ var compassError = function(error){
 
 function onDeviceReady()
 {
-    //Now that the device is ready, lets set up our event listeners.
-        document.addEventListener("pause"            , onAppPause         , false);
-        document.addEventListener("resume"           , onAppResume        , false);
-        document.addEventListener("online"           , onAppOnline        , false);
-        document.addEventListener("offline"          , onAppOffline       , false);
-        document.addEventListener("batterycritical"  , onBatteryCritical  , false);
-        document.addEventListener("batterylow"       , onBatteryLow       , false);
-        document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-          window.addEventListener("orientationchange", onOrientationChange,  true);
-    
-    //Set up NativeControls
-        nativeControls = window.plugins.nativeControls;
-            setupTabBar();
-            setupNavBar();
-    
-    //ChildBrowser code to open Google.com
-        //var cb = ChildBrowser.install();
-        //if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+	//Now that the device is ready, lets set up our event listeners.
+	document.addEventListener("pause"            , onAppPause         , false);
+	document.addEventListener("resume"           , onAppResume        , false);
+	document.addEventListener("online"           , onAppOnline        , false);
+	document.addEventListener("offline"          , onAppOffline       , false);
+	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
+	document.addEventListener("batterylow"       , onBatteryLow       , false);
+	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
+	window.addEventListener("orientationchange", onOrientationChange,  true);
+
+	//Set up NativeControls
+	nativeControls = window.plugins.nativeControls;
+		setupTabBar();
+		setupNavBar();
+
+	//ChildBrowser code to open Google.com
+	//var cb = ChildBrowser.install();
+	//if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
 
 	// The Local Database (global for a reason)
 	try {
@@ -394,9 +407,8 @@ $(document).ready(function() {
 	$('.status-submit-button').on('click', function(e) {
 		var valid = 0;
 		var items = new Array();
-		// TODO: this should probably be a class we search for, not h3
-		$('#queue-dialog li').find('h3').filter(':visible').each(function() {
-			if ($(this).text() !== 'Select a Status') {
+		$('.queue-list-item').filter(':visible').each(function() {
+			if ($(this).find('h3').text() !== 'Select a Status') {
 				++valid;
 				items.push($(this));
 			}
@@ -406,22 +418,44 @@ $(document).ready(function() {
 			navigator.notification.alert('You must set the status for at least one location');
 			e.preventDefault();
 			e.stopPropagation();
-			$(this).removeClass('ui-btn-active');
 		}
 		else {
-			var names = 'Submitted';
+			var rowids = new Array();
 			items.forEach(function(elem) {
-				// Submit them to the server - if successful remove from local database
-				names += '\n' + $(elem).text();
+				rowids.push($(elem).attr('rowid'));
 			});
-			navigator.notification.alert(names, function(){}, 'Debug', 'Okay');
-                                  
-            itemsToPush = 0;
+
+			// Submit them to the server - if successful remove from local database
+			submitToServer(rowids);
+			itemsToPush = 0;
             updateTabItemBadge('Queue',0);
             updateAppBadge(0);
 		}		
 	});
 });
+
+function submitToServer(rowids) {
+	forLocationQueueRows(sqlDb, rowids, function(rows) {
+		var sql = '';
+		for (var i = 0; i < rows.length; ++i) {
+			var row = rows.item(i);
+			sql += 'INSERT INTO ' + TableId.locationqueue() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
+			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+			sql += squote(row.name) + ',';
+			sql += squote('placeholder') + ','; // TODO: upload the photo and store the URL
+			sql += squote(row.date) + ',';
+			sql += row.status + ');';
+		}
+		
+		console.log(encodeURI('https://www.google.com/fusiontables/api/query?sql=' + sql + '&jsonCallback=?'));
+		var jsonp = $.post(encodeURI('https://www.google.com/fusiontables/api/query?sql=' + sql + '&jsonCallback=?'), function(data) {
+			console.log('data: ' + data);
+			
+			// Since we were successful, remove from local DB
+			
+		}, 'jsonp');
+	});
+}
 
 /*
         ==============================================
