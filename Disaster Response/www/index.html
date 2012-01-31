@@ -8,7 +8,37 @@
 
 		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
 		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
-
+		<link rel="stylesheet" href="css/mda.css" type="text/css" />
+		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+		<style type="text/css">
+			#zoomPanel{
+				position:absolute;
+				z-index:1999;
+				background-image: url("http://openlayers.org/api/theme/default/img/zoom-panel.png");
+				height:54px;
+				width:18px;
+				cursor:pointer;
+			  }
+			.olControlZoomInItemInactive { 
+				position: absolute;
+				height: 18px;
+				width: 18px;
+			}
+				
+			.olControlZoomToMaxExtentItemInactive {
+				position: absolute;
+				top:18px;
+				height: 18px;
+				width: 18px;
+			}
+				
+			.olControlZoomOutItemInactive {
+				position: absolute;
+				top:36px;
+				height: 18px;
+				width: 18px;
+			}
+	</style>
 		<!-- iPad/iPhone specific css below, add after your main css >
 		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
 		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
@@ -22,7 +52,10 @@
 				<h1> Header Content </h1>
 			</div>
 			<div data-role="content" id="content"> 
-				<div id="map" style="width:100%;"></div>
+				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
+					<div id="map" style="position:absolute;"></div>
+					<div id="zoomPanel"></div>
+				</div>
 			</div>
 			<div data-role="footer" id="footer"> 
 				<h1> Footer Content </h1>
@@ -63,10 +96,11 @@
 			</div>
 		</div>
 	</body>
-
+	
 	<script type="text/javascript" charset="utf-8" src="json2.js"></script>
 	<script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
-	<script type="text/javascript" charset="utf-8" src="http://openlayers.org/api/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
@@ -76,8 +110,9 @@
 	<script type="text/javascript" charset="utf-8" src="ChildBrowser.js"></script>
     
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 
-	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
-
+	<script src="http://lmnuser4:8080/target/target-script-min.js#yourname"></script>
 </html>
