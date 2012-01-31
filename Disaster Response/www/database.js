@@ -3,7 +3,16 @@ function errorSql(e) {
 }
 
 function quote(str) {
-	return '"' + str + '"';
+	if (str)
+		return '"' + str + '"';
+		
+	return '""';
+}
+function squote(str) {
+	if (str)
+		return "'" + str + "'";
+		
+	return "''";
 }
 
 var StatusRef = new function () {
@@ -70,12 +79,25 @@ function createQueueTable(db) {
 	db.transaction(create, errorSql);
 }
 
-function forAllLocations(db, f) {
+function forLocationQueueRows(db, rowids, func) {
+	if ($.isArray(rowids)) {
+		var val = -1;
+		var query = function (tx) {
+			tx.executeSql('SELECT * FROM locationqueue WHERE id IN (' + rowids.toString() + ')', [], function(t, results) {
+				func.call(func, results.rows);
+			});
+		};
+
+		db.transaction(query, errorSql);
+	}
+}
+
+function forAllLocations(db, func) {
 	var query = function (tx) {
 		tx.executeSql('SELECT * FROM locationqueue ORDER BY id DESC', [], function(t, results) {
-			if (f) {
+			if (func) {
 				for (var i = 0; i < results.rows.length; ++i) {
-					f.call(f, results.rows.item(i));
+					func.call(func, results.rows.item(i));
 				}
 			}
 		});
