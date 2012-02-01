@@ -1,14 +1,47 @@
-// Google OAuth 2.0 stuff (not used currently)
+// Google OAuth 2.0 stuff
 var google_client_id = '693645881354.apps.googleusercontent.com';
 var google_client_secret = 'UZgTsVNjRMxZyiKSWSr_SOwc';
 var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
-var google_access_token = 'ya29.AHES6ZTgAuAWNZ__sr9qtS6g8qtBiP0rLQQvpWlGD4XjK3BDFiNbPg';
+var google_access_token = '';
 var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
 
 // Fusion Table IDs
 var TableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
-	this.locationqueue  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+}
+
+function refreshAccessToken() {
+	var url = 'https://accounts.google.com/o/oauth2/token';
+	var data = $.post(url, {
+			client_id:			google_client_id,
+			client_secret:		google_client_secret,
+			refresh_token:		google_refresh_token,
+			grant_type:			'refresh_token'
+		},
+		function (data) {
+			google_access_token = data.access_token;
+		}
+	);
+}
+
+function googleSQL() {
+	arguments[0].url = 'https://www.google.com/fusiontables/api/query';
+	arguments[0].error = function(data) {
+		console.log('an error occurred');
+		console.log(data);
+//		refreshAccessToken();
+		// TODO: we may want to make sure infinite recursion is not possible
+		//return googleSQL(arguments);
+	}
+	arguments[0].beforeSend = function(xhr) {
+		xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
+	}
+	
+	console.log('arguments');
+	console.log(arguments);
+	
+	return $.ajax.apply(null, arguments);
 }
 
 // If you want to prevent dragging, uncomment this section
@@ -128,24 +161,28 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 });*/
 
 
+//PLUGIN VARIABLES
 //  NativeControl Variables
 var nativeControls;
 var tempLon;
 var tempLat;
 
-// Phone Variables
+//PHONE VARIABLES
 var isAppPaused = false;
 var isInternetConnection = false;
-var isDataToPush = false;
-var itemsToPush = 0;
 var isLandscape = false;
+//Badges
+var itemsInQueue = 0;
+var appNotifications = 0;
+//App
+var isAutoPush = true; 
 
 var centered = false;
 var locatedSuccess = true;
 
 function onBodyLoad()
-{		
-    document.addEventListener("deviceready", onDeviceReady, false);
+{
+	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
 var geolocationSuccess = function(position){
@@ -237,6 +274,67 @@ var compassError = function(error){
 	
 }
 
+function googleLogin() {
+	console.log('logging in');
+	$.ajax({
+		url: 'https://www.google.com/accounts/ClientLogin',
+		type:	'POST',
+		data:	{
+			accountType:	'HOSTED_OR_GOOGLE',
+			Email:			'research.lmn@gmail.com',
+			Passwd:			'lmnisgr8',
+			service:			'fusiontables',
+			source:			google_client_id
+		},
+		success:	function(data) {
+			console.log('logged in');
+			google_access_token = $.trim(data.slice(data.indexOf('Auth=') + 5));
+
+			$.ajax({
+				url:			'https://www.google.com/fusiontables/api/query',
+				type:			'POST',
+				data:	{
+					sql:		"INSERT INTO " + TableId.locations() + " (Location, Name, Status, Date, PhotoURL) VALUES ( '<Point><coordinates>3,3</coordinates></Point>', 'a', 1, 'b', 'c' )"
+				},
+				beforeSend:	function(xhr) {
+					console.log('before send');
+					xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
+				},
+				success:		function(data) {
+					console.log('success');
+					console.log(data);
+				},
+				error:		function(data) {
+					console.log('an error occurred');
+					console.log(data);
+				}
+			});
+
+			$.ajax({
+				url:			'https://www.google.com/fusiontables/api/query',
+				data:	{
+					sql:		'SELECT * FROM ' + TableId.locations()
+				},
+				beforeSend:	function(xhr) {
+					console.log('before send');
+					xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
+				},
+				success:		function(data) {
+					console.log('success');
+					console.log(data);
+				},
+				error:		function(data) {
+					console.log('an error occurred');
+					console.log(data);
+				}
+			});
+		},
+		error: function(data) {
+			console.log("Couldn't log in");
+		}
+	});
+}
+
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
@@ -252,17 +350,28 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	window.addEventListener("orientationchange", onOrientationChange,  true);
-
-	//Set up NativeControls
-	nativeControls = window.plugins.nativeControls;
-		setupTabBar();
-		setupNavBar();
+    //  window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	//ChildBrowser code to open Google.com
-	//var cb = ChildBrowser.install();
-	//if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+/*	var cb = ChildBrowser.install();
+	if (cb != null) {
+		var setting =
+		{
+			'clientId':	"693645881354.apps.googleusercontent.com",
+			'scope':		"https://www.googleapis.com/auth/fusiontables"
+		};
 
+		var endUserAuthorizationEndpoint = 'https://accounts.google.com/o/oauth2/auth';
+
+		var authUrl = endUserAuthorizationEndpoint +
+		"?response_type=code" +
+		"&client_id=" + setting.clientId +
+		"&scope=" + setting.scope +
+		"&redirect_uri=http://localhost";
+
+		window.plugins.childBrowser.showWebPage(encodeURI(authUrl));
+	}
+*/
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -280,7 +389,12 @@ function onDeviceReady()
 		// Do we need to handle this?
 		navigator.notification.alert('Error opening database: ' + e);
 	}
-
+    
+    //Set up NativeControls
+	nativeControls = window.plugins.nativeControls;
+        setupTabBar();
+        setupNavBar();
+    
 	// do your thing!
 	var docHeight = $(window).height();
 	var headerHeight = $("#header").height();
@@ -339,15 +453,10 @@ function onDeviceReady()
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 				// TODO: This sometimes flashes the map
-				$.mobile.changePage('#queue-dialog', 'pop');
+				onClick_QueueTab();
                                         
-                //We just added an item to the queue, meaning we have new data to push.
-                //#TODO: Make it track items not pushed, not just items added
-                                        //QUick and dirty ATM
-                isDataToPush = true;
-                itemsToPush += 1;
-                updateTabItemBadge('Queue', itemsToPush);
-                updateAppBadge(itemsToPush);
+                //We just added an item, update the queue size.
+                updateQueueSize();
 			},
 			function () { },
 			{
@@ -370,12 +479,36 @@ function onDeviceReady()
 	map.addControl(click);
 	click.activate();
 
+	//Hack to keep the Queue tab selected while in the status dialog.
+	$('#map-page').on('pageshow', function() {
+		selectTabBarItem('Map');
+	});
+					  
 	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
-		clearQueueDialog();
+		selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
+	
+	//Clear the queue when the user is done with the page,
+	// fixes double queue on when you get over 20 items
+	// blinks when you leave the page =/
+	$('#queue-dialog').on('pagehide', function() {
+		clearQueueDialog();
+	});
+	
+	$('#user-dialog').on('pageshow', function() {
+		selectTabBarItem('User');
+	});
+	
+	$('#more-dialog').on('pageshow', function() {
+		selectTabBarItem('More');
+	});
+						      
+    //Now that we are done loading everything, read the queue and find the size
+    // then update all the badges accordingly.
+    updateQueueSize();
 }
 
 function clearQueueDialog() {
@@ -433,6 +566,9 @@ $(document).ready(function() {
 		deleteLocation(sqlDb, id);
 		$(this).hide();
 		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
+                     
+        //An item was removed, update the queue size.
+        updateQueueSize();
 	});
 
 	$('.status-list-item').on('click', function(e) {
@@ -469,9 +605,6 @@ $(document).ready(function() {
 
 			// Submit them to the server - if successful remove from local database
 			submitToServer(rowids);
-			itemsToPush = 0;
-            updateTabItemBadge('Queue',0);
-            updateAppBadge(0);
 		}		
 	});
                   
@@ -489,7 +622,7 @@ function submitToServer(rowids) {
 		var sql = '';
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
-			sql += 'INSERT INTO ' + TableId.locationqueue() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
+			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
 			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
 			sql += squote(row.name) + ',';
 			sql += squote('placeholder') + ','; // TODO: upload the photo and store the URL
@@ -502,9 +635,50 @@ function submitToServer(rowids) {
 			console.log('data: ' + data);
 			
 			// Since we were successful, remove from local DB
-			
+        
 		}, 'jsonp');
 	});
+	
+	//The sqlDb has changed, update the queue size.
+	updateQueueSize();
+}
+
+/*
+        ==============================================
+                     QueueSize Functions
+        ==============================================
+ 
+    Calling this function will do everything for you, it reads the SQL database and then updates the size as well as the badges.
+ */
+function updateQueueSize() {
+    //We are updating the queue count, so first
+    // lets remove the current queue times from the counters.
+    appNotifications -= itemsInQueue;
+    itemsInQueue = 0;
+    
+    //Now we are ready to start, lets get the QueueSize
+    sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
+}
+
+function getQueueSize(_tx) {
+    //Gets all the rows from the locationqueue
+    _tx.executeSql('SELECT * FROM locationqueue ORDER BY id',[], 
+       function(_tx, _result) { 
+           itemsInQueue = _result.rows.length; }, 
+       function(_tx, _error) {
+            console.log('SQL Execute error'); return true; }
+    );
+}
+
+function getQueueSizeSuccessCB() {
+    //Now itemsInQueue is at the current count, update everything
+    appNotifications += itemsInQueue;
+    updateTabItemBadge('Queue', itemsInQueue);
+    updateAppBadge(appNotifications);
+}
+
+function getQueueSizeErrorBC(_error) {
+    console.log('getQueueSizeError: ' + _error.message);
 }
 
 /*
@@ -519,7 +693,7 @@ var tabBarItems = { tabs: [
       {'name': 'Queue', 'image': '/www/TabImages/Queue.png', 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/TabImages/User.png' , 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/TabImages/Debug.png', 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'     , 'onSelect': onClick_MoreTab}]};
+      {'name': 'More' , 'image': 'tabButton:More'          , 'onSelect': onClick_MoreTab}]};
 
 /*
     This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
@@ -531,15 +705,14 @@ function setupTabBar() {
             setUpButton(tabBarItems.tabs[i]);
         }
     nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
-    nativeControls.selectTabBarItem('Map');
+    selectTabBarItem('Map');
     showTabBar();
 }
 
 /*
     Called by setupTabBar, this function creates the TabBarItems with the given params from our array.
  */
-function setUpButton(_tabItem)
-{
+function setUpButton(_tabItem) {
     var options = new Object();
         options.onSelect = _tabItem.onSelect;
     nativeControls.createTabBarItem(_tabItem.name, _tabItem.name, _tabItem.image, options);
@@ -551,17 +724,21 @@ function setUpButton(_tabItem)
 function setupNavBar() {
     nativeControls.createNavBar();
     nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
-    nativeControls.setupRightNavButton('Settings','', 'onClick_RightNavBarButton');
+    nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
     nativeControls.setNavBarTitle('Disaster Response');
     nativeControls.setNavBarLogo('');
-    hideLeftNavButton();
+        hideLeftNavButton();
+		hideRightNavButton();
     showNavBar();
 }
 
+function selectTabBarItem(_tabItem) {
+	nativeControls.selectTabBarItem(_tabItem);
+}
+
 function updateTabItemBadge(_tabName, _amount) {
-    if(_amount >= 1)
-    {
-        console.log('TabBar: Badge with the value '+_amount+' added to '+_tabName+'.');
+    if(_amount >= 1) {
+        //console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
         var object = new Object();
             object.badge = _amount.toString();
         nativeControls.updateTabBarItem(_tabName, object);
@@ -571,14 +748,13 @@ function updateTabItemBadge(_tabName, _amount) {
 }
 
 function hideTabItemBadge(_tabName) {
-    console.log('TabBar: Badge removed from '+_tabName+'.');
+    //console.log('TabBar: Badge removed from ' + _tabName + '.');
     nativeControls.updateTabBarItem(_tabName, null);
 }
 
 function updateAppBadge(_amount) {
-    if(_amount >= 1)
-    {
-        console.log('App: Badge added with the value '+_amount+'.');
+    if(_amount >= 1) {
+        //console.log('App: Badge added with the value ' + _amount + '.');
         window.plugins.badge.set(_amount);
     }
     else
@@ -586,7 +762,7 @@ function updateAppBadge(_amount) {
 }
 
 function hideAppBadge() {
-    console.log('App: Badge removed from App.');
+    //console.log('App: Badge removed from App.');
     window.plugins.badge.clear();
 }
 
@@ -594,12 +770,10 @@ function showTabBar() {
     var options = new Object();
     options.position = 'bottom';
     nativeControls.showTabBar(options);
-    console.log('TabBar: shown');
 }
 
 function hideTabBar() {
     nativeControls.hideTabBar();
-    console.log('TabBar: hidden');
 }
 
 function showNavBar() {
@@ -633,12 +807,12 @@ function hideRightNavButton() {
  */
 
 function onClick_LeftNavBarButton() {
-    console.log('onClick: LeftNavBarButton');
+    //console.log('onClick: LeftNavBarButton');
     navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
 function onClick_RightNavBarButton() {
-    console.log('onClick: RightNavBarButton');
+    //console.log('onClick: RightNavBarButton');
     navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
@@ -648,31 +822,35 @@ function onClick_RightNavBarButton() {
         ==============================================
  */
 function onClick_MapTab() {
-    console.log('onClick: MapTab');
-    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
-				  .transform(WGS84, WGS84_google_mercator), 17);
+    //console.log('onClick: MapTab');
+	selectTabBarItem('Map');
+    $.mobile.changePage('#map-page', 'pop');
 }
 
 function onClick_QueueTab() {
-    console.log('onClick: QueueTab');
-    navigator.notification.alert('Queue tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: QueueTab');
+	selectTabBarItem('Queue');
+    $.mobile.changePage('#queue-dialog', 'pop');
 }
 
 function onClick_UserTab() {
-    console.log('onClick: UserTab');
-    navigator.notification.alert('User tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: UserTab');
+	selectTabBarItem('User');
+    $.mobile.changePage('#user-dialog', 'pop');
 }
 
 function onClick_MoreTab() {
-    console.log('onClick: MoreTab');
-    navigator.notification.alert('More tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: MoreTab');
+	selectTabBarItem('More');
+    $.mobile.changePage('#more-dialog', 'pop');
 }
 
 //Temporary option to allow us to open a different tab and access debug information
 // like Device, iOS version, current location, etc.
 function onClick_DebugTab() {
-    console.log('onClick: DebugTab');
-    window.open ('Debug.html','_self',false);
+    //console.log('onClick: DebugTab');
+	selectTabBarItem('Debug');
+	window.open ('Debug.html','_self',false);
 }
 
 /*
@@ -698,17 +876,22 @@ function onAppResume() {
     isAppPaused = false;
 
     //Check to see if we have an internet connection
-    if(isInternetConnection)
-    {
-        //We do, now check to see if we have pushed our data already or not.
-        // no need to push data thats already there...
-        if(isDataToPush)
-        {
-            //#TODO: Upload the local queue to the Google Fusion Table.
-            console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
-            
-            //Mark that we pushed the data.
-            isDataToPush = false;
+    if(isInternetConnection) {
+        //If auto push is on, try and push the data to the server.
+        if(isAutoPush) {
+            //If itemsInQueue is 1 or more we have data to push.
+            // So lets push it!
+            if(itemsInQueue >= 1) {
+                //#TODO: Upload the local queue to the Google Fusion Table.
+                console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
+				
+				//submit to server
+				// *code here*
+				
+				//#TODO: Remove below and add to bottom of submit function^
+				//We removed all the entries, update the queue size.
+				updateQueueSize();
+            }
         }
     }
 }
@@ -718,21 +901,29 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
-    console.log('Listener: App has internet connection.');
-    isInternetConnection = true;
-    
-    //Because native code won't run while an app is paused, this will not get called unless
-    // the app is running. Time to push data to the server.
-    
-    //Check to see if we have pushed our data already or not.
-    if(isDataToPush)
-    {
-        //#TODO: Upload the local queue to the Google Fusion Table.
-        console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
-        
-        //Mark that we pushed the data.
-        isDataToPush = false;
+   console.log('Listener: App has internet connection.');
+	isInternetConnection = true;
+
+    //Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
+    //If auto push is on, try and push the data to the server.
+    if(isAutoPush) {
+        //If itemsInQueue is 1 or more we have data to push.
+        // So lets push it!
+        if(itemsInQueue >= 1) {
+            //#TODO: Upload the local queue to the Google Fusion Table.
+            console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
+			
+			//submit to server
+			// *code here*
+			
+			//#TODO: Remove below and add to bottom of submit function^
+			//We removed all the entries, update the queue size.
+			updateQueueSize();
+        }
     }
+	 
+	// This is just for testing right now...
+	googleLogin();
 }
 
 /*
@@ -749,14 +940,11 @@ function onAppOffline() {
     #QUIRK: Triggered twice on 1 rotation.
  */
 var orDirtyToggle = false;
-function onOrientationChange(_error)
-{    
+function onOrientationChange(_error) {    
     //Prevent the function from running multiple times.
     orDirtyToggle = !orDirtyToggle;
-    if(orDirtyToggle)
-    {
-        switch(window.orientation)
-        {
+    if(orDirtyToggle) {
+        switch(window.orientation) {
             case -90:   //Landscape with the screen turned to the left.
                 onOrientationLandscape(window.orientation);
                 break;
@@ -783,16 +971,16 @@ function onOrientationChange(_error)
 /*
     This function is called whenever the device is switched over to landscape mode. Here we can do things like resize our viewport.
  */
-function onOrientationLandscape(_o) {
-    console.log('Listener: App has changed orientation to Landscape '+_o+'.');
+function onOrientationLandscape(_orientation) {
+    console.log('Listener: App has changed orientation to Landscape ' + _orientation + '.');
     isLandscape = true;
 }
 
 /*
  This function is called whenever the device is switched over to portrait mode. Here we can do things like resize our viewport.
  */
-function onOrientationPortrait(_o) {
-    console.log('Listener: App has changed orientation to Portrait '+_o+'.');
+function onOrientationPortrait(_orientation) {
+    console.log('Listener: App has changed orientation to Portrait ' + _orientation + '.');
     isLandscape = false;
 }
 
@@ -819,7 +1007,7 @@ function onBatteryLow(_info) {
     Example: If they plug in, that means they have power where they are. The building locations that are close by are now operational (if they weren't already labled as such).
  */
 function onBatteryStatus(_info) {
-    console.log('Listener: Device battery now at '+_info.level+'.');
+    console.log('Listener: Device battery now at ' + _info.level + '.');
     //_info.level = % of battery (0-100).
     //_info.isPlugged = true if the device is plugged in.
 }
