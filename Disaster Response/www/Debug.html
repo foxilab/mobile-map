@@ -6,7 +6,6 @@
         
         <meta http-equiv="Content-type" content="text/html; charset=utf-8">
             <link rel="stylesheet" href="HelloPhoneGap.css" type="text/css"/>
-            <title>HelloPhoneGap</title>
             <script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
             <script type="text/javascript" charset="utf-8">
                 
@@ -15,8 +14,6 @@
                 }
                 
                 function onDeviceReady() {
-                    phoneGapReady.innerHTML = "PhoneGap is Ready";
-                    
                     getDeviceProperties();
                     getCurrentAcceleration();
                     getLocation();
@@ -83,76 +80,42 @@
                 function onError() {
                     alert ("onError");
                 }
-                
                 </script>
             </head>
     
     <body onload="onBodyLoad()">
-        
+        <div data-role="page" id='debug' data-theme='a'>
         <DIV class="TitleBar">
             <TABLE width="100%">
                 <TR>
-                    <TD>
-                        <h1><b><u>Debugger</u></b></h1>
-                    </TD>
-                    <TD align="right"><a href="index.html">back</a>
-                    </TD>
+                    <TD><h1><b><u>Debugger</u></b></h1></TD>
+                    <TD align="right"><a href="index.html">back</a></TD>
                 </TR>
-                
             </TABLE>
         </DIV>
 
 
         <DIV class="phoneGapAPI"> 
             <TABLE width="100%">
+                <TD>b><u>Device Properties:</u></b></TD>
+                <TR><TD id="deviceProperties" ></TD></TR>
                 
-                <TD>
-                    <b><u>Device Properties:</u></b>
-                </TD>
-                <TR>
-                    <TD id="deviceProperties" > </TD>
-                </TR>
+                <TD><b><u>Acceleration:</u></b></TD>
+                <TR><TD id="accelerationProperties" ></TD></TR>
+				
+                <TR><TD><button class="phoneGapAPIButton" onclick="getCurrentAcceleration();">getCurrentAcceleration()</button></TD></TR>
                 
-                <TD>
-                    <b><u>Acceleration:</u></b>
-                </TD>
-                <TR>
-                    <TD id="accelerationProperties" > </TD>
-                </TR>
-                <TR>
-                    <TD>
-                        <button class="phoneGapAPIButton" onclick="getCurrentAcceleration();">getCurrentAcceleration()</button>
-                    </TD>
-                </TR>
+                <TD><b><u>Geolocation:</u></b></TD>
+                <TR><TD id="geolocationProperties" ></TD></TR>
+				
+                <TR><TD><button class="phoneGapAPIButton" onclick="getLocation();">getLocation()</button></TD></TR>
                 
-                <TD>
-                    <b><u>Geolocation:</u></b>
-                </TD>
-                <TR>
-                    <TD id="geolocationProperties" > </TD>
-                </TR>
-                <TR>
-                    <TD>
-                        <button class="phoneGapAPIButton" onclick="getLocation();">getLocation()</button>
-                    </TD>
-                </TR>
-                
-                <TD>
-                    <b><u>Netowrk:</u></b>
-                </TD>
-                <TR>
-                    <TD id="networkProperties" > </TD>
-                </TR>
-                <TR>
-                    <TD>
-                        <button class="phoneGapAPIButton" onclick="checkConnection();">checkConnection()</button>
-                    </TD>
-                </TR>
-                
+                <TD><b><u>Netowrk:</u></b></TD>
+                <TR><TD id="networkProperties" ></TD></TR>
+				
+                <TR><TD><button class="phoneGapAPIButton" onclick="checkConnection();">checkConnection()</button></TD></TR>
             </TABLE>
-            
          </DIV>
-        
-        <DIV id="phoneGapReady" class="phoneGapReady">waiting for PhoneGap to initialize....</DIV>
+		</div>
     </body>
 </html>
