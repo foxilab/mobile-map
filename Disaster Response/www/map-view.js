@@ -140,6 +140,9 @@ var isDataToPush = false;
 var itemsToPush = 0;
 var isLandscape = false;
 
+var centered = false;
+var locatedSuccess = true;
+
 function onBodyLoad()
 {		
     document.addEventListener("deviceready", onDeviceReady, false);
@@ -153,21 +156,57 @@ var geolocationSuccess = function(position){
     tempLat = lat;
     tempLon = lon;
 	
-	var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
-	var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
-	
-	navigationLayer.removeAllFeatures();
-	navigationLayer.addFeatures([currentPosition]);
-	
-	map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
-				  .transform(WGS84, WGS84_google_mercator), 17);
+    if(map)
+    {
+        var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
+        var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
+        
+        navigationLayer.removeAllFeatures();
+        navigationLayer.addFeatures([currentPosition]);
+        
+        if(!centered)
+        {
+            map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
+                          .transform(WGS84, WGS84_google_mercator), 17);
+            
+            centered = true;
+        }
+    }
     
+    locatedSuccess = true;
     //iPhone Quirks
     //  position.timestamp returns seconds instead of milliseconds.
 }
 
 var geolocationError = function(error){
-	//error handling
+    
+    if(locatedSuccess)
+    {
+        //error handling
+        if(error == PositionError.PERMISSION_DENIED)
+            navigator.notification.alert("Location permission denied", function(){}, 'Error', 'Okay');
+        else if(error == PositionError.POSITION_UNAVAILABLE)
+            navigator.notification.alert("Location unavailable", function(){}, 'Error', 'Okay');
+        else
+            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');
+        
+        if(navigationLayer.features.length == 0)
+        {
+            var lon = -77.020000;
+            var lat = 38.890000;
+            
+            var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
+            var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
+            
+            navigationLayer.addFeatures([currentPosition]);
+            
+            map.setCenter(new OpenLayers.LonLat(lon, lat)
+                          .transform(WGS84, WGS84_google_mercator), 2);
+        }
+        
+        locatedSuccess = false;
+    }
+    
 }
 
 var compassSuccess = function(heading){
@@ -185,6 +224,8 @@ var compassSuccess = function(heading){
 		$("#map").animate({rotate: (-1 * heading) + 'deg'}, 1000);
 	
 	map.events.rotationAngle = -1 * mapRotation;
+    navSymbolizer.rotation = mapRotation;
+    navigationLayer.redraw();
 }
 
 var compassError = function(error){
@@ -262,6 +303,7 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
+    
 	map.addLayers([mapLayerOSM, navigationLayer]);
 	
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
@@ -274,7 +316,7 @@ function onDeviceReady()
 		frequency: 3000
 	};
 	
-	//navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
+	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
 		defaultHandlerOptions : 
@@ -318,11 +360,11 @@ function onDeviceReady()
 		}
 	});
 
-	var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
+	/*var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
 	map.addControl(zoomPanel);
 	var zoomRight = .05 * mapHeight;
 	$("#zoomPanel").css("right", "5%");
-	$("#zoomPanel").css("bottom", zoomRight + "px");
+	$("#zoomPanel").css("bottom", zoomRight + "px");*/
 
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
@@ -432,6 +474,14 @@ $(document).ready(function() {
             updateAppBadge(0);
 		}		
 	});
+                  
+    $('#plus').click(function(){
+        map.zoomIn();
+    });
+                  
+    $('#minus').click(function(){
+        map.zoomOut();
+    });
 });
 
 function submitToServer(rowids) {
