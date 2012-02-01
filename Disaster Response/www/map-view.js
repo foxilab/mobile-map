@@ -1,3 +1,49 @@
+// Google OAuth 2.0 stuff
+var google_client_id = '693645881354.apps.googleusercontent.com';
+var google_client_secret = 'UZgTsVNjRMxZyiKSWSr_SOwc';
+var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
+var google_access_token = '';
+var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
+
+// Fusion Table IDs
+var TableId = new function () {
+	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
+	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+}
+
+function refreshAccessToken() {
+	var url = 'https://accounts.google.com/o/oauth2/token';
+	var data = $.post(url, {
+			client_id:			google_client_id,
+			client_secret:		google_client_secret,
+			refresh_token:		google_refresh_token,
+			grant_type:			'refresh_token'
+		},
+		function (data) {
+			google_access_token = data.access_token;
+		}
+	);
+}
+
+function googleSQL() {
+	arguments[0].url = 'https://www.google.com/fusiontables/api/query';
+	arguments[0].error = function(data) {
+		console.log('an error occurred');
+		console.log(data);
+//		refreshAccessToken();
+		// TODO: we may want to make sure infinite recursion is not possible
+		//return googleSQL(arguments);
+	}
+	arguments[0].beforeSend = function(xhr) {
+		xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
+	}
+	
+	console.log('arguments');
+	console.log(arguments);
+	
+	return $.ajax.apply(null, arguments);
+}
+
 // If you want to prevent dragging, uncomment this section
 /*
  function preventBehavior(e) 
@@ -181,6 +227,67 @@ var compassError = function(error){
 	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
         navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
 	
+}
+
+function googleLogin() {
+	console.log('logging in');
+	$.ajax({
+		url: 'https://www.google.com/accounts/ClientLogin',
+		type:	'POST',
+		data:	{
+			accountType:	'HOSTED_OR_GOOGLE',
+			Email:			'research.lmn@gmail.com',
+			Passwd:			'lmnisgr8',
+			service:			'fusiontables',
+			source:			google_client_id
+		},
+		success:	function(data) {
+			console.log('logged in');
+			google_access_token = $.trim(data.slice(data.indexOf('Auth=') + 5));
+
+			$.ajax({
+				url:			'https://www.google.com/fusiontables/api/query',
+				type:			'POST',
+				data:	{
+					sql:		"INSERT INTO " + TableId.locations() + " (Location, Name, Status, Date, PhotoURL) VALUES ( '<Point><coordinates>3,3</coordinates></Point>', 'a', 1, 'b', 'c' )"
+				},
+				beforeSend:	function(xhr) {
+					console.log('before send');
+					xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
+				},
+				success:		function(data) {
+					console.log('success');
+					console.log(data);
+				},
+				error:		function(data) {
+					console.log('an error occurred');
+					console.log(data);
+				}
+			});
+
+			$.ajax({
+				url:			'https://www.google.com/fusiontables/api/query',
+				data:	{
+					sql:		'SELECT * FROM ' + TableId.locations()
+				},
+				beforeSend:	function(xhr) {
+					console.log('before send');
+					xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
+				},
+				success:		function(data) {
+					console.log('success');
+					console.log(data);
+				},
+				error:		function(data) {
+					console.log('an error occurred');
+					console.log(data);
+				}
+			});
+		},
+		error: function(data) {
+			console.log("Couldn't log in");
+		}
+	});
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -687,6 +794,8 @@ function onAppOnline() {
       //Mark that we pushed the data.
 		isDataToPush = false;
    }
+	
+	googleLogin();
 }
 
 /*
