@@ -1,14 +1,40 @@
-// Google OAuth 2.0 stuff (not used currently)
+// Google OAuth 2.0 stuff
 var google_client_id = '693645881354.apps.googleusercontent.com';
 var google_client_secret = 'UZgTsVNjRMxZyiKSWSr_SOwc';
 var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
-var google_access_token = 'ya29.AHES6ZTgAuAWNZ__sr9qtS6g8qtBiP0rLQQvpWlGD4XjK3BDFiNbPg';
+var google_access_token = '';
 var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
 
 // Fusion Table IDs
 var TableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
-	this.locationqueue  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+}
+
+function refreshAccessToken() {
+	var url = 'https://accounts.google.com/o/oauth2/token';
+	var data = $.post(url, {
+			client_id:			google_client_id,
+			client_secret:		google_client_secret,
+			refresh_token:		google_refresh_token,
+			grant_type:			'refresh_token'
+		},
+		function (data) {
+			google_access_token = data.access_token;
+		}
+	);
+}
+
+function googleSQL() {
+	arguments[0].url = 'https://www.google.com/fusiontables/api/query';
+	arguments[0].error = function(data) {
+		console.log('an error occurred');
+		console.log(data);
+//		refreshAccessToken();
+		// TODO: we may want to make sure infinite recursion is not possible
+		//return googleSQL(arguments);
+	}
+	return $.ajax.apply(null, arguments);
 }
 
 // If you want to prevent dragging, uncomment this section
@@ -141,8 +167,8 @@ var itemsToPush = 0;
 var isLandscape = false;
 
 function onBodyLoad()
-{		
-    document.addEventListener("deviceready", onDeviceReady, false);
+{
+	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
 var geolocationSuccess = function(position){
@@ -201,8 +227,40 @@ var compassError = function(error){
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
+function googleLogin() {
+	$.ajax({
+		url: 'https://www.google.com/accounts/ClientLogin',
+		data:	{
+			accountType:	'HOSTED_OR_GOOGLE',
+			Email:			'research.lmn@gmail.com',
+			Passwd:			'lmnisgr8',
+			service:			'fusiontables',
+			source:			google_client_id
+		},
+		success:	function(data) {
+			google_access_token = data.slice(data.indexOf('Auth=') + 5);
+		},
+		error: function(data) {
+			console.log("Couldn't log in");
+		}
+	});
+
+	googleSQL({
+		data:	{
+			token:	google_access_token,
+			sql:		'SELECT * FROM ' + TableId.locations()
+		},
+		success:	function(data, status, xhr) {
+			console.log('success');
+			console.log(data);
+		}
+	});
+}
+
 function onDeviceReady()
 {
+	googleLogin();
+
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -219,9 +277,25 @@ function onDeviceReady()
 		setupNavBar();
 
 	//ChildBrowser code to open Google.com
-	//var cb = ChildBrowser.install();
-	//if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+/*	var cb = ChildBrowser.install();
+	if (cb != null) {
+		var setting =
+		{
+			'clientId':	"693645881354.apps.googleusercontent.com",
+			'scope':		"https://www.googleapis.com/auth/fusiontables"
+		};
 
+		var endUserAuthorizationEndpoint = 'https://accounts.google.com/o/oauth2/auth';
+
+		var authUrl = endUserAuthorizationEndpoint +
+		"?response_type=code" +
+		"&client_id=" + setting.clientId +
+		"&scope=" + setting.scope +
+		"&redirect_uri=http://localhost";
+
+		window.plugins.childBrowser.showWebPage(encodeURI(authUrl));
+	}
+*/
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -428,8 +502,8 @@ $(document).ready(function() {
 			// Submit them to the server - if successful remove from local database
 			submitToServer(rowids);
 			itemsToPush = 0;
-            updateTabItemBadge('Queue',0);
-            updateAppBadge(0);
+         updateTabItemBadge('Queue',0);
+         updateAppBadge(0);
 		}		
 	});
 });
@@ -439,7 +513,7 @@ function submitToServer(rowids) {
 		var sql = '';
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
-			sql += 'INSERT INTO ' + TableId.locationqueue() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
+			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
 			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
 			sql += squote(row.name) + ',';
 			sql += squote('placeholder') + ','; // TODO: upload the photo and store the URL
@@ -668,21 +742,22 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
-    console.log('Listener: App has internet connection.');
-    isInternetConnection = true;
+
+   console.log('Listener: App has internet connection.');
+	isInternetConnection = true;
     
-    //Because native code won't run while an app is paused, this will not get called unless
-    // the app is running. Time to push data to the server.
+   //Because native code won't run while an app is paused, this will not get called unless
+   // the app is running. Time to push data to the server.
     
-    //Check to see if we have pushed our data already or not.
-    if(isDataToPush)
-    {
-        //#TODO: Upload the local queue to the Google Fusion Table.
-        console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
+   //Check to see if we have pushed our data already or not.
+   if(isDataToPush)
+   {
+		//#TODO: Upload the local queue to the Google Fusion Table.
+      console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
         
-        //Mark that we pushed the data.
-        isDataToPush = false;
-    }
+      //Mark that we pushed the data.
+		isDataToPush = false;
+   }
 }
 
 /*
