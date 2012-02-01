@@ -161,17 +161,21 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 });*/
 
 
+//PLUGIN VARIABLES
 //  NativeControl Variables
 var nativeControls;
 var tempLon;
 var tempLat;
 
-// Phone Variables
+//PHONE VARIABLES
 var isAppPaused = false;
 var isInternetConnection = false;
-var isDataToPush = false;
-var itemsToPush = 0;
 var isLandscape = false;
+//Badges
+var itemsInQueue = 0;
+var appNotifications = 0;
+//App
+var isAutoPush = true; 
 
 function onBodyLoad()
 {
@@ -305,12 +309,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	window.addEventListener("orientationchange", onOrientationChange,  true);
-
-	//Set up NativeControls
-	nativeControls = window.plugins.nativeControls;
-		setupTabBar();
-		setupNavBar();
+      window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	//ChildBrowser code to open Google.com
 /*	var cb = ChildBrowser.install();
@@ -349,7 +348,12 @@ function onDeviceReady()
 		// Do we need to handle this?
 		navigator.notification.alert('Error opening database: ' + e);
 	}
-
+    
+    //Set up NativeControls
+	nativeControls = window.plugins.nativeControls;
+        setupTabBar();
+        setupNavBar();
+    
 	// do your thing!
 	var docHeight = $(window).height();
 	var headerHeight = $("#header").height();
@@ -409,13 +413,8 @@ function onDeviceReady()
 				// TODO: This sometimes flashes the map
 				$.mobile.changePage('#queue-dialog', 'pop');
                                         
-                //We just added an item to the queue, meaning we have new data to push.
-                //#TODO: Make it track items not pushed, not just items added
-                                        //QUick and dirty ATM
-                isDataToPush = true;
-                itemsToPush += 1;
-                updateTabItemBadge('Queue', itemsToPush);
-                updateAppBadge(itemsToPush);
+                //We just added an item, update the queue size.
+                updateQueueSize();
 			},
 			function () { },
 			{
@@ -444,6 +443,10 @@ function onDeviceReady()
 		clearQueueDialog();
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
+    
+    //Now that we are done loading everything, read the queue and find the size
+    // then update all the badges accordingly.
+    updateQueueSize();
 }
 
 function clearQueueDialog() {
@@ -501,6 +504,9 @@ $(document).ready(function() {
 		deleteLocation(sqlDb, id);
 		$(this).hide();
 		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
+                     
+        //An item was removed, update the queue size.
+        updateQueueSize();
 	});
 
 	$('.status-list-item').on('click', function(e) {
@@ -537,9 +543,6 @@ $(document).ready(function() {
 
 			// Submit them to the server - if successful remove from local database
 			submitToServer(rowids);
-			itemsToPush = 0;
-         updateTabItemBadge('Queue',0);
-         updateAppBadge(0);
 		}		
 	});
 });
@@ -562,9 +565,50 @@ function submitToServer(rowids) {
 			console.log('data: ' + data);
 			
 			// Since we were successful, remove from local DB
-			
+        
 		}, 'jsonp');
 	});
+	
+	//The sqlDb has changed, update the queue size.
+	updateQueueSize();
+}
+
+/*
+        ==============================================
+                     QueueSize Functions
+        ==============================================
+ 
+    Calling this function will do everything for you, it reads the SQL database and then updates the size as well as the badges.
+ */
+function updateQueueSize() {
+    //We are updating the queue count, so first
+    // lets remove the current queue times from the counters.
+    appNotifications -= itemsInQueue;
+    itemsInQueue = 0;
+    
+    //Now we are ready to start, lets get the QueueSize
+    sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
+}
+
+function getQueueSize(_tx) {
+    //Gets all the rows from the locationqueue
+    _tx.executeSql('SELECT * FROM locationqueue ORDER BY id',[], 
+       function(_tx, _result) { 
+           itemsInQueue = _result.rows.length; }, 
+       function(_tx, _error) {
+            console.log('SQL Execute error'); return true; }
+    );
+}
+
+function getQueueSizeSuccessCB() {
+    //Now itemsInQueue is at the current count, update everything
+    appNotifications += itemsInQueue;
+    updateTabItemBadge('Queue', itemsInQueue);
+    updateAppBadge(appNotifications);
+}
+
+function getQueueSizeErrorBC(_error) {
+    console.log('getQueueSizeError: ' + _error.message);
 }
 
 /*
@@ -579,7 +623,7 @@ var tabBarItems = { tabs: [
       {'name': 'Queue', 'image': '/www/TabImages/Queue.png', 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/TabImages/User.png' , 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/TabImages/Debug.png', 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'     , 'onSelect': onClick_MoreTab}]};
+      {'name': 'More' , 'image': 'tabButton:More'          , 'onSelect': onClick_MoreTab}]};
 
 /*
     This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
@@ -598,8 +642,7 @@ function setupTabBar() {
 /*
     Called by setupTabBar, this function creates the TabBarItems with the given params from our array.
  */
-function setUpButton(_tabItem)
-{
+function setUpButton(_tabItem) {
     var options = new Object();
         options.onSelect = _tabItem.onSelect;
     nativeControls.createTabBarItem(_tabItem.name, _tabItem.name, _tabItem.image, options);
@@ -614,14 +657,13 @@ function setupNavBar() {
     nativeControls.setupRightNavButton('Settings','', 'onClick_RightNavBarButton');
     nativeControls.setNavBarTitle('Disaster Response');
     nativeControls.setNavBarLogo('');
-    hideLeftNavButton();
+        hideLeftNavButton();
     showNavBar();
 }
 
 function updateTabItemBadge(_tabName, _amount) {
-    if(_amount >= 1)
-    {
-        console.log('TabBar: Badge with the value '+_amount+' added to '+_tabName+'.');
+    if(_amount >= 1) {
+        console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
         var object = new Object();
             object.badge = _amount.toString();
         nativeControls.updateTabBarItem(_tabName, object);
@@ -631,14 +673,13 @@ function updateTabItemBadge(_tabName, _amount) {
 }
 
 function hideTabItemBadge(_tabName) {
-    console.log('TabBar: Badge removed from '+_tabName+'.');
+    console.log('TabBar: Badge removed from ' + _tabName + '.');
     nativeControls.updateTabBarItem(_tabName, null);
 }
 
 function updateAppBadge(_amount) {
-    if(_amount >= 1)
-    {
-        console.log('App: Badge added with the value '+_amount+'.');
+    if(_amount >= 1) {
+        console.log('App: Badge added with the value ' + _amount + '.');
         window.plugins.badge.set(_amount);
     }
     else
@@ -654,12 +695,10 @@ function showTabBar() {
     var options = new Object();
     options.position = 'bottom';
     nativeControls.showTabBar(options);
-    console.log('TabBar: shown');
 }
 
 function hideTabBar() {
     nativeControls.hideTabBar();
-    console.log('TabBar: hidden');
 }
 
 function showNavBar() {
@@ -709,13 +748,12 @@ function onClick_RightNavBarButton() {
  */
 function onClick_MapTab() {
     console.log('onClick: MapTab');
-    map.setCenter(new OpenLayers.LonLat(tempLon, tempLat)
-				  .transform(WGS84, WGS84_google_mercator), 17);
+    $.mobile.changePage('#map-page', 'pop');
 }
 
 function onClick_QueueTab() {
     console.log('onClick: QueueTab');
-    navigator.notification.alert('Queue tab clicked.', function(){}, 'Debug', 'Okay');
+    $.mobile.changePage('#queue-dialog', 'pop');
 }
 
 function onClick_UserTab() {
@@ -758,17 +796,22 @@ function onAppResume() {
     isAppPaused = false;
 
     //Check to see if we have an internet connection
-    if(isInternetConnection)
-    {
-        //We do, now check to see if we have pushed our data already or not.
-        // no need to push data thats already there...
-        if(isDataToPush)
-        {
-            //#TODO: Upload the local queue to the Google Fusion Table.
-            console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
-            
-            //Mark that we pushed the data.
-            isDataToPush = false;
+    if(isInternetConnection) {
+        //If auto push is on, try and push the data to the server.
+        if(isAutoPush) {
+            //If itemsInQueue is 1 or more we have data to push.
+            // So lets push it!
+            if(itemsInQueue >= 1) {
+                //#TODO: Upload the local queue to the Google Fusion Table.
+                console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
+				
+				//submit to server
+				// *code here*
+				
+				//#TODO: Remove below and add to bottom of submit function^
+				//We removed all the entries, update the queue size.
+				updateQueueSize();
+            }
         }
     }
 }
@@ -778,23 +821,28 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
-
    console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
-    
-   //Because native code won't run while an app is paused, this will not get called unless
-   // the app is running. Time to push data to the server.
-    
-   //Check to see if we have pushed our data already or not.
-   if(isDataToPush)
-   {
-		//#TODO: Upload the local queue to the Google Fusion Table.
-      console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
-        
-      //Mark that we pushed the data.
-		isDataToPush = false;
-   }
-	
+
+    //Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
+    //If auto push is on, try and push the data to the server.
+    if(isAutoPush) {
+        //If itemsInQueue is 1 or more we have data to push.
+        // So lets push it!
+        if(itemsInQueue >= 1) {
+            //#TODO: Upload the local queue to the Google Fusion Table.
+            console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
+			
+			//submit to server
+			// *code here*
+			
+			//#TODO: Remove below and add to bottom of submit function^
+			//We removed all the entries, update the queue size.
+			updateQueueSize();
+        }
+    }
+	 
+	// This is just for testing right now...
 	googleLogin();
 }
 
@@ -812,14 +860,11 @@ function onAppOffline() {
     #QUIRK: Triggered twice on 1 rotation.
  */
 var orDirtyToggle = false;
-function onOrientationChange(_error)
-{    
+function onOrientationChange(_error) {    
     //Prevent the function from running multiple times.
     orDirtyToggle = !orDirtyToggle;
-    if(orDirtyToggle)
-    {
-        switch(window.orientation)
-        {
+    if(orDirtyToggle) {
+        switch(window.orientation) {
             case -90:   //Landscape with the screen turned to the left.
                 onOrientationLandscape(window.orientation);
                 break;
@@ -846,16 +891,16 @@ function onOrientationChange(_error)
 /*
     This function is called whenever the device is switched over to landscape mode. Here we can do things like resize our viewport.
  */
-function onOrientationLandscape(_o) {
-    console.log('Listener: App has changed orientation to Landscape '+_o+'.');
+function onOrientationLandscape(_orientation) {
+    console.log('Listener: App has changed orientation to Landscape ' + _orientation + '.');
     isLandscape = true;
 }
 
 /*
  This function is called whenever the device is switched over to portrait mode. Here we can do things like resize our viewport.
  */
-function onOrientationPortrait(_o) {
-    console.log('Listener: App has changed orientation to Portrait '+_o+'.');
+function onOrientationPortrait(_orientation) {
+    console.log('Listener: App has changed orientation to Portrait ' + _orientation + '.');
     isLandscape = false;
 }
 
@@ -882,7 +927,7 @@ function onBatteryLow(_info) {
     Example: If they plug in, that means they have power where they are. The building locations that are close by are now operational (if they weren't already labled as such).
  */
 function onBatteryStatus(_info) {
-    console.log('Listener: Device battery now at '+_info.level+'.');
+    console.log('Listener: Device battery now at ' + _info.level + '.');
     //_info.level = % of battery (0-100).
     //_info.isPlugged = true if the device is plugged in.
 }
