@@ -202,7 +202,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-      window.addEventListener("orientationchange", onOrientationChange,  true);
+    //  window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	//ChildBrowser code to open Google.com
 /*	var cb = ChildBrowser.install();
@@ -304,7 +304,7 @@ function onDeviceReady()
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 				// TODO: This sometimes flashes the map
-				$.mobile.changePage('#queue-dialog', 'pop');
+				onClick_QueueTab();
                                         
                 //We just added an item, update the queue size.
                 updateQueueSize();
@@ -330,13 +330,33 @@ function onDeviceReady()
 	map.addControl(click);
 	click.activate();
 
+	//Hack to keep the Queue tab selected while in the status dialog.
+	$('#map-page').on('pageshow', function() {
+		selectTabBarItem('Map');
+	});
+					  
 	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
-		clearQueueDialog();
+		selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
-    
+	
+	//Clear the queue when the user is done with the page,
+	// fixes double queue on when you get over 20 items
+	// blinks when you leave the page =/
+	$('#queue-dialog').on('pagehide', function() {
+		clearQueueDialog();
+	});
+	
+	$('#user-dialog').on('pageshow', function() {
+		selectTabBarItem('User');
+	});
+	
+	$('#more-dialog').on('pageshow', function() {
+		selectTabBarItem('More');
+	});
+						      
     //Now that we are done loading everything, read the queue and find the size
     // then update all the badges accordingly.
     updateQueueSize();
@@ -528,7 +548,7 @@ function setupTabBar() {
             setUpButton(tabBarItems.tabs[i]);
         }
     nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
-    nativeControls.selectTabBarItem('Map');
+    selectTabBarItem('Map');
     showTabBar();
 }
 
@@ -547,16 +567,21 @@ function setUpButton(_tabItem) {
 function setupNavBar() {
     nativeControls.createNavBar();
     nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
-    nativeControls.setupRightNavButton('Settings','', 'onClick_RightNavBarButton');
+    nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
     nativeControls.setNavBarTitle('Disaster Response');
     nativeControls.setNavBarLogo('');
         hideLeftNavButton();
+		hideRightNavButton();
     showNavBar();
+}
+
+function selectTabBarItem(_tabItem) {
+	nativeControls.selectTabBarItem(_tabItem);
 }
 
 function updateTabItemBadge(_tabName, _amount) {
     if(_amount >= 1) {
-        console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
+        //console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
         var object = new Object();
             object.badge = _amount.toString();
         nativeControls.updateTabBarItem(_tabName, object);
@@ -566,13 +591,13 @@ function updateTabItemBadge(_tabName, _amount) {
 }
 
 function hideTabItemBadge(_tabName) {
-    console.log('TabBar: Badge removed from ' + _tabName + '.');
+    //console.log('TabBar: Badge removed from ' + _tabName + '.');
     nativeControls.updateTabBarItem(_tabName, null);
 }
 
 function updateAppBadge(_amount) {
     if(_amount >= 1) {
-        console.log('App: Badge added with the value ' + _amount + '.');
+        //console.log('App: Badge added with the value ' + _amount + '.');
         window.plugins.badge.set(_amount);
     }
     else
@@ -580,7 +605,7 @@ function updateAppBadge(_amount) {
 }
 
 function hideAppBadge() {
-    console.log('App: Badge removed from App.');
+    //console.log('App: Badge removed from App.');
     window.plugins.badge.clear();
 }
 
@@ -625,12 +650,12 @@ function hideRightNavButton() {
  */
 
 function onClick_LeftNavBarButton() {
-    console.log('onClick: LeftNavBarButton');
+    //console.log('onClick: LeftNavBarButton');
     navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
 function onClick_RightNavBarButton() {
-    console.log('onClick: RightNavBarButton');
+    //console.log('onClick: RightNavBarButton');
     navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
@@ -640,30 +665,35 @@ function onClick_RightNavBarButton() {
         ==============================================
  */
 function onClick_MapTab() {
-    console.log('onClick: MapTab');
+    //console.log('onClick: MapTab');
+	selectTabBarItem('Map');
     $.mobile.changePage('#map-page', 'pop');
 }
 
 function onClick_QueueTab() {
-    console.log('onClick: QueueTab');
+    //console.log('onClick: QueueTab');
+	selectTabBarItem('Queue');
     $.mobile.changePage('#queue-dialog', 'pop');
 }
 
 function onClick_UserTab() {
-    console.log('onClick: UserTab');
-    navigator.notification.alert('User tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: UserTab');
+	selectTabBarItem('User');
+    $.mobile.changePage('#user-dialog', 'pop');
 }
 
 function onClick_MoreTab() {
-    console.log('onClick: MoreTab');
-    navigator.notification.alert('More tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: MoreTab');
+	selectTabBarItem('More');
+    $.mobile.changePage('#more-dialog', 'pop');
 }
 
 //Temporary option to allow us to open a different tab and access debug information
 // like Device, iOS version, current location, etc.
 function onClick_DebugTab() {
-    console.log('onClick: DebugTab');
-    window.open ('Debug.html','_self',false);
+    //console.log('onClick: DebugTab');
+	selectTabBarItem('Debug');
+	window.open ('Debug.html','_self',false);
 }
 
 /*
