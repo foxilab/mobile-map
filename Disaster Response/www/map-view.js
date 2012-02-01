@@ -1,16 +1,3 @@
-// Google OAuth 2.0 stuff (not used currently)
-var google_client_id = '693645881354.apps.googleusercontent.com';
-var google_client_secret = 'UZgTsVNjRMxZyiKSWSr_SOwc';
-var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
-var google_access_token = 'ya29.AHES6ZTgAuAWNZ__sr9qtS6g8qtBiP0rLQQvpWlGD4XjK3BDFiNbPg';
-var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
-
-// Fusion Table IDs
-var TableId = new function () {
-	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
-	this.locationqueue  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
-}
-
 // If you want to prevent dragging, uncomment this section
 /*
  function preventBehavior(e) 
@@ -145,8 +132,8 @@ var appNotifications = 0;
 var isAutoPush = true; 
 
 function onBodyLoad()
-{		
-    document.addEventListener("deviceready", onDeviceReady, false);
+{
+	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
 var geolocationSuccess = function(position){
@@ -218,9 +205,25 @@ function onDeviceReady()
       window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	//ChildBrowser code to open Google.com
-	//var cb = ChildBrowser.install();
-	//if(cb != null) { window.plugins.childBrowser.showWebPage("http://google.com"); }
+/*	var cb = ChildBrowser.install();
+	if (cb != null) {
+		var setting =
+		{
+			'clientId':	"693645881354.apps.googleusercontent.com",
+			'scope':		"https://www.googleapis.com/auth/fusiontables"
+		};
 
+		var endUserAuthorizationEndpoint = 'https://accounts.google.com/o/oauth2/auth';
+
+		var authUrl = endUserAuthorizationEndpoint +
+		"?response_type=code" +
+		"&client_id=" + setting.clientId +
+		"&scope=" + setting.scope +
+		"&redirect_uri=http://localhost";
+
+		window.plugins.childBrowser.showWebPage(encodeURI(authUrl));
+	}
+*/
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -442,7 +445,7 @@ function submitToServer(rowids) {
 		var sql = '';
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
-			sql += 'INSERT INTO ' + TableId.locationqueue() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
+			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
 			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
 			sql += squote(row.name) + ',';
 			sql += squote('placeholder') + ','; // TODO: upload the photo and store the URL
@@ -711,9 +714,9 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
-    console.log('Listener: App has internet connection.');
-    isInternetConnection = true;
-    
+   console.log('Listener: App has internet connection.');
+	isInternetConnection = true;
+
     //Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
     //If auto push is on, try and push the data to the server.
     if(isAutoPush) {
