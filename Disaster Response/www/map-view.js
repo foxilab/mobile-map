@@ -7,7 +7,7 @@ var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
 
 // Fusion Table IDs
 var TableId = new function () {
-	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
+	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 }
 
@@ -164,8 +164,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 //PLUGIN VARIABLES
 //  NativeControl Variables
 var nativeControls;
-var tempLon;
-var tempLat;
 
 //PHONE VARIABLES
 var isAppPaused = false;
@@ -185,10 +183,6 @@ function onBodyLoad()
 var geolocationSuccess = function(position){
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
-    
-    //Quick and Dirty to get lat/lon to center the map
-    tempLat = lat;
-    tempLon = lon;
 	
 	var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
 	var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
@@ -237,23 +231,23 @@ function googleLogin() {
 	console.log('logging in');
 	$.ajax({
 		url: 'https://www.google.com/accounts/ClientLogin',
-		type:	'POST',
+		type:	'GET',
 		data:	{
-			accountType:	'HOSTED_OR_GOOGLE',
+			accountType:	'GOOGLE',
 			Email:			'research.lmn@gmail.com',
 			Passwd:			'lmnisgr8',
-			service:			'fusiontables',
+			service:		'fusiontables',
 			source:			google_client_id
 		},
 		success:	function(data) {
 			console.log('logged in');
 			google_access_token = $.trim(data.slice(data.indexOf('Auth=') + 5));
 
-			$.ajax({
+			/*$.ajax({
 				url:			'https://www.google.com/fusiontables/api/query',
 				type:			'POST',
 				data:	{
-					sql:		"INSERT INTO " + TableId.locations() + " (Location, Name, Status, Date, PhotoURL) VALUES ( '<Point><coordinates>3,3</coordinates></Point>', 'a', 1, 'b', 'c' )"
+					sql:	"INSERT INTO " + TableId.locations() + " (Location, Name, Status, Date, PhotoURL) VALUES ( '<Point><coordinates>3,3</coordinates></Point>', 'a', 1, 'b', 'c' )"
 				},
 				beforeSend:	function(xhr) {
 					console.log('before send');
@@ -267,10 +261,11 @@ function googleLogin() {
 					console.log('an error occurred');
 					console.log(data);
 				}
-			});
+			});*/
 
 			$.ajax({
-				url:			'https://www.google.com/fusiontables/api/query',
+				url:  'https://www.google.com/fusiontables/api/query',
+				type: 'GET',
 				data:	{
 					sql:		'SELECT * FROM ' + TableId.locations()
 				},
@@ -280,11 +275,11 @@ function googleLogin() {
 				},
 				success:		function(data) {
 					console.log('success');
-					console.log(data);
+					//console.log(data);
 				},
 				error:		function(data) {
 					console.log('an error occurred');
-					console.log(data);
+					//console.log(data);
 				}
 			});
 		},
@@ -329,8 +324,8 @@ function onDeviceReady()
 		"&redirect_uri=http://localhost";
 
 		window.plugins.childBrowser.showWebPage(encodeURI(authUrl));
-	}
-*/
+	}*/
+	
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -505,7 +500,7 @@ function showQueueItemDelete(e) {
 
 $(document).ready(function() {
 	$(document).click(function() {
-		$('#queue-item-delete').hide();
+		hideQueueItemDelete();
 	});
 
 	var $queue_item;
@@ -530,7 +525,6 @@ $(document).ready(function() {
 	});
 
 	$('.status-list-item').on('click', function(e) {
-                            
 		// See the text for the currently selected queue list item
 		var $h3 = $queue_item.find('h3');
 		$h3.text($(this).text());
