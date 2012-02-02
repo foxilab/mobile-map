@@ -7,7 +7,7 @@ var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
 
 // Fusion Table IDs
 var TableId = new function () {
-	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
+	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 }
 
@@ -37,9 +37,17 @@ var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 10,
-	externalGraphic : "css/images/15x15_Blue_Arrow.png",
+    externalGraphic : "css/images/15x15_Blue_Arrow.png",
 	fillOpacity: 1,
 	rotation: 0
+});
+
+var statusSymbolizer = new OpenLayers.Symbolizer.Point({
+    pointRadius : 10,
+    fillColor: "${status}",
+    strokeColor: "${status}",
+    fillOpacity: 0.4,
+    rotation: 0
 });
 
 var navStyle = new OpenLayers.StyleMap({
@@ -50,11 +58,39 @@ var navStyle = new OpenLayers.StyleMap({
 	})
 });
 
-var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
-{
-  styleMap: navStyle
+var statusStyle = new OpenLayers.StyleMap({
+    "default" : new OpenLayers.Style(null, {
+       rules : [ new OpenLayers.Rule({
+                    symbolizer : statusSymbolizer
+               })]
+    })
 });
 
+var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
+{
+    styleMap: navStyle
+});
+
+var statusLayer = new OpenLayers.Layer.Vector("Status Layer",
+{
+    styleMap: statusStyle
+});
+
+var statusSaveStrategy = new OpenLayers.Strategy.Save();
+var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
+{
+    strategies: [new OpenLayers.Strategy.BBOX(), statusSaveStrategy],
+    protocol: new OpenLayers.Protocol.WFS({
+       version: "1.1.0",
+       srsName: "EPSG:4326",
+       url: "findplango.com:8080/geoserver/wfs",
+       featureNS: "http://lmnsolutions.com/DisasterResponse",
+       featureType: "location_statuses",
+       geometryName: "the_geom",
+       schema: "http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
+    }),
+    visibility: false
+});
 
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
@@ -131,8 +167,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 //PLUGIN VARIABLES
 //  NativeControl Variables
 var nativeControls;
-var tempLon;
-var tempLat;
 
 //PHONE VARIABLES
 var isAppPaused = false;
@@ -155,10 +189,6 @@ function onBodyLoad()
 var geolocationSuccess = function(position){
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
-    
-    //Quick and Dirty to get lat/lon to center the map
-    tempLat = lat;
-    tempLon = lon;
 	
     if(map)
     {
@@ -360,7 +390,7 @@ function onDeviceReady()
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
     
-	map.addLayers([mapLayerOSM, navigationLayer]);
+	map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
 	
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -372,7 +402,7 @@ function onDeviceReady()
 		frequency: 3000
 	};
 	
-	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
+	//navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
 		defaultHandlerOptions : 
@@ -394,6 +424,12 @@ function onDeviceReady()
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+                
+               /* var point = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
+                var location = new OpenLayers.Feature.Vector(point);
+                
+                navigationLayer.addFeatures([location]);*/
+                                        
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
                                         
@@ -489,7 +525,7 @@ function showQueueItemDelete(e) {
 
 $(document).ready(function() {
 	$(document).click(function() {
-		$('#queue-item-delete').hide();
+		hideQueueItemDelete();
 	});
 
 	var $queue_item;
@@ -514,7 +550,6 @@ $(document).ready(function() {
 	});
 
 	$('.status-list-item').on('click', function(e) {
-                            
 		// See the text for the currently selected queue list item
 		var $h3 = $queue_item.find('h3');
 		$h3.text($(this).text());
@@ -573,7 +608,37 @@ function submitToServer(rowids) {
 			if (rows.length > 1) {
 				sql += ';';
 			}
+                         
+            var commaIndex = row.location.indexOf(",");
+            var lon = row.location.substr(0, commaIndex);
+            var lat = row.location.substr(commaIndex+1);
+            var point = new OpenLayers.Geometry.Point(lon, lat);
+            
+             var statusColor;
+             
+             if(row.status == 1)
+                statusColor = "green";
+             else if(row.status == 2)
+                statusColor = "yellow";
+             else if(row.status == 3)
+                statusColor = "orange";
+             else
+                statusColor = "red";
+                         
+            var location = new OpenLayers.Feature.Vector(point, 
+            {
+                name: row.name,
+                status: statusColor,
+                date: row.date
+             });
+             
+            statusLayer.addFeatures([location]);
+            statusWFSLayer.addFeatures([location]);
+            statusLayer.redraw();
 		}
+         
+        if(isInternetConnection)
+            statusSaveStrategy.save();
 		
 		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
