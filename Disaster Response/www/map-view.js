@@ -144,6 +144,9 @@ var appNotifications = 0;
 //App
 var isAutoPush = true; 
 
+var centered = false;
+var locatedSuccess = true;
+
 function onBodyLoad()
 {
 	document.addEventListener("deviceready", onDeviceReady, false);
@@ -157,21 +160,57 @@ var geolocationSuccess = function(position){
     tempLat = lat;
     tempLon = lon;
 	
-	var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
-	var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
-	
-	navigationLayer.removeAllFeatures();
-	navigationLayer.addFeatures([currentPosition]);
-	
-	map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
-				  .transform(WGS84, WGS84_google_mercator), 17);
+    if(map)
+    {
+        var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
+        var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
+        
+        navigationLayer.removeAllFeatures();
+        navigationLayer.addFeatures([currentPosition]);
+        
+        if(!centered)
+        {
+            map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
+                          .transform(WGS84, WGS84_google_mercator), 17);
+            
+            centered = true;
+        }
+    }
     
+    locatedSuccess = true;
     //iPhone Quirks
     //  position.timestamp returns seconds instead of milliseconds.
 }
 
 var geolocationError = function(error){
-	//error handling
+    
+    if(locatedSuccess)
+    {
+        //error handling
+        if(error == PositionError.PERMISSION_DENIED)
+            navigator.notification.alert("Location permission denied", function(){}, 'Error', 'Okay');
+        else if(error == PositionError.POSITION_UNAVAILABLE)
+            navigator.notification.alert("Location unavailable", function(){}, 'Error', 'Okay');
+        else
+            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');
+        
+        if(navigationLayer.features.length == 0)
+        {
+            var lon = -77.020000;
+            var lat = 38.890000;
+            
+            var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
+            var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
+            
+            navigationLayer.addFeatures([currentPosition]);
+            
+            map.setCenter(new OpenLayers.LonLat(lon, lat)
+                          .transform(WGS84, WGS84_google_mercator), 2);
+        }
+        
+        locatedSuccess = false;
+    }
+    
 }
 
 var compassSuccess = function(heading){
@@ -189,6 +228,8 @@ var compassSuccess = function(heading){
 		$("#map").animate({rotate: (-1 * heading) + 'deg'}, 1000);
 	
 	map.events.rotationAngle = -1 * mapRotation;
+    navSymbolizer.rotation = mapRotation;
+    navigationLayer.redraw();
 }
 
 var compassError = function(error){
@@ -271,7 +312,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	window.addEventListener("orientationchange", onOrientationChange,  true);
+	//  window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -318,6 +359,7 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
+    
 	map.addLayers([mapLayerOSM, navigationLayer]);
 	
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
@@ -330,7 +372,7 @@ function onDeviceReady()
 		frequency: 3000
 	};
 	
-	//navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
+	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
 		defaultHandlerOptions : 
@@ -353,7 +395,7 @@ function onDeviceReady()
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 				// TODO: This sometimes flashes the map
-				$.mobile.changePage('#queue-dialog', 'pop');
+				onClick_QueueTab();
                                         
                 //We just added an item, update the queue size.
                 updateQueueSize();
@@ -369,23 +411,43 @@ function onDeviceReady()
 		}
 	});
 
-	var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
+	/*var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
 	map.addControl(zoomPanel);
 	var zoomRight = .05 * mapHeight;
 	$("#zoomPanel").css("right", "5%");
-	$("#zoomPanel").css("bottom", zoomRight + "px");
+	$("#zoomPanel").css("bottom", zoomRight + "px");*/
 
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
 
+	//Hack to keep the Queue tab selected while in the status dialog.
+	$('#map-page').on('pageshow', function() {
+		selectTabBarItem('Map');
+	});
+					  
 	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
-		clearQueueDialog();
+		selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
-    
+	
+	//Clear the queue when the user is done with the page,
+	// fixes double queue on when you get over 20 items
+	// blinks when you leave the page =/
+	$('#queue-dialog').on('pagehide', function() {
+		clearQueueDialog();
+	});
+	
+	$('#user-dialog').on('pageshow', function() {
+		selectTabBarItem('User');
+	});
+	
+	$('#more-dialog').on('pageshow', function() {
+		selectTabBarItem('More');
+	});
+						      
     //Now that we are done loading everything, read the queue and find the size
     // then update all the badges accordingly.
     updateQueueSize();
@@ -486,6 +548,14 @@ $(document).ready(function() {
 			submitToServer(rowids);
 		}		
 	});
+                  
+    $('#plus').click(function(){
+        map.zoomIn();
+    });
+                  
+    $('#minus').click(function(){
+        map.zoomOut();
+    });
 });
 
 function submitToServer(rowids) {
@@ -576,7 +646,7 @@ function setupTabBar() {
             setUpButton(tabBarItems.tabs[i]);
         }
     nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
-    nativeControls.selectTabBarItem('Map');
+    selectTabBarItem('Map');
     showTabBar();
 }
 
@@ -595,16 +665,21 @@ function setUpButton(_tabItem) {
 function setupNavBar() {
     nativeControls.createNavBar();
     nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
-    nativeControls.setupRightNavButton('Settings','', 'onClick_RightNavBarButton');
+    nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
     nativeControls.setNavBarTitle('Disaster Response');
     nativeControls.setNavBarLogo('');
         hideLeftNavButton();
+		hideRightNavButton();
     showNavBar();
+}
+
+function selectTabBarItem(_tabItem) {
+	nativeControls.selectTabBarItem(_tabItem);
 }
 
 function updateTabItemBadge(_tabName, _amount) {
     if(_amount >= 1) {
-        console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
+        //console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
         var object = new Object();
             object.badge = _amount.toString();
         nativeControls.updateTabBarItem(_tabName, object);
@@ -614,13 +689,13 @@ function updateTabItemBadge(_tabName, _amount) {
 }
 
 function hideTabItemBadge(_tabName) {
-    console.log('TabBar: Badge removed from ' + _tabName + '.');
+    //console.log('TabBar: Badge removed from ' + _tabName + '.');
     nativeControls.updateTabBarItem(_tabName, null);
 }
 
 function updateAppBadge(_amount) {
     if(_amount >= 1) {
-        console.log('App: Badge added with the value ' + _amount + '.');
+        //console.log('App: Badge added with the value ' + _amount + '.');
         window.plugins.badge.set(_amount);
     }
     else
@@ -628,7 +703,7 @@ function updateAppBadge(_amount) {
 }
 
 function hideAppBadge() {
-    console.log('App: Badge removed from App.');
+    //console.log('App: Badge removed from App.');
     window.plugins.badge.clear();
 }
 
@@ -673,12 +748,12 @@ function hideRightNavButton() {
  */
 
 function onClick_LeftNavBarButton() {
-    console.log('onClick: LeftNavBarButton');
+    //console.log('onClick: LeftNavBarButton');
     navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
 function onClick_RightNavBarButton() {
-    console.log('onClick: RightNavBarButton');
+    //console.log('onClick: RightNavBarButton');
     navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
 
@@ -688,30 +763,35 @@ function onClick_RightNavBarButton() {
         ==============================================
  */
 function onClick_MapTab() {
-    console.log('onClick: MapTab');
+    //console.log('onClick: MapTab');
+	selectTabBarItem('Map');
     $.mobile.changePage('#map-page', 'pop');
 }
 
 function onClick_QueueTab() {
-    console.log('onClick: QueueTab');
+    //console.log('onClick: QueueTab');
+	selectTabBarItem('Queue');
     $.mobile.changePage('#queue-dialog', 'pop');
 }
 
 function onClick_UserTab() {
-    console.log('onClick: UserTab');
-    navigator.notification.alert('User tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: UserTab');
+	selectTabBarItem('User');
+    $.mobile.changePage('#user-dialog', 'pop');
 }
 
 function onClick_MoreTab() {
-    console.log('onClick: MoreTab');
-    navigator.notification.alert('More tab clicked.', function(){}, 'Debug', 'Okay');
+    //console.log('onClick: MoreTab');
+	selectTabBarItem('More');
+    $.mobile.changePage('#more-dialog', 'pop');
 }
 
 //Temporary option to allow us to open a different tab and access debug information
 // like Device, iOS version, current location, etc.
 function onClick_DebugTab() {
-    console.log('onClick: DebugTab');
-    window.open ('Debug.html','_self',false);
+    //console.log('onClick: DebugTab');
+	selectTabBarItem('Debug');
+	window.open ('Debug.html','_self',false);
 }
 
 /*
