@@ -382,7 +382,9 @@ OpenLayers.Util.onImageLoadError = function() {
             this.src = this.src;
         }
     } else {
-        OpenLayers.Element.addClass(this, "olImageLoadError");
+        //OpenLayers.Element.addClass(this, "olImageLoadError");
+        this.src = "css/images/nothing.png";
+        this.style.background = "white";
     }
     this.style.display = "";
 };
