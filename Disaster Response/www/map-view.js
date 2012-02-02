@@ -11,39 +11,6 @@ var TableId = new function () {
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 }
 
-function refreshAccessToken() {
-	var url = 'https://accounts.google.com/o/oauth2/token';
-	var data = $.post(url, {
-			client_id:			google_client_id,
-			client_secret:		google_client_secret,
-			refresh_token:		google_refresh_token,
-			grant_type:			'refresh_token'
-		},
-		function (data) {
-			google_access_token = data.access_token;
-		}
-	);
-}
-
-function googleSQL() {
-	arguments[0].url = 'https://www.google.com/fusiontables/api/query';
-	arguments[0].error = function(data) {
-		console.log('an error occurred');
-		console.log(data);
-//		refreshAccessToken();
-		// TODO: we may want to make sure infinite recursion is not possible
-		//return googleSQL(arguments);
-	}
-	arguments[0].beforeSend = function(xhr) {
-		xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
-	}
-	
-	console.log('arguments');
-	console.log(arguments);
-	
-	return $.ajax.apply(null, arguments);
-}
-
 // If you want to prevent dragging, uncomment this section
 /*
  function preventBehavior(e) 
@@ -233,63 +200,58 @@ var compassError = function(error){
 	
 }
 
-function googleLogin() {
-	console.log('logging in');
+function refreshAccessToken(func) {
+	console.log('refreshing token');
+	var url = 'https://accounts.google.com/o/oauth2/token';
+	var data = $.post(url, {
+			client_id:			google_client_id,
+			client_secret:		google_client_secret,
+			refresh_token:		google_refresh_token,
+			grant_type:			'refresh_token'
+		},
+		function (data) {
+			console.log('successfully refreshed token');
+			google_access_token = data.access_token;
+			if (func) {
+				console.log('calling func');
+				
+				func.apply(null, Array.prototype.slice.call(arguments, 1));
+			}
+		}
+	);
+}
+
+function googleSQL(sql, type, func, dont_retry) {
+	console.log('googleSQL');
+	console.log(sql);
+	
+	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
+	var http_type = 'GET';
+	if (type) {
+		http_type = type;
+	}
+	
+	var url = 'https://www.google.com/fusiontables/api/query?sql=' + encodeURIComponent(sql) + '&access_token=' + google_access_token;
+
 	$.ajax({
-		url: 'https://www.google.com/accounts/ClientLogin',
-		type:	'POST',
-		data:	{
-			accountType:	'HOSTED_OR_GOOGLE',
-			Email:			'research.lmn@gmail.com',
-			Passwd:			'lmnisgr8',
-			service:			'fusiontables',
-			source:			google_client_id
-		},
+		type:		http_type,
+		contentType: 'application/x-www-form-urlencoded',
+		url:		url,
 		success:	function(data) {
-			console.log('logged in');
-			google_access_token = $.trim(data.slice(data.indexOf('Auth=') + 5));
-
-			$.ajax({
-				url:			'https://www.google.com/fusiontables/api/query',
-				type:			'POST',
-				data:	{
-					sql:		"INSERT INTO " + TableId.locations() + " (Location, Name, Status, Date, PhotoURL) VALUES ( '<Point><coordinates>3,3</coordinates></Point>', 'a', 1, 'b', 'c' )"
-				},
-				beforeSend:	function(xhr) {
-					console.log('before send');
-					xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
-				},
-				success:		function(data) {
-					console.log('success');
-					console.log(data);
-				},
-				error:		function(data) {
-					console.log('an error occurred');
-					console.log(data);
-				}
-			});
-
-			$.ajax({
-				url:			'https://www.google.com/fusiontables/api/query',
-				data:	{
-					sql:		'SELECT * FROM ' + TableId.locations()
-				},
-				beforeSend:	function(xhr) {
-					console.log('before send');
-					xhr.setRequestHeader('Authorization', 'GoogleLogin auth=' + google_access_token);
-				},
-				success:		function(data) {
-					console.log('success');
-					console.log(data);
-				},
-				error:		function(data) {
-					console.log('an error occurred');
-					console.log(data);
-				}
-			});
+			console.log('successfully executed SQL on fusion table');
+			if (func) {
+				func.call(null, data);
+			}
 		},
-		error: function(data) {
-			console.log("Couldn't log in");
+		error:	function(data) {
+			if (!dont_retry) {
+				console.log('error in googleSQL so refreshing token and trying again');
+				refreshAccessToken(googleSQL, sql, http_type, func, true);
+			}
+			else {
+				console.log('error accessing fusion table');
+				console.log(data);
+			}
 		}
 	});
 }
@@ -309,28 +271,8 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-      window.addEventListener("orientationchange", onOrientationChange,  true);
+	window.addEventListener("orientationchange", onOrientationChange,  true);
 
-	//ChildBrowser code to open Google.com
-/*	var cb = ChildBrowser.install();
-	if (cb != null) {
-		var setting =
-		{
-			'clientId':	"693645881354.apps.googleusercontent.com",
-			'scope':		"https://www.googleapis.com/auth/fusiontables"
-		};
-
-		var endUserAuthorizationEndpoint = 'https://accounts.google.com/o/oauth2/auth';
-
-		var authUrl = endUserAuthorizationEndpoint +
-		"?response_type=code" +
-		"&client_id=" + setting.clientId +
-		"&scope=" + setting.scope +
-		"&redirect_uri=http://localhost";
-
-		window.plugins.childBrowser.showWebPage(encodeURI(authUrl));
-	}
-*/
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -541,7 +483,6 @@ $(document).ready(function() {
 				rowids.push($(elem).attr('rowid'));
 			});
 
-			// Submit them to the server - if successful remove from local database
 			submitToServer(rowids);
 		}		
 	});
@@ -553,20 +494,20 @@ function submitToServer(rowids) {
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
 			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
-			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote(row.name) + ',';
-			sql += squote('placeholder') + ','; // TODO: upload the photo and store the URL
+			sql += squote('35 35') + ',';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+			sql += squote('name') + ',';//squote(row.name) + ',';
+			sql += row.status + ',';
 			sql += squote(row.date) + ',';
-			sql += row.status + ');';
+			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+			
+			if (rows.length > 1) {
+				sql += ';';
+			}
 		}
 		
-		console.log(encodeURI('https://www.google.com/fusiontables/api/query?sql=' + sql + '&jsonCallback=?'));
-		var jsonp = $.post(encodeURI('https://www.google.com/fusiontables/api/query?sql=' + sql + '&jsonCallback=?'), function(data) {
-			console.log('data: ' + data);
-			
-			// Since we were successful, remove from local DB
-        
-		}, 'jsonp');
+		googleSQL('SELECT * FROM ' + TableId.locations());
+		googleSQL(sql, 'POST');
+		// TODO: if successful remove from local database
 	});
 	
 	//The sqlDb has changed, update the queue size.
@@ -820,7 +761,13 @@ function onAppResume() {
     Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
+ var doonce = true;
 function onAppOnline() {
+	if (doonce) {
+		refreshAccessToken();
+		doonce = false;
+	}
+
    console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
 
@@ -841,9 +788,6 @@ function onAppOnline() {
 			updateQueueSize();
         }
     }
-	 
-	// This is just for testing right now...
-	googleLogin();
 }
 
 /*
