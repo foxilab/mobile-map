@@ -7,7 +7,7 @@ var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
 
 // Fusion Table IDs
 var TableId = new function () {
-	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ' };
+	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 }
 
@@ -167,8 +167,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 //PLUGIN VARIABLES
 //  NativeControl Variables
 var nativeControls;
-var tempLon;
-var tempLat;
 
 //PHONE VARIABLES
 var isAppPaused = false;
@@ -191,10 +189,6 @@ function onBodyLoad()
 var geolocationSuccess = function(position){
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
-    
-    //Quick and Dirty to get lat/lon to center the map
-    tempLat = lat;
-    tempLon = lon;
 	
     if(map)
     {
@@ -270,10 +264,10 @@ var compassSuccess = function(heading){
 
 var compassError = function(error){
 	//error handling
-	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
-        navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
-	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
-        navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
+	//if(error.code == CompassError.COMPASS_INTERNAL_ERR)
+        //navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
+	//else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
+        //navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
 	
 }
 
@@ -312,7 +306,6 @@ function googleSQL(sql, type, func, dont_retry) {
 
 	$.ajax({
 		type:		http_type,
-		contentType: 'application/x-www-form-urlencoded',
 		url:		url,
 		success:	function(data) {
 			console.log('successfully executed SQL on fusion table');
@@ -531,7 +524,7 @@ function showQueueItemDelete(e) {
 
 $(document).ready(function() {
 	$(document).click(function() {
-		$('#queue-item-delete').hide();
+		hideQueueItemDelete();
 	});
 
 	var $queue_item;
@@ -556,7 +549,6 @@ $(document).ready(function() {
 	});
 
 	$('.status-list-item').on('click', function(e) {
-                            
 		// See the text for the currently selected queue list item
 		var $h3 = $queue_item.find('h3');
 		$h3.text($(this).text());
@@ -608,7 +600,7 @@ function submitToServer(rowids) {
 			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
 			sql += squote('35 35') + ',';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
 			sql += squote('name') + ',';//squote(row.name) + ',';
-			sql += row.status + ',';
+			sql += "'" + row.status + "',";
 			sql += squote(row.date) + ',';
             sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
              
@@ -648,7 +640,7 @@ function submitToServer(rowids) {
             statusSaveStrategy.save();
 		
 		googleSQL('SELECT * FROM ' + TableId.locations());
-		googleSQL(sql, 'POST');
+		googleSQL(sql, 'GET');
 		// TODO: if successful remove from local database
 	});
 	
