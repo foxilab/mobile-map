@@ -234,14 +234,16 @@ var compassSuccess = function(heading){
 
 var compassError = function(error){
 	//error handling
-	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
+/*	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
         navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
 	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
         navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
-	
+*/
 }
 
 function refreshAccessToken(func) {
+	var args = arguments;
+
 	console.log('refreshing token');
 	var url = 'https://accounts.google.com/o/oauth2/token';
 	var data = $.post(url, {
@@ -255,8 +257,7 @@ function refreshAccessToken(func) {
 			google_access_token = data.access_token;
 			if (func) {
 				console.log('calling func');
-				
-				func.apply(null, Array.prototype.slice.call(arguments, 1));
+				func.apply(null, Array.prototype.slice.call(args, 1));
 			}
 		}
 	);
@@ -271,12 +272,11 @@ function googleSQL(sql, type, func, dont_retry) {
 	if (type) {
 		http_type = type;
 	}
-	
-	var url = 'https://www.google.com/fusiontables/api/query?sql=' + encodeURIComponent(sql) + '&access_token=' + google_access_token;
+
+	var url = 'https://www.google.com/fusiontables/api/query?sql=' + sql + '&access_token=' + google_access_token;
 
 	$.ajax({
 		type:		http_type,
-		contentType: 'application/x-www-form-urlencoded',
 		url:		url,
 		success:	function(data) {
 			console.log('successfully executed SQL on fusion table');
@@ -564,10 +564,10 @@ function submitToServer(rowids) {
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
 			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
-			sql += squote('35 35') + ',';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote('name') + ',';//squote(row.name) + ',';
-			sql += row.status + ',';
-			sql += squote(row.date) + ',';
+			sql += squote('35 35') + ', ';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+			sql += squote('name') + ', ';//squote(row.name) + ',';
+			sql += row.status + ', ';
+			sql += squote(row.date) + ', ';
 			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
 			
 			if (rows.length > 1) {
@@ -575,7 +575,6 @@ function submitToServer(rowids) {
 			}
 		}
 		
-		googleSQL('SELECT * FROM ' + TableId.locations());
 		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
 	});
