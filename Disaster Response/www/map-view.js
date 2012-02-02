@@ -70,9 +70,17 @@ var map;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 10,
-	externalGraphic : "css/images/15x15_Blue_Arrow.png",
+    externalGraphic : "css/images/15x15_Blue_Arrow.png",
 	fillOpacity: 1,
 	rotation: 0
+});
+
+var statusSymbolizer = new OpenLayers.Symbolizer.Point({
+    pointRadius : 10,
+    fillColor: "${status}",
+    strokeColor: "${status}",
+    fillOpacity: 0.4,
+    rotation: 0
 });
 
 var navStyle = new OpenLayers.StyleMap({
@@ -83,11 +91,39 @@ var navStyle = new OpenLayers.StyleMap({
 	})
 });
 
-var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
-{
-  styleMap: navStyle
+var statusStyle = new OpenLayers.StyleMap({
+    "default" : new OpenLayers.Style(null, {
+       rules : [ new OpenLayers.Rule({
+                    symbolizer : statusSymbolizer
+               })]
+    })
 });
 
+var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
+{
+    styleMap: navStyle
+});
+
+var statusLayer = new OpenLayers.Layer.Vector("Status Layer",
+{
+    styleMap: statusStyle
+});
+
+var statusSaveStrategy = new OpenLayers.Strategy.Save();
+var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
+{
+    strategies: [new OpenLayers.Strategy.BBOX(), statusSaveStrategy],
+    protocol: new OpenLayers.Protocol.WFS({
+       version: "1.1.0",
+       srsName: "EPSG:4326",
+       url: "findplango.com:8080/geoserver/wfs",
+       featureNS: "http://lmnsolutions.com/DisasterResponse",
+       featureType: "location_statuses",
+       geometryName: "the_geom",
+       schema: "http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
+    }),
+    visibility: false
+});
 
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
@@ -418,7 +454,7 @@ function onDeviceReady()
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
     
-	map.addLayers([mapLayerOSM, navigationLayer]);
+	map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
 	
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -430,7 +466,7 @@ function onDeviceReady()
 		frequency: 3000
 	};
 	
-	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
+	//navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
 		defaultHandlerOptions : 
@@ -452,6 +488,12 @@ function onDeviceReady()
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+                
+               /* var point = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
+                var location = new OpenLayers.Feature.Vector(point);
+                
+                navigationLayer.addFeatures([location]);*/
+                                        
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
                                         
@@ -628,8 +670,38 @@ function submitToServer(rowids) {
 			sql += squote('placeholder') + ','; // TODO: upload the photo and store the URL
 			sql += squote(row.date) + ',';
 			sql += row.status + ');';
+                         
+            var commaIndex = row.location.indexOf(",");
+            var lon = row.location.substr(0, commaIndex);
+            var lat = row.location.substr(commaIndex+1);
+            var point = new OpenLayers.Geometry.Point(lon, lat);
+            
+             var statusColor;
+             
+             if(row.status == 1)
+                statusColor = "green";
+             else if(row.status == 2)
+                statusColor = "yellow";
+             else if(row.status == 3)
+                statusColor = "orange";
+             else
+                statusColor = "red";
+                         
+            var location = new OpenLayers.Feature.Vector(point, 
+            {
+                name: row.name,
+                status: statusColor,
+                date: row.date
+             });
+             
+            statusLayer.addFeatures([location]);
+            statusWFSLayer.addFeatures([location]);
+            statusLayer.redraw();
 		}
-		
+         
+        if(isInternetConnection)
+            statusSaveStrategy.save();
+                         
 		console.log(encodeURI('https://www.google.com/fusiontables/api/query?sql=' + sql + '&jsonCallback=?'));
 		var jsonp = $.post(encodeURI('https://www.google.com/fusiontables/api/query?sql=' + sql + '&jsonCallback=?'), function(data) {
 			console.log('data: ' + data);
