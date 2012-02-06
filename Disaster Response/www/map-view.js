@@ -6,6 +6,8 @@ var FusionServer = new function () {
 var FusionTableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+	this.locationsID = function() { return '2749284'; };
+	this.locationsPublic = function() { return '1gXniIDDBzI0JFutlnRZfDtYoP29477zh0s0kz9Q'; };
 }
 
 // If you want to prevent dragging, uncomment this section
@@ -294,6 +296,31 @@ function googleSQL(sql, type, func) {
 	});
 }
 
+//Google Map variables and functions
+var map_ftLocations;
+var mapOptions = {
+center: new google.maps.LatLng(38.9383, -77.3590),
+zoom: 8,
+mapTypeId: google.maps.MapTypeId.ROADMAP
+};
+
+function loadLocationFusionTable(_map) {
+	map_ftLocations = new google.maps.FusionTablesLayer({
+			query: {
+					select: 'Location',
+					from: TableId.locationsID()
+			}
+	});
+	
+	map_ftLocations.setMap(_map);
+}
+
+function initializeLocationLayer(_map) {
+	loadLocationFusionTable(_map);
+}
+
+function setLayerQuery(_layer, _sql) 	{ _layer.setQuery(_sql); }
+
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
@@ -352,13 +379,17 @@ function onDeviceReady()
 	mapDiv.css('top', mapTopPosition);
 	mapDiv.css('left', mapLeftPosition);
 	
-	map = new OpenLayers.Map(options);
-	map.events.mapSideLength = mapHeight;
+	//Google Map!
+	map = new google.maps.Map(document.getElementById("mapContainer"),
+								  mapOptions);
+	//OpenLayers.Map(options);
+	//map.events.mapSideLength = mapHeight;
+	
+	initializeLocationLayer(map);
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-    
-	map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
-	
+		map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
+		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
 		enableHighAccuracy: true,
@@ -604,8 +635,8 @@ function submitToServer(rowids) {
 			statusLayer.redraw();
 		}
          
-		if(isInternetConnection)
-			statusSaveStrategy.save();
+//		if(isInternetConnection)
+//			statusSaveStrategy.save();
 
 		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
