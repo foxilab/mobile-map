@@ -83,11 +83,11 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
     protocol: new OpenLayers.Protocol.WFS({
        version: "1.1.0",
        srsName: "EPSG:4326",
-       url: "findplango.com:8080/geoserver/wfs",
+       url: "findplango.com/geoserver/wfs",
        featureNS: "http://lmnsolutions.com/DisasterResponse",
        featureType: "location_statuses",
        geometryName: "the_geom",
-       schema: "http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
+       schema: "http://findplango.com/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
     }),
     visibility: false
 });
@@ -271,7 +271,7 @@ var compassError = function(error){
 	
 }
 
-function refreshAccessToken(func) {
+function refreshAccessToken(func, sql, type, func2, retry) {
 	console.log('refreshing token');
 	var url = 'https://accounts.google.com/o/oauth2/token';
 	var data = $.post(url, {
@@ -285,8 +285,17 @@ function refreshAccessToken(func) {
 			google_access_token = data.access_token;
 			if (func) {
 				console.log('calling func');
-				
-				func.apply(null, Array.prototype.slice.call(arguments, 1));
+					  var s = "{\n";
+					  
+					  for(var x in arguments)
+					  {
+					  s += "\t" + x + ": " + arguments[x] + "\n";
+					  }
+					  
+					  s += "}";
+					  
+					  googleSQL(sql, type, func2, retry);
+				//func.apply(null, Array.prototype.slice.call(arguments, 1));
 			}
 		}
 	);
@@ -302,9 +311,9 @@ function googleSQL(sql, type, func, dont_retry) {
 		http_type = type;
 	}
 	
-	var url = 'https://www.google.com/fusiontables/api/query?sql=' + encodeURIComponent(sql) + '&access_token=' + google_access_token;
-
-	$.ajax({
+	var url = 'https://www.google.com/fusiontables/api/query?';
+	console.log("type used: " + http_type);
+	/*$.ajax({
 		type:		http_type,
 		url:		url,
 		success:	function(data) {
@@ -316,6 +325,16 @@ function googleSQL(sql, type, func, dont_retry) {
 		error:	function(data) {
 			if (!dont_retry) {
 				console.log('error in googleSQL so refreshing token and trying again');
+				var s = "{\n";
+		   
+				for(var x in data)
+		   {
+				s += "\t" + x + ": " + data[x] + "\n";
+		   }
+		   
+		   s += "}";
+		   
+		   console.log("data: " + s);
 				refreshAccessToken(googleSQL, sql, http_type, func, true);
 			}
 			else {
@@ -323,7 +342,64 @@ function googleSQL(sql, type, func, dont_retry) {
 				console.log(data);
 			}
 		}
-	});
+	});*/
+	if(http_type == "POST")
+	{
+		$.post(url, {sql: sql, access_token: google_access_token}, function(data)
+		{
+			console.log('successfully executed SQL on fusion table');
+			if (func) {
+			   func.call(null, data);
+			}
+		}).error(function(data){
+			if (!dont_retry) {
+				console.log('error in googleSQL so refreshing token and trying again');
+				var s = "{\n";
+				
+				for(var x in data)
+				{
+					s += "\t" + x + ": " + data[x] + "\n";
+				}
+				
+				s += "}";
+				
+				console.log("data: " + s);
+				refreshAccessToken(googleSQL, sql, http_type, func, true);
+			}
+			else {
+				console.log('error accessing fusion table');
+				console.log(data);
+			}
+		});
+		
+	}else{
+		$.get(url, {sql: sql, access_token: google_access_token}, function(data)
+	   {
+	   console.log('successfully executed SQL on fusion table');
+		   if (func) {
+			   func.call(null, data);
+		   }
+	   }).error(function(data){
+			if (!dont_retry) {
+				console.log('error in googleSQL so refreshing token and trying again');
+				var s = "{\n";
+				
+				for(var x in data)
+				{
+					s += "\t" + x + ": " + data[x] + "\n";
+				}
+				
+				s += "}";
+				
+				console.log("data: " + s);
+				refreshAccessToken(googleSQL, sql, http_type, func, true);
+			}
+			else {
+				console.log('error accessing fusion table');
+				console.log(data);
+			}
+		});
+	}
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -597,13 +673,16 @@ function submitToServer(rowids) {
 		var sql = '';
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
-			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
-			sql += squote('35 35') + ',';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+			sql += 'INSERT INTO ' + TableId.locations() + ' (Name, Status, Location, Date, PhotoURL) VALUES (';
 			sql += squote('name') + ',';//squote(row.name) + ',';
-			sql += "'" + row.status + "',";
+			sql += squote(row.status) + ',';
+			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
 			sql += squote(row.date) + ',';
-            sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
-             
+			/*sql += "'" + row.status + "',";
+			sql += squote(row.date) + ',';
+            sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL*/
+			sql += squote('placeholder') + ')';
+						 
 			if (rows.length > 1) {
 				sql += ';';
 			}
@@ -636,11 +715,19 @@ function submitToServer(rowids) {
             statusLayer.redraw();
 		}
          
-        if(isInternetConnection)
-            statusSaveStrategy.save();
-		
-		googleSQL('SELECT * FROM ' + TableId.locations());
-		googleSQL(sql, 'GET');
+						/* console.log(isInternetConnection);
+						 console.log(statusSaveStrategy);
+						 if(isInternetConnection){
+							if(statusSaveStrategy)
+								statusSaveStrategy.save();
+						 }
+						 console.log("before sql stuff 2");*/
+						/* googleSQL('SELECT * FROM ' + TableId.locations(), null, function(results){console.log("select: " + results)});*/
+						 googleSQL('DESCRIBE ' + TableId.locations(), null, function(results){
+								   
+										console.log(results);
+								   });
+		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
 	});
 	
