@@ -1,14 +1,16 @@
 // Google OAuth 2.0 stuff
-var google_client_id = '693645881354.apps.googleusercontent.com';
-var google_client_secret = 'UZgTsVNjRMxZyiKSWSr_SOwc';
+var google_client_id = '693645881354-fqckfqe5hg6mog9fplio2d42sqlejcc5.apps.googleusercontent.com';
+var google_client_secret = 'wafp9ueoH47hv8uGBzaqMdcZ';
 var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
 var google_access_token = '';
-var google_refresh_token = '1/gSrdSV4gIR-_yzrKSBydRLo6k47CHymfLA3CycMRAOQ';
+var google_refresh_token = '1/we65YMVNrqJ2u9kCAqybeCttZT4-nlO10f6-19-XDsY';
 
 // Fusion Table IDs
 var TableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+	this.locationsID = function() { return '2749284'; };
+	this.locationsPublic = function() { return '1gXniIDDBzI0JFutlnRZfDtYoP29477zh0s0kz9Q'; };
 }
 
 // If you want to prevent dragging, uncomment this section
@@ -295,7 +297,6 @@ function refreshAccessToken(func) {
 
 function googleSQL(sql, type, func, dont_retry) {
 	console.log('googleSQL');
-	console.log(sql);
 	
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
 	var http_type = 'GET';
@@ -303,11 +304,21 @@ function googleSQL(sql, type, func, dont_retry) {
 		http_type = type;
 	}
 
-	var url = 'https://www.google.com/fusiontables/api/query?sql=' + sql + '&access_token=' + google_access_token;
-
+	var url = 'https://www.google.com/fusiontables/api/query?'; //?sql=' + sql + '&access_token=' + google_access_token;
+	
 	$.ajax({
-		type:		http_type,
+		type: http_type,
 		url:		url,
+		type:		http_type,
+		headers: {},
+		data: {
+		   		'sql' : sql,
+		   		'access_token' : google_access_token
+		   },
+		beforeSend: function(xhr, settings) {
+				//xhr.setRequestHeader("Authorization", "OAuth "+google_access_token);
+				//xhr.setRequestHeader("Content-Type" , "application/x-www-form-urlencoded");
+		   },
 		success:	function(data) {
 			console.log('successfully executed SQL on fusion table');
 			if (func) {
@@ -317,15 +328,39 @@ function googleSQL(sql, type, func, dont_retry) {
 		error:	function(data) {
 			if (!dont_retry) {
 				console.log('error in googleSQL so refreshing token and trying again');
-				refreshAccessToken(googleSQL, sql, http_type, func, true);
+				//refreshAccessToken(googleSQL, sql, http_type, func, true);
 			}
 			else {
 				console.log('error accessing fusion table');
-				console.log(data);
 			}
 		}
 	});
 }
+
+//Google Map variables and functions
+var map_ftLocations;
+var mapOptions = {
+center: new google.maps.LatLng(38.9383, -77.3590),
+zoom: 8,
+mapTypeId: google.maps.MapTypeId.ROADMAP
+};
+
+function loadLocationFusionTable(_map) {
+	map_ftLocations = new google.maps.FusionTablesLayer({
+			query: {
+					select: 'Location',
+					from: TableId.locationsID()
+			}
+	});
+	
+	map_ftLocations.setMap(_map);
+}
+
+function initializeLocationLayer(_map) {
+	loadLocationFusionTable(_map);
+}
+
+function setLayerQuery(_layer, _sql) 	{ _layer.setQuery(_sql); }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
@@ -385,13 +420,17 @@ function onDeviceReady()
 	mapDiv.css('top', mapTopPosition);
 	mapDiv.css('left', mapLeftPosition);
 	
-	map = new OpenLayers.Map(options);
-	map.events.mapSideLength = mapHeight;
+	//Google Map!
+	map = new google.maps.Map(document.getElementById("mapContainer"),
+								  mapOptions);
+	//OpenLayers.Map(options);
+	//map.events.mapSideLength = mapHeight;
+	
+	initializeLocationLayer(map);
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-    
-	map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
-	
+		map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
+		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
 		enableHighAccuracy: true,
@@ -599,11 +638,11 @@ function submitToServer(rowids) {
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
 			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
-			sql += squote('35 35') + ', ';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote('name') + ', ';//squote(row.name) + ',';
+			sql += squote('151 69') + ', ';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+			sql += squote('Joseph') + ', ';//squote(row.name) + ',';
 			sql += row.status + ', ';
 			sql += squote(row.date) + ', ';
-			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+			sql += squote('IT WORKED!!') + ')'; // TODO: upload the photo and store the URL
 			
 			if (rows.length > 1) {
 				sql += ';';
@@ -638,8 +677,10 @@ function submitToServer(rowids) {
 		}
          
         if(isInternetConnection)
-            statusSaveStrategy.save();
+            //statusSaveStrategy.save();
 		
+		var test = "UPDATE " + TableId.locations() + " SET Name = Joseph WHERE ROWID = '1'";
+		googleSQL(test,'POST');
 		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
 	});
