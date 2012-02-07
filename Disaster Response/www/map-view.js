@@ -883,10 +883,10 @@ function onAppResume() {
  */
  var doonce = true;
 function onAppOnline() {
-	if (doonce) {
+	/*if (doonce) {
 		refreshAccessToken();
 		doonce = false;
-	}
+	}*/
 
    console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
