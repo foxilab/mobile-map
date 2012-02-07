@@ -881,13 +881,7 @@ function onAppResume() {
     Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
- var doonce = true;
 function onAppOnline() {
-	/*if (doonce) {
-		refreshAccessToken();
-		doonce = false;
-	}*/
-
    console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
 
