@@ -9,6 +9,8 @@ var google_refresh_token = '1/we65YMVNrqJ2u9kCAqybeCttZT4-nlO10f6-19-XDsY';
 var TableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+	this.locationsID = function() { return '2749284'; };
+	this.locationsPublic = function() { return '1gXniIDDBzI0JFutlnRZfDtYoP29477zh0s0kz9Q'; };
 }
 
 // If you want to prevent dragging, uncomment this section
@@ -302,21 +304,20 @@ function googleSQL(sql, type, func, dont_retry) {
 		http_type = type;
 	}
 
-	var url = 'https://www.google.com/fusiontables/api/query';//?sql=' + sql + '&access_token=' + google_access_token;
+	var url = 'https://www.google.com/fusiontables/api/query?'; //?sql=' + sql + '&access_token=' + google_access_token;
 	
 	$.ajax({
+		type: http_type,
 		url:		url,
 		type:		http_type,
+		headers: {},
 		data: {
-			'sql' : sql,
-			'access_token' : google_access_token
-		},
-		//headers: { "Authorization": "Bearer "+google_access_token,
-		//			"Content-Type": "application/x-www-form-urlencoded"
-		//},
+		   		'sql' : sql,
+		   		'access_token' : google_access_token
+		   },
 		beforeSend: function(xhr, settings) {
-			console.log(xhr);
-			console.log(settings);
+				//xhr.setRequestHeader("Authorization", "OAuth "+google_access_token);
+				//xhr.setRequestHeader("Content-Type" , "application/x-www-form-urlencoded");
 		   },
 		success:	function(data) {
 			console.log('successfully executed SQL on fusion table');
@@ -335,6 +336,31 @@ function googleSQL(sql, type, func, dont_retry) {
 		}
 	});
 }
+
+//Google Map variables and functions
+var map_ftLocations;
+var mapOptions = {
+center: new google.maps.LatLng(38.9383, -77.3590),
+zoom: 8,
+mapTypeId: google.maps.MapTypeId.ROADMAP
+};
+
+function loadLocationFusionTable(_map) {
+	map_ftLocations = new google.maps.FusionTablesLayer({
+			query: {
+					select: 'Location',
+					from: TableId.locationsID()
+			}
+	});
+	
+	map_ftLocations.setMap(_map);
+}
+
+function initializeLocationLayer(_map) {
+	loadLocationFusionTable(_map);
+}
+
+function setLayerQuery(_layer, _sql) 	{ _layer.setQuery(_sql); }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
@@ -394,13 +420,17 @@ function onDeviceReady()
 	mapDiv.css('top', mapTopPosition);
 	mapDiv.css('left', mapLeftPosition);
 	
-	map = new OpenLayers.Map(options);
-	map.events.mapSideLength = mapHeight;
+	//Google Map!
+	map = new google.maps.Map(document.getElementById("mapContainer"),
+								  mapOptions);
+	//OpenLayers.Map(options);
+	//map.events.mapSideLength = mapHeight;
+	
+	initializeLocationLayer(map);
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-    
-	map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
-	
+		map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
+		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
 		enableHighAccuracy: true,
@@ -611,9 +641,9 @@ function submitToServer(rowids) {
 			//sql += squote('35 35') + ', ';
 			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
 			sql += squote('name') + ', ';//squote(row.name) + ',';
-			sql += squote(row.status) + ', ';
+			sql += row.status + ', ';
 			sql += squote(row.date) + ', ';
-			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+			sql += squote('IT WORKED!!') + ')'; // TODO: upload the photo and store the URL
 			
 			if (rows.length > 1) {
 				sql += ';';
@@ -649,9 +679,7 @@ function submitToServer(rowids) {
          
         if(isInternetConnection)
             //statusSaveStrategy.save();
-		
-		var test = "DESCRIBE " + TableId.locations();
-		googleSQL(test,'GET');
+
 		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
 	});
