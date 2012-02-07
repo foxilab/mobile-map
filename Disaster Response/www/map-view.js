@@ -555,7 +555,7 @@ function submitToServer() {
 			for (var i = 0; i < rows.length; ++i) {
 				var row = rows.item(i);
 				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
-				sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+				sql += squote(row.location) + ',';
 				sql += squote(row.name) + ',';
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';

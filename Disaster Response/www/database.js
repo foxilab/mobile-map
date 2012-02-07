@@ -146,7 +146,7 @@ function insertToLocationQueueTable(db, lon, lat, name, photo, status) {
 	var key = -1;
 	var insert = function (tx) {
 		var values = 'VALUES(';
-		values += quote(lon + ',' + lat) + ',';
+		values += quote(lat + ',' + lon) + ',';
 		if (name) {
 			values += quote(name) + ',';
 		}
