@@ -1,7 +1,7 @@
 // Fusion Table Stuff
 var FusionServer = new function () {
 	// TODO: point this to the hosted web server
-	this.url = function () { return 'http://findplango:8080/DSI/rest/fusion'; }
+	this.url = function () { return 'http://findplango.com:8080/DSI/rest/fusion'; }
 };
 var FusionTableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
@@ -270,7 +270,7 @@ var compassError = function(error){
 */
 }
 
-function googleSQL(sql, type, func) {
+function googleSQL(sql, type, success, error) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
 	var http_type = 'GET';
 	if (type) {
@@ -283,15 +283,15 @@ function googleSQL(sql, type, func) {
 		data:		{
 			sql:	sql
 		},
-		success:	function(data) {
-			console.log('successfully executed SQL on fusion table');
-			if (func) {
-				func.call(null, data);
+		success:	function(data, status, xhr) {
+			if (success) {
+				success.call(null, data, status, xhr);
 			}
 		},
-		error:	function(data) {
-			console.log('error accessing fusion table');
-			console.log(data);
+		error:	function(xhr, status, err) {
+			if (error) {
+				error.call(null, xhr, status, err);
+			}
 		}
 	});
 }
@@ -576,7 +576,7 @@ function submitToServer(rowids) {
 			var row = rows.item(i);
 			sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
 			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote('name') + ',';//squote(row.name) + ',';
+			sql += squote(row.name) + ',';
 			sql += row.status + ',';
 			sql += squote(row.date) + ',';
 			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
@@ -616,8 +616,18 @@ function submitToServer(rowids) {
 //		if(isInternetConnection)
 //			statusSaveStrategy.save();
 
-		googleSQL(sql, 'POST');
-		// TODO: if successful remove from local database
+		googleSQL(sql, 'POST', function(data) {
+			var rows = $.trim(data).split('\n');
+			var rowid = rows.shift();
+			
+			// Just some sanity checking...response should be rowids from Google and
+			// the number of inserted rows should equal the number of inserts that we POSTed.
+			if (rowid === 'rowid' && rows.length === rowids.length) {
+				for (var i = 0; i < rowids.length; ++i) {
+					deleteLocation(sqlDb, rowids[i]);
+				}
+			}
+		});
 	});
 	
 	//The sqlDb has changed, update the queue size.
