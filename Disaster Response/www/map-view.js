@@ -536,99 +536,83 @@ $(document).ready(function() {
 	});
 
 	$('.status-submit-button').on('click', function(e) {
-		var valid = 0;
-		var items = new Array();
-		$('.queue-list-item').filter(':visible').each(function() {
-			if ($(this).find('h3').text() !== 'Select a Status') {
-				++valid;
-				items.push($(this));
-			}
-		});
-
-		if (valid === 0) {
-			navigator.notification.alert('You must set the status for at least one location');
-			e.preventDefault();
-			e.stopPropagation();
-		}
-		else {
-			var rowids = new Array();
-			items.forEach(function(elem) {
-				rowids.push($(elem).attr('rowid'));
-			});
-
-			submitToServer(rowids);
-		}		
+		submitToServer();
 	});
                   
-    $('#plus').click(function(){
-        map.zoomIn();
-    });
-                  
-    $('#minus').click(function(){
-        map.zoomOut();
-    });
+	$('#plus').click(function(){
+		map.zoomIn();
+	});
+						
+	$('#minus').click(function(){
+		map.zoomOut();
+	});
 });
 
-function submitToServer(rowids) {
-	forLocationQueueRows(sqlDb, rowids, function(rows) {
-		var sql = '';
-		for (var i = 0; i < rows.length; ++i) {
-			var row = rows.item(i);
-			sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
-			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote(row.name) + ',';
-			sql += row.status + ',';
-			sql += squote(row.date) + ',';
-			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+function submitToServer() {
+	getValidLocationRowIds(sqlDb, function (rowids) {
+		forLocationQueueRows(sqlDb, rowids, function(rows) {
+			var sql = '';
+			for (var i = 0; i < rows.length; ++i) {
+				var row = rows.item(i);
+				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
+				sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+				sql += squote(row.name) + ',';
+				sql += row.status + ',';
+				sql += squote(row.date) + ',';
+				sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
 
-			if (rows.length > 1) {
-				sql += ';';
-			}
-
-			var commaIndex = row.location.indexOf(",");
-			var lon = row.location.substr(0, commaIndex);
-			var lat = row.location.substr(commaIndex+1);
-			var point = new OpenLayers.Geometry.Point(lon, lat);
-			
-			 var statusColor;
-			 
-			 if(row.status == 1)
-				 statusColor = "green";
-			 else if(row.status == 2)
-				 statusColor = "yellow";
-			 else if(row.status == 3)
-				 statusColor = "orange";
-			 else
-				 statusColor = "red";
-							 
-			var location = new OpenLayers.Feature.Vector(point, 
-			{
-				 name: row.name,
-				 status: statusColor,
-				 date: row.date
-			 });
-			 
-			statusLayer.addFeatures([location]);
-			statusWFSLayer.addFeatures([location]);
-			statusLayer.redraw();
-		}
-         
-//		if(isInternetConnection)
-//			statusSaveStrategy.save();
-
-		googleSQL(sql, 'POST', function(data) {
-			var rows = $.trim(data).split('\n');
-			var rowid = rows.shift();
-			
-			// Just some sanity checking...response should be rowids from Google and
-			// the number of inserted rows should equal the number of inserts that we POSTed.
-			if (rowid === 'rowid' && rows.length === rowids.length) {
-				for (var i = 0; i < rowids.length; ++i) {
-					deleteLocation(sqlDb, rowids[i]);
+				if (rows.length > 1) {
+					sql += ';';
 				}
-				//The sqlDb has changed, update the queue size.
-				updateQueueSize();				
+// TODO: Whoever wrote this, I think it's in the wrong place, or maybe it was just test code...
+/*
+				var commaIndex = row.location.indexOf(",");
+				var lon = row.location.substr(0, commaIndex);
+				var lat = row.location.substr(commaIndex+1);
+				var point = new OpenLayers.Geometry.Point(lon, lat);
+				
+				 var statusColor;
+				 
+				 if(row.status == 1)
+					 statusColor = "green";
+				 else if(row.status == 2)
+					 statusColor = "yellow";
+				 else if(row.status == 3)
+					 statusColor = "orange";
+				 else
+					 statusColor = "red";
+								 
+				var location = new OpenLayers.Feature.Vector(point, 
+				{
+					 name: row.name,
+					 status: statusColor,
+					 date: row.date
+				 });
+				 
+				statusLayer.addFeatures([location]);
+				statusWFSLayer.addFeatures([location]);
+				statusLayer.redraw();
+*/
 			}
+
+			// TODO: Whoever wrote this, are we using it, or should it be deleted?
+	//		if(isInternetConnection)
+	//			statusSaveStrategy.save();
+
+			googleSQL(sql, 'POST', function(data) {
+				var rows = $.trim(data).split('\n');
+				var rowid = rows.shift();
+				
+				// Just some sanity checking...response should be rowids from Google and
+				// the number of inserted rows should equal the number of inserts that we POSTed.
+				if (rowid === 'rowid' && rows.length === rowids.length) {
+					for (var i = 0; i < rowids.length; ++i) {
+						deleteLocation(sqlDb, rowids[i]);
+					}
+					//The sqlDb has changed, update the queue size.
+					updateQueueSize();				
+				}
+			});
 		});
 	});
 }
@@ -652,7 +636,7 @@ function updateQueueSize() {
 
 function getQueueSize(_tx) {
     //Gets all the rows from the locationqueue
-    _tx.executeSql('SELECT * FROM locationqueue ORDER BY id',[], 
+    _tx.executeSql('SELECT * FROM locationqueue',[], 
        function(_tx, _result) { 
            itemsInQueue = _result.rows.length; }, 
        function(_tx, _error) {
@@ -905,10 +889,6 @@ function onAppOnline() {
 			
 			//submit to server
 			// *code here*
-			
-			//#TODO: Remove below and add to bottom of submit function^
-			//We removed all the entries, update the queue size.
-			updateQueueSize();
         }
     }
 }

@@ -75,11 +75,6 @@ public class Fusion {
 
 			return response;
 		} catch (IOException e) {
-			String error = e.getMessage();
-
-			if (error.contains("HTTP Status 400")) {
-			}
-
 			return e.getMessage();
 		}
 	}
@@ -101,6 +96,7 @@ public class Fusion {
 			String response = "";
 			for (String line = output.readLine(); line != null; line = output.readLine()) {
 				response += line;
+				response += "\n";
 			}
 
 			return response;

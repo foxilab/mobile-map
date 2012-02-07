@@ -97,7 +97,7 @@ function forAllLocations(db, func) {
 		tx.executeSql('SELECT * FROM locationqueue ORDER BY id DESC', [], function(t, results) {
 			if (func) {
 				for (var i = 0; i < results.rows.length; ++i) {
-					func.call(func, results.rows.item(i));
+					func.call(null, results.rows.item(i));
 				}
 			}
 		});
@@ -181,6 +181,23 @@ function deleteLocation(db, rowid) {
 	};
 	
 	db.transaction(remove, errorSql);
+}
+
+function getValidLocationRowIds(db, func) {
+	var query = function(tx) {
+		tx.executeSql('SELECT id FROM locationqueue WHERE status IS NOT NULL', [], function(t, results) {
+			if (func) {
+				var rowids = new Array();
+				for (var i = 0; i < results.rows.length; ++i) {
+					rowids.push(results.rows.item(i).id);
+				}
+				console.log(rowids);
+				func.call(null, rowids);
+			}
+		});
+	};
+	
+	db.transaction(query, errorSql);
 }
 
 // TODO: remove this since it's debug only?
