@@ -296,9 +296,17 @@ function googleSQL(sql, type, func) {
 	});
 }
 
-function initializeLocationWMSLayer(_map) {
+var fusionLayerOptions = {
+	projection: "EPSG:3857",
+	numZoomLevels : 20,
+	maxResolution: maxResolution,
+	maxExtent: maxExtent,
+	restrictedExtent: restrictedExtent,
+};
+
+function initializeFusionLayer() {
 	fusionLayer_Locations = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api");
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions);
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -363,10 +371,10 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	
 	//Initalize the Fusion Table layer.
-	initializeLocationWMSLayer(map);
+	initializeFusionLayer();
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer_Locations]);
+		map.addLayers([mapLayerOSM, fusionLayer_Locations, navigationLayer, statusLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -643,7 +651,7 @@ function updateQueueSize() {
 
 function getQueueSize(_tx) {
     //Gets all the rows from the locationqueue
-    _tx.executeSql('SELECT * FROM locationqueue ORDER BY id',[], 
+    _tx.executeSql('SELECT * FROM locationqueue',[], 
        function(_tx, _result) { 
            itemsInQueue = _result.rows.length; }, 
        function(_tx, _error) {
