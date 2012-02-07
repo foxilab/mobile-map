@@ -126,7 +126,8 @@ var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
 
 var options = {
 	div: "map",
-	projection: WGS84,
+	projection: WGS84_google_mercator,
+	displayProjection: WGS84,
 	numZoomLevels : 20,
 	maxResolution: maxResolution,
 	maxExtent: maxExtent,
@@ -297,7 +298,8 @@ function googleSQL(sql, type, success, error) {
 }
 
 var fusionLayerOptions = {
-	projection: "EPSG:3857",
+	displayProjection: WGS84,
+	projection: WGS84_google_mercator,
 	numZoomLevels : 20,
 	maxResolution: maxResolution,
 	maxExtent: maxExtent,
@@ -405,6 +407,10 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+			console.log('DisplayProjection: ' + map.displayProjection);
+			console.log('Projection: ' + map.projection);
+			console.log('LonLat: ' + lonlat);
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -416,9 +422,6 @@ function onDeviceReady()
                                         
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
-                                        
-                //We just added an item, update the queue size.
-                updateQueueSize();
 			},
 			function () { },
 			{
@@ -618,6 +621,7 @@ function submitToServer() {
 						deleteLocation(sqlDb, rowids[i]);
 					}
 					//The sqlDb has changed, update the queue size.
+					fusionLayer_Locations.redraw();
 					updateQueueSize();				
 				}
 			});
