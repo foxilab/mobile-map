@@ -10,7 +10,6 @@ var TableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 	this.locationsID = function() { return '2749284'; };
-	this.locationsPublic = function() { return '1gXniIDDBzI0JFutlnRZfDtYoP29477zh0s0kz9Q'; };
 }
 
 // If you want to prevent dragging, uncomment this section
@@ -36,6 +35,25 @@ var TableId = new function () {
  * OpenLayers.Map
  */
 var map;
+var fusionLayer_Locations;
+
+//PLUGIN VARIABLES
+//  NativeControl Variables
+var nativeControls;
+
+//PHONE VARIABLES
+var isAppPaused = false;
+var isInternetConnection = false;
+var isLandscape = false;
+//Badges
+var itemsInQueue = 0;
+var appNotifications = 0;
+//App
+var isAutoPush = true; 
+
+var centered = false;
+var locatedSuccess = true;
+
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 10,
@@ -107,19 +125,19 @@ enableKinetic: true
 }
 };
 
-
 var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
 
 var options = {
-div: "map",
-projection: WGS84,
+	div: "map",
+	projection: WGS84,
 	numZoomLevels : 20,
-maxResolution: maxResolution,
-maxExtent: maxExtent,
-restrictedExtent: restrictedExtent,
-controls: [
+	maxResolution: maxResolution,
+	maxExtent: maxExtent,
+	allOverlays: true,
+	restrictedExtent: restrictedExtent,
+	controls: [
 		   rotatingTouchNav
-		   ]
+	]
 };
 
 /*var gimmyHeading = 315;
@@ -164,24 +182,6 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 	}
 										
 });*/
-
-
-//PLUGIN VARIABLES
-//  NativeControl Variables
-var nativeControls;
-
-//PHONE VARIABLES
-var isAppPaused = false;
-var isInternetConnection = false;
-var isLandscape = false;
-//Badges
-var itemsInQueue = 0;
-var appNotifications = 0;
-//App
-var isAutoPush = true; 
-
-var centered = false;
-var locatedSuccess = true;
 
 function onBodyLoad()
 {
@@ -337,30 +337,10 @@ function googleSQL(sql, type, func, dont_retry) {
 	});
 }
 
-//Google Map variables and functions
-var map_ftLocations;
-var mapOptions = {
-center: new google.maps.LatLng(38.9383, -77.3590),
-zoom: 8,
-mapTypeId: google.maps.MapTypeId.ROADMAP
-};
-
-function loadLocationFusionTable(_map) {
-	map_ftLocations = new google.maps.FusionTablesLayer({
-			query: {
-					select: 'Location',
-					from: TableId.locationsID()
-			}
-	});
-	
-	map_ftLocations.setMap(_map);
+function initializeLocationWMSLayer(_map) {
+	fusionLayer_Locations = new OpenLayers.Layer.OSM("Fusion Table - locations",
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+TableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api");
 }
-
-function initializeLocationLayer(_map) {
-	loadLocationFusionTable(_map);
-}
-
-function setLayerQuery(_layer, _sql) 	{ _layer.setQuery(_sql); }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
@@ -420,16 +400,14 @@ function onDeviceReady()
 	mapDiv.css('top', mapTopPosition);
 	mapDiv.css('left', mapLeftPosition);
 	
-	//Google Map!
-	map = new google.maps.Map(document.getElementById("mapContainer"),
-								  mapOptions);
-	//OpenLayers.Map(options);
-	//map.events.mapSideLength = mapHeight;
+	map = new OpenLayers.Map(options);
+	map.events.mapSideLength = mapHeight;
 	
-	initializeLocationLayer(map);
+	//Initalize the Fusion Table layer.
+	initializeLocationWMSLayer(map);
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, navigationLayer, statusLayer]);
+		map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer_Locations]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
