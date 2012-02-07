@@ -626,12 +626,11 @@ function submitToServer(rowids) {
 				for (var i = 0; i < rowids.length; ++i) {
 					deleteLocation(sqlDb, rowids[i]);
 				}
+				//The sqlDb has changed, update the queue size.
+				updateQueueSize();				
 			}
 		});
 	});
-	
-	//The sqlDb has changed, update the queue size.
-	updateQueueSize();
 }
 
 /*
