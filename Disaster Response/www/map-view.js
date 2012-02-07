@@ -842,6 +842,27 @@ function onAppPause() {
     // will not run until the app is reopened again.
 }
 
+// Push any queued items to the server automatically, or with the user's consent,
+// depending on the app's current settings.
+function submitQueuedItems() {
+	//If itemsInQueue is 1 or more we have data to push.
+	if(itemsInQueue >= 1) {
+		//If auto push is on, try and push the data to the server.
+		if(isAutoPush) {
+			submitToServer();
+		}
+		else {
+			navigator.notification.confirm('You have unsent items.  Send now?', function (response) {
+				switch (response) {
+					case 1:
+						submitToServer();
+						break;
+				}
+			});
+		}
+	}
+}
+
 /*
     When the user resumes the app from the background this callback is called, allowing us to resume anything that we stopped.
  */
@@ -851,14 +872,7 @@ function onAppResume() {
 	
 	//Check to see if we have an internet connection
 	if(isInternetConnection) {
-		//If auto push is on, try and push the data to the server.
-		if(isAutoPush) {
-			//If itemsInQueue is 1 or more we have data to push.
-			// So lets push it!
-			if(itemsInQueue >= 1) {
-				submitToServer();
-			}
-		}
+		submitQueuedItems();
 	}
 }
 
@@ -871,14 +885,7 @@ function onAppOnline() {
 	isInternetConnection = true;
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
-	//If auto push is on, try and push the data to the server.
-	if(isAutoPush) {
-		//If itemsInQueue is 1 or more we have data to push.
-		// So lets push it!
-		if(itemsInQueue >= 1) {
-			submitToServer();
-		}
-	}
+	submitQueuedItems();
 }
 
 /*
