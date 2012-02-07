@@ -1,7 +1,7 @@
 // Fusion Table Stuff
 var FusionServer = new function () {
 	// TODO: point this to the hosted web server
-	this.url = function () { return 'http:localhost:8080/DSI/rest/fusion'; }
+	this.url = function () { return 'http://findplango.com:8080/DSI/rest/fusion'; }
 };
 var FusionTableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
@@ -126,7 +126,8 @@ var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
 
 var options = {
 	div: "map",
-	projection: WGS84,
+	projection: WGS84_google_mercator,
+	displayProjection: WGS84,
 	numZoomLevels : 20,
 	maxResolution: maxResolution,
 	maxExtent: maxExtent,
@@ -270,7 +271,7 @@ var compassError = function(error){
 */
 }
 
-function googleSQL(sql, type, func) {
+function googleSQL(sql, type, success, error) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
 	var http_type = 'GET';
 	if (type) {
@@ -283,22 +284,31 @@ function googleSQL(sql, type, func) {
 		data:		{
 			sql:	sql
 		},
-		success:	function(data) {
-			console.log('successfully executed SQL on fusion table');
-			if (func) {
-				func.call(null, data);
+		success:	function(data, status, xhr) {
+			if (success) {
+				success.call(null, data, status, xhr);
 			}
 		},
-		error:	function(data) {
-			console.log('error accessing fusion table');
-			console.log(data);
+		error:	function(xhr, status, err) {
+			if (error) {
+				error.call(null, xhr, status, err);
+			}
 		}
 	});
 }
 
-function initializeLocationWMSLayer(_map) {
+var fusionLayerOptions = {
+	displayProjection: WGS84,
+	projection: WGS84_google_mercator,
+	numZoomLevels : 20,
+	maxResolution: maxResolution,
+	maxExtent: maxExtent,
+	restrictedExtent: restrictedExtent,
+};
+
+function initializeFusionLayer() {
 	fusionLayer_Locations = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api");
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions);
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -385,10 +395,10 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	
 	//Initalize the Fusion Table layer.
-	initializeLocationWMSLayer(map);
+	initializeFusionLayer();
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer_Locations]);
+		map.addLayers([mapLayerOSM, fusionLayer_Locations, navigationLayer, statusLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -422,6 +432,11 @@ function onDeviceReady()
 												$.get('http://MobileResponse.s3.amazonaws.com/?policy', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA"}, function(results){
 													  console.log(results);
 													  }).error(function(){console.log("error")});
+
+			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+			console.log('DisplayProjection: ' + map.displayProjection);
+			console.log('Projection: ' + map.projection);
+			console.log('LonLat: ' + lonlat);
 												
 			navigator.camera.getPicture(function (imageURI) 
 			{
@@ -461,9 +476,6 @@ function onDeviceReady()
 										
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
-                                        
-                //We just added an item, update the queue size.
-                updateQueueSize();
 			},
 			function () { },
 			{
@@ -589,92 +601,86 @@ $(document).ready(function() {
 	});
 
 	$('.status-submit-button').on('click', function(e) {
-		var valid = 0;
-		var items = new Array();
-		$('.queue-list-item').filter(':visible').each(function() {
-			if ($(this).find('h3').text() !== 'Select a Status') {
-				++valid;
-				items.push($(this));
-			}
-		});
-
-		if (valid === 0) {
-			navigator.notification.alert('You must set the status for at least one location');
-			e.preventDefault();
-			e.stopPropagation();
-		}
-		else {
-			var rowids = new Array();
-			items.forEach(function(elem) {
-				rowids.push($(elem).attr('rowid'));
-			});
-
-			submitToServer(rowids);
-		}		
+		submitToServer();
 	});
                   
-    $('#plus').click(function(){
-        map.zoomIn();
-    });
-                  
-    $('#minus').click(function(){
-        map.zoomOut();
-    });
+	$('#plus').click(function(){
+		map.zoomIn();
+	});
+						
+	$('#minus').click(function(){
+		map.zoomOut();
+	});
 });
 
-function submitToServer(rowids) {
-	forLocationQueueRows(sqlDb, rowids, function(rows) {
-		var sql = '';
-		for (var i = 0; i < rows.length; ++i) {
-			var row = rows.item(i);
-			sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
-			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote('name') + ',';//squote(row.name) + ',';
-			sql += row.status + ',';
-			sql += squote(row.date) + ',';
-			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+function submitToServer() {
+	getValidLocationRowIds(sqlDb, function (rowids) {
+		forLocationQueueRows(sqlDb, rowids, function(rows) {
+			var sql = '';
+			for (var i = 0; i < rows.length; ++i) {
+				var row = rows.item(i);
+				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
+				sql += squote(row.location) + ',';
+				sql += squote(row.name) + ',';
+				sql += row.status + ',';
+				sql += squote(row.date) + ',';
+				sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
 
-			if (rows.length > 1) {
-				sql += ';';
+				if (rows.length > 1) {
+					sql += ';';
+				}
+// TODO: Whoever wrote this, I think it's in the wrong place, or maybe it was just test code...
+/*
+				var commaIndex = row.location.indexOf(",");
+				var lon = row.location.substr(0, commaIndex);
+				var lat = row.location.substr(commaIndex+1);
+				var point = new OpenLayers.Geometry.Point(lon, lat);
+				
+				 var statusColor;
+				 
+				 if(row.status == 1)
+					 statusColor = "green";
+				 else if(row.status == 2)
+					 statusColor = "yellow";
+				 else if(row.status == 3)
+					 statusColor = "orange";
+				 else
+					 statusColor = "red";
+								 
+				var location = new OpenLayers.Feature.Vector(point, 
+				{
+					 name: row.name,
+					 status: statusColor,
+					 date: row.date
+				 });
+				 
+				statusLayer.addFeatures([location]);
+				statusWFSLayer.addFeatures([location]);
+				statusLayer.redraw();
+*/
 			}
 
-			var commaIndex = row.location.indexOf(",");
-			var lon = row.location.substr(0, commaIndex);
-			var lat = row.location.substr(commaIndex+1);
-			var point = new OpenLayers.Geometry.Point(lon, lat);
-			
-			 var statusColor;
-			 
-			 if(row.status == 1)
-				 statusColor = "green";
-			 else if(row.status == 2)
-				 statusColor = "yellow";
-			 else if(row.status == 3)
-				 statusColor = "orange";
-			 else
-				 statusColor = "red";
-							 
-			var location = new OpenLayers.Feature.Vector(point, 
-			{
-				 name: row.name,
-				 status: statusColor,
-				 date: row.date
-			 });
-			 
-			statusLayer.addFeatures([location]);
-			statusWFSLayer.addFeatures([location]);
-			statusLayer.redraw();
-		}
-         
-//		if(isInternetConnection)
-//			statusSaveStrategy.save();
+			// TODO: Whoever wrote this, are we using it, or should it be deleted?
+	//		if(isInternetConnection)
+	//			statusSaveStrategy.save();
 
-		googleSQL(sql, 'POST');
-		// TODO: if successful remove from local database
+			googleSQL(sql, 'POST', function(data) {
+				var rows = $.trim(data).split('\n');
+				var rowid = rows.shift();
+				
+				// Just some sanity checking...response should be rowids from Google and
+				// the number of inserted rows should equal the number of inserts that we POSTed.
+				if (rowid === 'rowid' && rows.length === rowids.length) {
+					for (var i = 0; i < rowids.length; ++i) {
+						deleteLocation(sqlDb, rowids[i]);
+					}
+					//The sqlDb has changed, update the queue size.
+					fusionLayer_Locations.redraw();
+					updateQueueSize();				
+				}
+			});
+		});
 	});
-	
-	//The sqlDb has changed, update the queue size.
-	updateQueueSize();
 }
 
 /*
@@ -696,7 +702,7 @@ function updateQueueSize() {
 
 function getQueueSize(_tx) {
     //Gets all the rows from the locationqueue
-    _tx.executeSql('SELECT * FROM locationqueue ORDER BY id',[], 
+    _tx.executeSql('SELECT * FROM locationqueue',[], 
        function(_tx, _result) { 
            itemsInQueue = _result.rows.length; }, 
        function(_tx, _error) {
@@ -902,32 +908,38 @@ function onAppPause() {
     // will not run until the app is reopened again.
 }
 
+// Push any queued items to the server automatically, or with the user's consent,
+// depending on the app's current settings.
+function submitQueuedItems() {
+	//If itemsInQueue is 1 or more we have data to push.
+	if(itemsInQueue >= 1) {
+		//If auto push is on, try and push the data to the server.
+		if(isAutoPush) {
+			submitToServer();
+		}
+		else {
+			navigator.notification.confirm('You have unsent items.  Send now?', function (response) {
+				switch (response) {
+					case 1:
+						submitToServer();
+						break;
+				}
+			});
+		}
+	}
+}
+
 /*
     When the user resumes the app from the background this callback is called, allowing us to resume anything that we stopped.
  */
 function onAppResume() {
-    console.log('Listener: App has been resumed.');
-    isAppPaused = false;
-
-    //Check to see if we have an internet connection
-    if(isInternetConnection) {
-        //If auto push is on, try and push the data to the server.
-        if(isAutoPush) {
-            //If itemsInQueue is 1 or more we have data to push.
-            // So lets push it!
-            if(itemsInQueue >= 1) {
-                //#TODO: Upload the local queue to the Google Fusion Table.
-                console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
-				
-				//submit to server
-				// *code here*
-				
-				//#TODO: Remove below and add to bottom of submit function^
-				//We removed all the entries, update the queue size.
-				updateQueueSize();
-            }
-        }
-    }
+	console.log('Listener: App has been resumed.');
+	isAppPaused = false;
+	
+	//Check to see if we have an internet connection
+	if(isInternetConnection) {
+		submitQueuedItems();
+	}
 }
 
 /*
@@ -935,26 +947,11 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
-   console.log('Listener: App has internet connection.');
+	console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
 
-    //Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
-    //If auto push is on, try and push the data to the server.
-    if(isAutoPush) {
-        //If itemsInQueue is 1 or more we have data to push.
-        // So lets push it!
-        if(itemsInQueue >= 1) {
-            //#TODO: Upload the local queue to the Google Fusion Table.
-            console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
-			
-			//submit to server
-			// *code here*
-			
-			//#TODO: Remove below and add to bottom of submit function^
-			//We removed all the entries, update the queue size.
-			updateQueueSize();
-        }
-    }
+	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
+	submitQueuedItems();
 }
 
 /*
@@ -962,8 +959,8 @@ function onAppOnline() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOffline() {
-    console.log('Listener: App has lost internet connection.');
-    isInternetConnection = false;
+	console.log('Listener: App has lost internet connection.');
+	isInternetConnection = false;
 }
 
 /*
