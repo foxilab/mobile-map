@@ -1,12 +1,9 @@
-// Google OAuth 2.0 stuff
-var google_client_id = '693645881354-fqckfqe5hg6mog9fplio2d42sqlejcc5.apps.googleusercontent.com';
-var google_client_secret = 'wafp9ueoH47hv8uGBzaqMdcZ';
-var google_api_key = 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0';
-var google_access_token = '';
-var google_refresh_token = '1/we65YMVNrqJ2u9kCAqybeCttZT4-nlO10f6-19-XDsY';
-
-// Fusion Table IDs
-var TableId = new function () {
+// Fusion Table Stuff
+var FusionServer = new function () {
+	// TODO: point this to the hosted web server
+	this.url = function () { return 'http:localhost:8080/DSI/rest/fusion'; }
+};
+var FusionTableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 	this.locationsID = function() { return '2749284'; };
@@ -273,52 +270,19 @@ var compassError = function(error){
 */
 }
 
-function refreshAccessToken(func) {
-	var args = arguments;
-
-	console.log('refreshing token');
-	var url = 'https://accounts.google.com/o/oauth2/token';
-	var data = $.post(url, {
-			client_id:			google_client_id,
-			client_secret:		google_client_secret,
-			refresh_token:		google_refresh_token,
-			grant_type:			'refresh_token'
-		},
-		function (data) {
-			console.log('successfully refreshed token');
-			google_access_token = data.access_token;
-			if (func) {
-				console.log('calling func');
-				func.apply(null, Array.prototype.slice.call(args, 1));
-			}
-		}
-	);
-}
-
-function googleSQL(sql, type, func, dont_retry) {
-	console.log('googleSQL');
-	
+function googleSQL(sql, type, func) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
 	var http_type = 'GET';
 	if (type) {
 		http_type = type;
 	}
 
-	var url = 'https://www.google.com/fusiontables/api/query?'; //?sql=' + sql + '&access_token=' + google_access_token;
-	
 	$.ajax({
-		type: http_type,
-		url:		url,
 		type:		http_type,
-		headers: {},
-		data: {
-		   		'sql' : sql,
-		   		'access_token' : google_access_token
-		   },
-		beforeSend: function(xhr, settings) {
-				//xhr.setRequestHeader("Authorization", "OAuth "+google_access_token);
-				//xhr.setRequestHeader("Content-Type" , "application/x-www-form-urlencoded");
-		   },
+		url:		FusionServer.url(),
+		data:		{
+			sql:	sql
+		},
 		success:	function(data) {
 			console.log('successfully executed SQL on fusion table');
 			if (func) {
@@ -326,13 +290,8 @@ function googleSQL(sql, type, func, dont_retry) {
 			}
 		},
 		error:	function(data) {
-			if (!dont_retry) {
-				console.log('error in googleSQL so refreshing token and trying again');
-				//refreshAccessToken(googleSQL, sql, http_type, func, true);
-			}
-			else {
-				console.log('error accessing fusion table');
-			}
+			console.log('error accessing fusion table');
+			console.log(data);
 		}
 	});
 }
@@ -615,50 +574,48 @@ function submitToServer(rowids) {
 		var sql = '';
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows.item(i);
-			sql += 'INSERT INTO ' + TableId.locations() + ' (Location, Name, Status, Date, PhotoURL) VALUES (';
-			sql += squote('151 69') + ', ';//squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
-			sql += squote('Joseph') + ', ';//squote(row.name) + ',';
-			sql += row.status + ', ';
-			sql += squote(row.date) + ', ';
-			sql += squote('IT WORKED!!') + ')'; // TODO: upload the photo and store the URL
-			
+			sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
+			sql += squote('<Point><coordinates>' + row.location + '</coordinates></Point>') + ',';
+			sql += squote('name') + ',';//squote(row.name) + ',';
+			sql += row.status + ',';
+			sql += squote(row.date) + ',';
+			sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+
 			if (rows.length > 1) {
 				sql += ';';
 			}
-                         
-            var commaIndex = row.location.indexOf(",");
-            var lon = row.location.substr(0, commaIndex);
-            var lat = row.location.substr(commaIndex+1);
-            var point = new OpenLayers.Geometry.Point(lon, lat);
-            
-             var statusColor;
-             
-             if(row.status == 1)
-                statusColor = "green";
-             else if(row.status == 2)
-                statusColor = "yellow";
-             else if(row.status == 3)
-                statusColor = "orange";
-             else
-                statusColor = "red";
-                         
-            var location = new OpenLayers.Feature.Vector(point, 
-            {
-                name: row.name,
-                status: statusColor,
-                date: row.date
-             });
-             
-            statusLayer.addFeatures([location]);
-            statusWFSLayer.addFeatures([location]);
-            statusLayer.redraw();
+
+			var commaIndex = row.location.indexOf(",");
+			var lon = row.location.substr(0, commaIndex);
+			var lat = row.location.substr(commaIndex+1);
+			var point = new OpenLayers.Geometry.Point(lon, lat);
+			
+			 var statusColor;
+			 
+			 if(row.status == 1)
+				 statusColor = "green";
+			 else if(row.status == 2)
+				 statusColor = "yellow";
+			 else if(row.status == 3)
+				 statusColor = "orange";
+			 else
+				 statusColor = "red";
+							 
+			var location = new OpenLayers.Feature.Vector(point, 
+			{
+				 name: row.name,
+				 status: statusColor,
+				 date: row.date
+			 });
+			 
+			statusLayer.addFeatures([location]);
+			statusWFSLayer.addFeatures([location]);
+			statusLayer.redraw();
 		}
          
-        if(isInternetConnection)
-            //statusSaveStrategy.save();
-		
-		var test = "UPDATE " + TableId.locations() + " SET Name = Joseph WHERE ROWID = '1'";
-		googleSQL(test,'POST');
+//		if(isInternetConnection)
+//			statusSaveStrategy.save();
+
 		googleSQL(sql, 'POST');
 		// TODO: if successful remove from local database
 	});
