@@ -846,28 +846,20 @@ function onAppPause() {
     When the user resumes the app from the background this callback is called, allowing us to resume anything that we stopped.
  */
 function onAppResume() {
-    console.log('Listener: App has been resumed.');
-    isAppPaused = false;
-
-    //Check to see if we have an internet connection
-    if(isInternetConnection) {
-        //If auto push is on, try and push the data to the server.
-        if(isAutoPush) {
-            //If itemsInQueue is 1 or more we have data to push.
-            // So lets push it!
-            if(itemsInQueue >= 1) {
-                //#TODO: Upload the local queue to the Google Fusion Table.
-                console.log('Debug: #TODO: Wrote to fusion table in onAppResume().');
-				
-				//submit to server
-				// *code here*
-				
-				//#TODO: Remove below and add to bottom of submit function^
-				//We removed all the entries, update the queue size.
-				updateQueueSize();
-            }
-        }
-    }
+	console.log('Listener: App has been resumed.');
+	isAppPaused = false;
+	
+	//Check to see if we have an internet connection
+	if(isInternetConnection) {
+		//If auto push is on, try and push the data to the server.
+		if(isAutoPush) {
+			//If itemsInQueue is 1 or more we have data to push.
+			// So lets push it!
+			if(itemsInQueue >= 1) {
+				submitToServer();
+			}
+		}
+	}
 }
 
 /*
@@ -875,22 +867,18 @@ function onAppResume() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOnline() {
-   console.log('Listener: App has internet connection.');
+	console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
 
-    //Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
-    //If auto push is on, try and push the data to the server.
-    if(isAutoPush) {
-        //If itemsInQueue is 1 or more we have data to push.
-        // So lets push it!
-        if(itemsInQueue >= 1) {
-            //#TODO: Upload the local queue to the Google Fusion Table.
-            console.log('Debug: #TODO: Wrote to fusion table in onAppOnline().');
-			
-			//submit to server
-			// *code here*
-        }
-    }
+	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
+	//If auto push is on, try and push the data to the server.
+	if(isAutoPush) {
+		//If itemsInQueue is 1 or more we have data to push.
+		// So lets push it!
+		if(itemsInQueue >= 1) {
+			submitToServer();
+		}
+	}
 }
 
 /*
@@ -898,8 +886,8 @@ function onAppOnline() {
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
  */
 function onAppOffline() {
-    console.log('Listener: App has lost internet connection.');
-    isInternetConnection = false;
+	console.log('Listener: App has lost internet connection.');
+	isInternetConnection = false;
 }
 
 /*
