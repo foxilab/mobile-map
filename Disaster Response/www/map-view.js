@@ -306,6 +306,28 @@ function initializeLocationWMSLayer(_map) {
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
+function imageUploadSuccess(response){
+	var s = "{\n";
+	
+	for(var x in response)
+		s += "\t" + x + ": " + response[x] + "\n";
+	
+	s += "}";
+	
+	alert(s);
+}
+
+function imageUploadFailure(response){
+	var s = "{\n";
+	
+	for(var x in response)
+		s += "\t" + x + ": " + response[x] + "\n";
+	
+	s += "}";
+	
+	alert(s);
+}
+
 function onDeviceReady()
 {
 	//Now that the device is ready, lets set up our event listeners.
@@ -397,6 +419,10 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+												$.get('http://MobileResponse.s3.amazonaws.com/?policy', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA"}, function(results){
+													  console.log(results);
+													  }).error(function(){console.log("error")});
+												
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -405,7 +431,34 @@ function onDeviceReady()
                 var location = new OpenLayers.Feature.Vector(point);
                 
                 navigationLayer.addFeatures([location]);*/
-                                        
+										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
+											  
+										//	  });
+										/*var policy = {
+											"expiration": "2012-03-01T12:00:00.000Z",
+											"conditions": [
+														   {"acl": "public-read"},
+														   {"bucket": "MobileResponse"},
+														   {"key": "/user/kzusy/${filename}"},
+														   {"AWSAccessKeyId": "AKIAJPZTPJETTBZ5A5IA"}
+											]
+										};
+										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
+										var params = {
+											key: "/user/kzusy/${filename}",
+											AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA",
+											policy: encodedPolicy,
+											signature: $.md5(encodedPolicy + secret)
+											
+										};
+										
+										var ft = new FileTransfer();
+										var key = "/user/kzusy/${filename}";
+										var url = 'http://MobileResponse.s3.amazonaws.com';*/
+										//ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
+									//			  params);
+									
+										
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
                                         
