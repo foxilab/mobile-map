@@ -298,7 +298,7 @@ function googleSQL(sql, type, func) {
 
 function initializeLocationWMSLayer(_map) {
 	fusionLayer_Locations = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+TableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api");
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api");
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
