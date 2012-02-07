@@ -1,7 +1,7 @@
 // Fusion Table Stuff
 var FusionServer = new function () {
 	// TODO: point this to the hosted web server
-	this.url = function () { return 'http:localhost:8080/DSI/rest/fusion'; }
+	this.url = function () { return 'http://findplango:8080/DSI/rest/fusion'; }
 };
 var FusionTableId = new function () {
 	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
