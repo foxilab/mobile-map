@@ -58,7 +58,7 @@
 
 	<body onload="onBodyLoad()">
 		<div data-role="page" id='map-page' data-theme='a'> 
-			<div data-role="content" id="content"> 
+			<div data-role="content" id="content" style="padding: 0px !important;"> 
 				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
 					<div id="map" style="position:absolute;"></div>
 					<!--<div id="zoomPanel"></div>-->
@@ -77,11 +77,13 @@
 			</div>
 			<div data-role='content'>
 				<ul data-role='listview'>
-					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none'>
-						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown'>
+					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
+						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown'>
 							<img style='width: 100%; height: 100%' />
-							<h3>Select a Status</h3>
+							<h3>Press to Choose Location</h3>
+							<p>Press arrow to set status</p>
 						</a>
+						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown' /a>
 					</li>
 				</ul>
 			</div>
@@ -92,40 +94,55 @@
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
 		</div>
 
+		<div data-role='dialog' id='location-dialog' data-theme='a'>
+			<div data-role='content'>
+				<ul id='places-list' data-role="listview" data-filter="true" data-filter-placeholder="Building name, or description..." data-inset="true">
+				</ul>
+			</div>
+		</div>
+
 		<div data-role='dialog' id='status-dialog' data-theme='a'>
 			<div data-role='content'>
-				<h3>Building Status</h3>
 				<a class='status-list-item' status-ref='1' data-role='button' data-rel='back'>Operational</a>
 				<a class='status-list-item' status-ref='2' data-role='button' data-rel='back'>Limited Capabilities</a>
 				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
 				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-Operational</a>
-
 				<a data-role='button' data-rel='back' data-icon='delete'>Cancel</a>
 			</div>
 		</div>
-		
+
 		<div data-role='dialog' id='user-dialog' data-theme='a'>
 			<div data-role='content'>
 				<h3>User</h3>
 				<p>User data and variables go here.</p>
 			</div>
 		</div>
-		
+
 		<div data-role='dialog' id='more-dialog' data-theme='a'>
 			<div data-role='content'>
 				<h3>More</h3>
 				<p>App settings and options go here.</p>
 			</div>
 		</div>
+		<form action="http://MobileResponse.s3.amazonaws.com/" name="file" method="post" enctype="multipart/form-data" style="display:none">
+			<input type="input" id="key" name="key" value="/user/kzusy/${filename}" />
+			<input type="hidden" id="s3AWSKey" name="AWSAccessKeyId" value="AKIAJPZTPJETTBZ5A5IA" />
+			<input type="hidden" id="s3Policy" name="Policy"/>
+			<input type="hidden" id="s3Signature" name="Signature" />
+		</form>
 	</body>
 	
+	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false"></script>
 	<script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
-	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false" type="text/javascript"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
-	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.sha1.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.md5.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
     
 	<!-- Plugins -->
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/NativeControls.js"></script>
@@ -133,9 +150,7 @@
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/ChildBrowser.js"></script>
     
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
-	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
-	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
+	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>

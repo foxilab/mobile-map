@@ -1,3 +1,6 @@
+var GoogleApi = new function() {
+	this.key = function () { return 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0'; }
+}
 // Fusion Table Stuff
 var FusionServer = new function () {
 	// TODO: point this to the hosted web server
@@ -351,6 +354,14 @@ function initializeFusionLayer_HeatMap() {
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
+function imageUploadSuccess(response){
+	console.log(response);
+}
+
+function imageUploadFailure(response){
+	console.log(response);
+}
+
 function onDeviceReady()
 {
 	//Now that the device is ready, lets set up our event listeners.
@@ -381,10 +392,15 @@ function onDeviceReady()
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
-    //Set up NativeControls
+	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
+<<<<<<< HEAD
         setupTabBar();
         //setupNavBar();
+=======
+	setupTabBar();
+	//setupNavBar();
+>>>>>>> 7183280d99bf200752569264c55b33d94f0da122
     
 	// do your thing!
 	var docHeight = $(window).height();
@@ -443,10 +459,15 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+												/*$.get('http://MobileResponse.s3.amazonaws.com', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA", Date}, function(results){
+													  console.log(results);
+													  }).error(function(message){console.log(message)});*/
+
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 			console.log('DisplayProjection: ' + map.displayProjection);
 			console.log('Projection: ' + map.projection);
 			console.log('LonLat: ' + lonlat);
+												
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -455,7 +476,42 @@ function onDeviceReady()
                 var location = new OpenLayers.Feature.Vector(point);
                 
                 navigationLayer.addFeatures([location]);*/
-                                        
+										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
+											  
+										//	  });
+										var policy = "{ \"expiration\": \"2012-03-01T12:00:00.000Z\"," +
+										"\"conditions\": [" +
+													   "{\"bucket\": \"MobileResponse\" }," +
+													   "{\"key\": \"user/kzusy/${filename}\"}," +
+													   "[\"starts-with\", \"$Content-Type\", \"image/\"]," +
+													   "]"+
+										"}";
+										
+										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
+										var encodedPolicy = $.base64.encode(policy);
+										$("#s3Policy").val(encodedPolicy);
+										
+										var hmac = $.sha1(secret);
+										$("#s3Signature").val(hmac);
+										var options = new FileUploadOptions();
+										options.key = "user/kzusy/${filename}";
+										options.mimeType = "image/jpeg";
+										options.fileName = imageURI.substr(imageURI.lastIndexOf('/')+1);
+										options.fileKey = "file";
+										
+										
+										
+										
+										var params = new Object();
+										params.key = "user/kzusy/${filename}";
+										params.bucket = "MobileResponse";
+										params.AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
+										
+										var ft = new FileTransfer();
+										var url = 'http://MobileResponse.s3.amazonaws.com';
+										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
+												  options);
+									
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
 				onClick_QueueTab();
@@ -508,9 +564,9 @@ function onDeviceReady()
 		selectTabBarItem('More');
 	});
 						      
-    //Now that we are done loading everything, read the queue and find the size
-    // then update all the badges accordingly.
-    updateQueueSize();
+	//Now that we are done loading everything, read the queue and find the size
+	// then update all the badges accordingly.
+	updateQueueSize();
 }
 
 function clearQueueDialog() {
@@ -523,12 +579,13 @@ function addToQueueDialog(locRow) {
 	$clone.find('img').attr('src', locRow.photo);
 
 	if (locRow.status >= 1) {
-		$clone.find('h3').text(StatusRef.fromId(locRow.status).toString());
+		$clone.find('h3').text(locRow.name);
+		$clone.find('p').text(StatusRef.fromId(locRow.status).toString());
 	}
 
 	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
-	$clone.show();
+	$clone.trigger('create').show();
 }
 
 function hideQueueItemDelete(e) {
@@ -568,22 +625,47 @@ $(document).ready(function() {
 		deleteLocation(sqlDb, id);
 		$(this).hide();
 		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
-                     
-        //An item was removed, update the queue size.
-        updateQueueSize();
+
+		//An item was removed, update the queue size.
+		updateQueueSize();
 	});
 
-	$('.status-list-item').on('click', function(e) {
-		// See the text for the currently selected queue list item
-		var $h3 = $queue_item.find('h3');
-		$h3.text($(this).text());
+	$('#location-dialog').live('pagebeforeshow', function() {
+		var $ul = $('#places-list');
+		$ul.remove('li');
 		
+		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
+			$.ajax({
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
+				success:	function(data) {
+					for (var i = 0; i < data.results.length; ++i) {						
+						$ul.append("<li class='location-list-item'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+					}
+					$ul.listview('refresh');
+				},
+				error:	function(xhr, status, error) {
+					console.log('places error');
+					console.log(xhr);
+					console.log(status);
+					console.log(error);
+				}
+			});
+		});
+	});
+
+	$('.location-list-item').live('click', function() {
+		// Store back to local DB
+		var id = $queue_item.attr('rowid');
+		updateLocationName(sqlDb, id, $(this).text());
+	});
+
+	$('.status-list-item').on('click', function() {
 		// Store back to local DB
 		var id = $queue_item.attr('rowid');
 		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('.status-submit-button').on('click', function(e) {
+	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
                   
@@ -745,14 +827,14 @@ function setUpButton(_tabItem) {
     This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
  */
 function setupNavBar() {
-    nativeControls.createNavBar();
-    nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
-    nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
-    nativeControls.setNavBarTitle('Disaster Response');
-    nativeControls.setNavBarLogo('');
-        hideLeftNavButton();
-		hideRightNavButton();
-    showNavBar();
+	nativeControls.createNavBar();
+	nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
+	nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
+	nativeControls.setNavBarTitle('Disaster Response');
+	nativeControls.setNavBarLogo('');
+	hideLeftNavButton();
+	hideRightNavButton();
+	showNavBar();
 }
 
 function selectTabBarItem(_tabItem) {
