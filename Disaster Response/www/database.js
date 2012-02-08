@@ -88,6 +88,7 @@ function forEachLocationQueueRow(db, rowids, func) {
 					for (var i = 0; i < results.rows.length; ++i) {
 						func.call(results.rows.item(i), results.rows.item(i));
 					}
+				}
 			});
 		};
 

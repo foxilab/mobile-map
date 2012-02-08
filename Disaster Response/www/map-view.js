@@ -591,11 +591,10 @@ $(document).ready(function() {
 		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
 				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
-				success:	function(data, status, xhr) {
-					console.log('places success');
-					console.log(data);
-					console.log(status);
-					console.log(xhr);
+				success:	function(data) {
+					for (var i = 0; i < data.results.length; ++i) {
+						console.log(data.results[i]);
+					}
 				},
 				error:	function(xhr, status, error) {
 					console.log('places error');
