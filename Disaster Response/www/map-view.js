@@ -429,9 +429,9 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
-												$.get('http://MobileResponse.s3.amazonaws.com/?policy', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA"}, function(results){
+												$.get('http://MobileResponse.s3.amazonaws.com/?policy', {bucket: "MobileResponse", Authorization: "AWS AKIAJPZTPJETTBZ5A5IA"}, function(results){
 													  console.log(results);
-													  }).error(function(){console.log("error")});
+													  }).error(function(message){console.log(message)});
 
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 			console.log('DisplayProjection: ' + map.displayProjection);
