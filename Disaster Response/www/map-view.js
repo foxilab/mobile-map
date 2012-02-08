@@ -394,13 +394,8 @@ function onDeviceReady()
     
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
-<<<<<<< HEAD
         setupTabBar();
         //setupNavBar();
-=======
-	setupTabBar();
-	//setupNavBar();
->>>>>>> 7183280d99bf200752569264c55b33d94f0da122
     
 	// do your thing!
 	var docHeight = $(window).height();
