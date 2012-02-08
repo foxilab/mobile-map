@@ -129,7 +129,8 @@ var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
 
 var options = {
 	div: "map",
-	projection: WGS84,
+	projection: WGS84_google_mercator,
+	displayProjection: WGS84,
 	numZoomLevels : 20,
 	maxResolution: maxResolution,
 	maxExtent: maxExtent,
@@ -299,9 +300,18 @@ function googleSQL(sql, type, success, error) {
 	});
 }
 
-function initializeLocationWMSLayer(_map) {
+var fusionLayerOptions = {
+	displayProjection: WGS84,
+	projection: WGS84_google_mercator,
+	numZoomLevels : 20,
+	maxResolution: maxResolution,
+	maxExtent: maxExtent,
+	restrictedExtent: restrictedExtent,
+};
+
+function initializeFusionLayer() {
 	fusionLayer_Locations = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api");
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions);
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -366,10 +376,10 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	
 	//Initalize the Fusion Table layer.
-	initializeLocationWMSLayer(map);
+	initializeFusionLayer();
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer_Locations]);
+		map.addLayers([mapLayerOSM, fusionLayer_Locations, navigationLayer, statusLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -400,6 +410,10 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+			console.log('DisplayProjection: ' + map.displayProjection);
+			console.log('Projection: ' + map.projection);
+			console.log('LonLat: ' + lonlat);
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -411,9 +425,6 @@ function onDeviceReady()
                                         
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
-                                        
-            //We just added an item, update the queue size.
-				updateQueueSize();
 			},
 			function () { },
 			{
@@ -624,6 +635,7 @@ function submitToServer() {
 						deleteLocation(sqlDb, rowids[i]);
 					}
 					//The sqlDb has changed, update the queue size.
+					fusionLayer_Locations.redraw();
 					updateQueueSize();				
 				}
 			});
