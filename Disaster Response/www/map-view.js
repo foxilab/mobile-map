@@ -474,9 +474,9 @@ function onDeviceReady()
 		selectTabBarItem('More');
 	});
 						      
-    //Now that we are done loading everything, read the queue and find the size
-    // then update all the badges accordingly.
-    updateQueueSize();
+	//Now that we are done loading everything, read the queue and find the size
+	// then update all the badges accordingly.
+	updateQueueSize();
 }
 
 function clearQueueDialog() {
@@ -540,12 +540,21 @@ $(document).ready(function() {
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
-		forLocationQueueRows(sqlDb, [$queue_item.attr('rowid')], function(row) {
-			var latlon = row.location;
-		
+		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
-				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + latlon + '&radius=500&key=' + GoogleApi.key(),
-				
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
+				success:	function(data, status, xhr) {
+					console.log('places success');
+					console.log(data);
+					console.log(status);
+					console.log(xhr);
+				},
+				error:	function(xhr, status, error) {
+					console.log('places error');
+					console.log(xhr);
+					console.log(status);
+					console.log(error);
+				}
 			});
 		});
 	});
