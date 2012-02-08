@@ -319,6 +319,14 @@ function initializeFusionLayer() {
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
+function imageUploadSuccess(response){
+	console.log(response);
+}
+
+function imageUploadFailure(response){
+	console.log(response);
+}
+
 function onDeviceReady()
 {
 	//Now that the device is ready, lets set up our event listeners.
@@ -410,10 +418,15 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
+												/*$.get('http://MobileResponse.s3.amazonaws.com', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA", Date}, function(results){
+													  console.log(results);
+													  }).error(function(message){console.log(message)});*/
+
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 			console.log('DisplayProjection: ' + map.displayProjection);
 			console.log('Projection: ' + map.projection);
 			console.log('LonLat: ' + lonlat);
+												
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -422,7 +435,42 @@ function onDeviceReady()
                 var location = new OpenLayers.Feature.Vector(point);
                 
                 navigationLayer.addFeatures([location]);*/
-                                        
+										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
+											  
+										//	  });
+										var policy = "{ \"expiration\": \"2012-03-01T12:00:00.000Z\"," +
+										"\"conditions\": [" +
+													   "{\"bucket\": \"MobileResponse\" }," +
+													   "{\"key\": \"user/kzusy/${filename}\"}," +
+													   "[\"starts-with\", \"$Content-Type\", \"image/\"]," +
+													   "]"+
+										"}";
+										
+										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
+										var encodedPolicy = $.base64.encode(policy);
+										$("#s3Policy").val(encodedPolicy);
+										
+										var hmac = $.sha1(secret);
+										$("#s3Signature").val(hmac);
+										var options = new FileUploadOptions();
+										options.key = "user/kzusy/${filename}";
+										options.mimeType = "image/jpeg";
+										options.fileName = imageURI.substr(imageURI.lastIndexOf('/')+1);
+										options.fileKey = "file";
+										
+										
+										
+										
+										var params = new Object();
+										params.key = "user/kzusy/${filename}";
+										params.bucket = "MobileResponse";
+										params.AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
+										
+										var ft = new FileTransfer();
+										var url = 'http://MobileResponse.s3.amazonaws.com';
+										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
+												  options);
+									
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
 			},
