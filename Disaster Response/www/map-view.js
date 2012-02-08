@@ -535,9 +535,12 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	$clone.find('img').attr('src', locRow.photo);
+	
+	if (locRow.name) {
+		$clone.find('h3').text(locRow.name);
+	}
 
 	if (locRow.status >= 1) {
-		$clone.find('h3').text(locRow.name);
 		$clone.find('p').text(StatusRef.fromId(locRow.status).toString());
 	}
 
