@@ -58,7 +58,7 @@
 
 	<body onload="onBodyLoad()">
 		<div data-role="page" id='map-page' data-theme='a'> 
-			<div data-role="content" id="content"> 
+			<div data-role="content" id="content" style="padding: 0px !important;"> 
 				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
 					<div id="map" style="position:absolute;"></div>
 					<!--<div id="zoomPanel"></div>-->
@@ -117,13 +117,11 @@
 				<p>App settings and options go here.</p>
 			</div>
 		</div>
-		<form action="http://MobileResponse.s3.amazonaws.com/" method="post" enctype="multipart/form-data" style="display:none">
-			<input type="input" name="key" value="/user/kzusy/${filename}" />
-			<input type="hidden" name="acl" value="public-read" />
-			<input type="hidden" name="AWSAccessKeyId" value="AKIAJPZTPJETTBZ5A5IA" />
-			<input type="hidden" name="Policy" value="" />
-			<input type="hidden" name="Signature" value="" />
-			<input type="file" name="file" />
+		<form action="http://MobileResponse.s3.amazonaws.com/" name="file" method="post" enctype="multipart/form-data" style="display:none">
+			<input type="input" id="key" name="key" value="/user/kzusy/${filename}" />
+			<input type="hidden" id="s3AWSKey" name="AWSAccessKeyId" value="AKIAJPZTPJETTBZ5A5IA" />
+			<input type="hidden" id="s3Policy" name="Policy"/>
+			<input type="hidden" id="s3Signature" name="Signature" />
 		</form>
 	</body>
 	
@@ -144,6 +142,7 @@
 	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.sha1.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.md5.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
 	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>

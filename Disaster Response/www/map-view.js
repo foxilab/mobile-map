@@ -429,9 +429,9 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
-												$.get('http://MobileResponse.s3.amazonaws.com/?policy', {bucket: "MobileResponse", Authorization: "AWS AKIAJPZTPJETTBZ5A5IA"}, function(results){
+												/*$.get('http://MobileResponse.s3.amazonaws.com', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA", Date}, function(results){
 													  console.log(results);
-													  }).error(function(message){console.log(message)});
+													  }).error(function(message){console.log(message)});*/
 
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 			console.log('DisplayProjection: ' + map.displayProjection);
@@ -449,31 +449,39 @@ function onDeviceReady()
 										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
 											  
 										//	  });
-										/*var policy = {
-											"expiration": "2012-03-01T12:00:00.000Z",
-											"conditions": [
-														   {"acl": "public-read"},
-														   {"bucket": "MobileResponse"},
-														   {"key": "/user/kzusy/${filename}"},
-														   {"AWSAccessKeyId": "AKIAJPZTPJETTBZ5A5IA"}
-											]
-										};
+										var policy = "{ \"expiration\": \"2012-03-01T12:00:00.000Z\"," +
+										"\"conditions\": [" +
+													   "{\"bucket\": \"MobileResponse\" }," +
+													   "{\"key\": \"user/kzusy/${filename}\"}," +
+													   "[\"starts-with\", \"$Content-Type\", \"image/\"]," +
+													   "]"+
+										"}";
+										
 										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
-										var params = {
-											key: "/user/kzusy/${filename}",
-											AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA",
-											policy: encodedPolicy,
-											signature: $.md5(encodedPolicy + secret)
-											
-										};
+										var encodedPolicy = $.base64.encode(policy);
+										$("#s3Policy").val(encodedPolicy);
+										
+										var hmac = $.sha1(secret);
+										$("#s3Signature").val(hmac);
+										var options = new FileUploadOptions();
+										options.key = "user/kzusy/${filename}";
+										options.mimeType = "image/jpeg";
+										options.fileName = imageURI.substr(imageURI.lastIndexOf('/')+1);
+										options.fileKey = "file";
+										
+										
+										
+										
+										var params = new Object();
+										params.key = "user/kzusy/${filename}";
+										params.bucket = "MobileResponse";
+										params.AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
 										
 										var ft = new FileTransfer();
-										var key = "/user/kzusy/${filename}";
-										var url = 'http://MobileResponse.s3.amazonaws.com';*/
-										//ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
-									//			  params);
+										var url = 'http://MobileResponse.s3.amazonaws.com';
+										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
+												  options);
 									
-										
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
 			},
@@ -762,14 +770,14 @@ function setUpButton(_tabItem) {
     This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
  */
 function setupNavBar() {
-    nativeControls.createNavBar();
+   /* nativeControls.createNavBar();
     nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
     nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
     nativeControls.setNavBarTitle('Disaster Response');
     nativeControls.setNavBarLogo('');
         hideLeftNavButton();
 		hideRightNavButton();
-    showNavBar();
+    showNavBar();*/
 }
 
 function selectTabBarItem(_tabItem) {
