@@ -1,3 +1,6 @@
+var GoogleApi = new function() {
+	this.key = function () { return 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0'; }
+}
 // Fusion Table Stuff
 var FusionServer = new function () {
 	// TODO: point this to the hosted web server
@@ -336,10 +339,10 @@ function onDeviceReady()
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
-    //Set up NativeControls
+	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
-        setupTabBar();
-        setupNavBar();
+	setupTabBar();
+	//setupNavBar();
     
 	// do your thing!
 	var docHeight = $(window).height();
@@ -409,8 +412,8 @@ function onDeviceReady()
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();
                                         
-                //We just added an item, update the queue size.
-                updateQueueSize();
+            //We just added an item, update the queue size.
+				updateQueueSize();
 			},
 			function () { },
 			{
@@ -480,7 +483,7 @@ function addToQueueDialog(locRow) {
 
 	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
-	$clone.show();
+	$clone.trigger('create').show();
 }
 
 function hideQueueItemDelete(e) {
@@ -520,9 +523,20 @@ $(document).ready(function() {
 		deleteLocation(sqlDb, id);
 		$(this).hide();
 		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
-                     
-        //An item was removed, update the queue size.
-        updateQueueSize();
+
+		//An item was removed, update the queue size.
+		updateQueueSize();
+	});
+
+	$('#location-dialog').live('pagebeforeshow', function() {
+		forLocationQueueRows(sqlDb, [$queue_item.attr('rowid')], function(row) {
+			var latlon = row.location;
+		
+			$.ajax({
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + latlon + '&radius=500&key=' + GoogleApi.key(),
+				
+			});
+		});
 	});
 
 	$('.status-list-item').on('click', function(e) {
@@ -696,14 +710,14 @@ function setUpButton(_tabItem) {
     This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
  */
 function setupNavBar() {
-    nativeControls.createNavBar();
-    nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
-    nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
-    nativeControls.setNavBarTitle('Disaster Response');
-    nativeControls.setNavBarLogo('');
-        hideLeftNavButton();
-		hideRightNavButton();
-    showNavBar();
+	nativeControls.createNavBar();
+	nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
+	nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
+	nativeControls.setNavBarTitle('Disaster Response');
+	nativeControls.setNavBarLogo('');
+	hideLeftNavButton();
+	hideRightNavButton();
+	showNavBar();
 }
 
 function selectTabBarItem(_tabItem) {
