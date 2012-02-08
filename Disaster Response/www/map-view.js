@@ -537,7 +537,8 @@ function addToQueueDialog(locRow) {
 	$clone.find('img').attr('src', locRow.photo);
 
 	if (locRow.status >= 1) {
-		$clone.find('h3').text(StatusRef.fromId(locRow.status).toString());
+		$clone.find('h3').text(locRow.name);
+		$clone.find('p').text(StatusRef.fromId(locRow.status).toString());
 	}
 
 	$clone.attr('rowid', locRow.id);
@@ -588,13 +589,17 @@ $(document).ready(function() {
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
+		var $ul = $('#places-list');
+		$ul.remove('li');
+		
 		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
 				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
 				success:	function(data) {
-					for (var i = 0; i < data.results.length; ++i) {
-						console.log(data.results[i]);
+					for (var i = 0; i < data.results.length; ++i) {						
+						$ul.append("<li class='location-list-item'><a data-rel='back'>" + data.results[i].name + "</a></li>");
 					}
+					$ul.listview('refresh');
 				},
 				error:	function(xhr, status, error) {
 					console.log('places error');
@@ -606,17 +611,19 @@ $(document).ready(function() {
 		});
 	});
 
-	$('.status-list-item').on('click', function(e) {
-		// See the text for the currently selected queue list item
-		var $h3 = $queue_item.find('h3');
-		$h3.text($(this).text());
-		
+	$('.location-list-item').live('click', function() {
+		// Store back to local DB
+		var id = $queue_item.attr('rowid');
+		updateLocationName(sqlDb, id, $(this).text());
+	});
+
+	$('.status-list-item').on('click', function() {
 		// Store back to local DB
 		var id = $queue_item.attr('rowid');
 		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('.status-submit-button').on('click', function(e) {
+	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
                   
