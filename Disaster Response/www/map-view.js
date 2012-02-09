@@ -602,8 +602,8 @@ function showQueueItemDelete(e) {
 	});
 }
 
-$(document).ready(function() {
-	$(document).click(function() {
+$(document).ready(function () {
+	$(document).click(function () {
 		hideQueueItemDelete();
 	});
 
@@ -649,6 +649,21 @@ $(document).ready(function() {
 				}
 			});
 		});
+	});
+
+	$('#location-dialog').live('pageinit', function() {
+		var $locform = $(this).find('form');
+		$locform.submit(function() {
+			// Store back to local DB
+			var desc = $(this).find('input').val();
+			var id = $queue_item.attr('rowid');
+			updateLocationName(sqlDb, id, desc);
+			$('#location-dialog').dialog('close');
+		});
+	});
+	
+	$('#location-dialog').live('pagebeforeshow', function() {
+		$(this).find('input').val('');
 	});
 
 	$('.location-list-item').live('click', function() {
