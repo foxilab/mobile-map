@@ -140,33 +140,6 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     visibility: false
 });
 
-// Resolution per level
-// 01 ....   78271.51695 
-// 02 ....   39135.758475 
-// 03 ....   19567.8792375 
-// 04 ....   9783.93961875 
-// 05 ....   4891.969809375 
-// 06 ....   2445.9849046875 
-// 07 ....   1222.99245234375 
-// 08 ....   611.496226171875 
-// 09 ....   305.7481103859375 
-// 10 ....   152.87405654296876 
-// 11 ....   76.43702827148438 
-// 12 ....   38.21851413574219 
-// 13 ....   19.109257067871095 
-// 14 ....   9.554628533935547 
-// 15 ....   4.777314266967774 
-// 16 ....   2.388657133483887 
-// 17 ....   1.1943285667419434 
-// 18 ....   0.5971642833709717 
-
-var oldRotation = 0;
-var WGS84 = new OpenLayers.Projection("EPSG:4326");
-var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-var maxResolution = 78271.51695;
-var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
-var restrictedExtent = maxExtent.clone();
-
 var touchNavOptions = {
 dragPanOptions: {
 interval: 0, //non-zero kills performance on some mobile phones
