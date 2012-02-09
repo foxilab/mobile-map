@@ -83,7 +83,7 @@
 							<h3>Press to Choose Location</h3>
 							<p>Press arrow to set status</p>
 						</a>
-						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown' /a>
+						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown' data-theme='a'></a>
 					</li>
 				</ul>
 			</div>
@@ -95,6 +95,9 @@
 		</div>
 
 		<div data-role='dialog' id='location-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Nearby</h1>
+			</div>
 			<div data-role='content'>
 				<ul id='places-list' data-role="listview" data-filter="true" data-filter-placeholder="Building name, or description..." data-inset="true">
 				</ul>
@@ -152,5 +155,5 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>
