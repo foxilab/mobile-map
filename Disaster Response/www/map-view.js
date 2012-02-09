@@ -57,8 +57,8 @@ var locatedSuccess = true;
 
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-	pointRadius : 10,
-    externalGraphic : "css/images/15x15_Blue_Arrow.png",
+	pointRadius : 15,
+    externalGraphic : "css/images/blue-circle.png",
 	fillOpacity: 1,
 	rotation: 0
 });
@@ -133,6 +133,7 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
 // 17 ....   1.1943285667419434 
 // 18 ....   0.5971642833709717 
 
+var oldRotation = 0;
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 var maxResolution = 78271.51695;
@@ -219,8 +220,10 @@ var geolocationSuccess = function(position){
         var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
         var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
         
-        navigationLayer.removeAllFeatures();
-        navigationLayer.addFeatures([currentPosition]);
+        if(navigationLayer.features.length > 0)
+			navigationLayer.features[0].move(new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator));
+		else
+			navigationLayer.addFeatures([currentPosition]);
         
         if(!centered)
         {
@@ -234,7 +237,7 @@ var geolocationSuccess = function(position){
     locatedSuccess = true;
     //iPhone Quirks
     //  position.timestamp returns seconds instead of milliseconds.
-}
+};
 
 var geolocationError = function(error){
     
@@ -256,16 +259,18 @@ var geolocationError = function(error){
             var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
             var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
             
-            navigationLayer.addFeatures([currentPosition]);
-            
-            map.setCenter(new OpenLayers.LonLat(lon, lat)
+			if(navigationLayer.features.length == 0)
+			{
+				navigationLayer.addFeatures([currentPosition]);
+				map.setCenter(new OpenLayers.LonLat(lon, lat)
                           .transform(WGS84, WGS84_google_mercator), 2);
+			}
         }
         
         locatedSuccess = false;
     }
     
-}
+};
 
 var compassSuccess = function(heading){
 	//Rotate arrow
@@ -284,7 +289,7 @@ var compassSuccess = function(heading){
 	map.events.rotationAngle = -1 * mapRotation;
     navSymbolizer.rotation = mapRotation;
     navigationLayer.redraw();
-}
+};
 
 var compassError = function(error){
 	//error handling
@@ -293,7 +298,7 @@ var compassError = function(error){
 	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
         navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
 */
-}
+};
 
 function googleSQL(sql, type, success, error) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
