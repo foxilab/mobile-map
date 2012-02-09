@@ -381,11 +381,49 @@ function initializeFusionLayer_HeatMap() {
  for more details -jm */
 
 function imageUploadSuccess(response){
-	console.log(response);
+	console.log('image upload success');
+	console.log(response.response);
 }
 
 function imageUploadFailure(response){
-	console.log(response);
+	console.log('image upload error');
+	console.log(response.response);
+}
+
+function uploadFileToS3(filepath) {
+	var policy = {
+		"expiration": "2012-12-01T12:00:00.000Z",
+		"conditions": [
+			{"bucket": "MobileResponse"},
+			["starts-with", "$key", "user/kzusy/"],
+			{"acl": "public-read"},
+			["starts-with", "$Content-Type", "image/"],
+		]
+	};
+
+	var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
+	var encodedPolicy = $.base64.encode(JSON.stringify(policy));
+
+	var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret, { asString: true });
+	var signature = $.base64.encode(hmac);
+
+	var params = {
+		key:					"user/kzusy/${filename}",
+		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
+		policy:				encodedPolicy,
+		signature:			signature,
+		"Content-Type":	"image/jpeg"
+	};
+
+	var options = new FileUploadOptions();
+	options.mimeType = "image/jpeg";
+	options.fileName = "user/kzusy/${filename}";
+	options.fileKey = "file";
+	options.params = params;
+
+	var ft = new FileTransfer();
+	var url = 'http://MobileResponse.s3.amazonaws.com';
+	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
 }
 
 function onDeviceReady()
@@ -492,41 +530,7 @@ function onDeviceReady()
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-                
-               /* var point = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
-                var location = new OpenLayers.Feature.Vector(point);
-                
-                navigationLayer.addFeatures([location]);*/
-										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
-											  
-										//	  });
-										var policy = "";
-										
-										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
-										var encodedPolicy = $.base64.encode(policy);
-										//$("#s3Policy").val(encodedPolicy);
-										
-										var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret);
-										var signature = $.base64.encode(hmac);
-										
-										$("#s3Signature").val(signature);
-										var options = new FileUploadOptions();
-										options.mimeType = "image/jpeg";
-										options.fileName = "user/kzusy/${filename}";
-										options.fileKey = "file";
-										
-										
-										
-										
-										var params = new Object();
-										params.key = "user/kzusy/${filename}";
-										params.bucket = "MobileResponse";
-										var AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
-										params.Authorization = "AWS " + AWSAccessKeyId + ":" + signature;
-										
-										var ft = new FileTransfer();
-										var url = 'http://MobileResponse.s3.amazonaws.com';
-										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,options);
+				uploadFileToS3(imageURI);
 									
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
