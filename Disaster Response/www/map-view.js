@@ -320,11 +320,25 @@ function initializeFusionLayer() {
  for more details -jm */
 
 function imageUploadSuccess(response){
-	console.log(response);
+	var s = "{\n";
+	
+	for(var x in response)
+		s += "\t" + x + ": " + response[x] + "\n";
+	
+	s += "}";
+	
+	alert(s);
 }
 
 function imageUploadFailure(response){
-	console.log(response);
+	var s = "{\n";
+	
+	for(var x in response)
+		s += "\t" + x + ": " + response[x] + "\n";
+	
+	s += "}";
+	
+	alert(s);
 }
 
 function onDeviceReady()
@@ -435,27 +449,23 @@ function onDeviceReady()
                 var location = new OpenLayers.Feature.Vector(point);
                 
                 navigationLayer.addFeatures([location]);*/
+										
 										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
 											  
 										//	  });
-										var policy = "{ \"expiration\": \"2012-03-01T12:00:00.000Z\"," +
-										"\"conditions\": [" +
-													   "{\"bucket\": \"MobileResponse\" }," +
-													   "{\"key\": \"user/kzusy/${filename}\"}," +
-													   "[\"starts-with\", \"$Content-Type\", \"image/\"]," +
-													   "]"+
-										"}";
+										var policy = "";
 										
 										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
 										var encodedPolicy = $.base64.encode(policy);
-										$("#s3Policy").val(encodedPolicy);
+										//$("#s3Policy").val(encodedPolicy);
 										
-										var hmac = $.sha1(secret);
-										$("#s3Signature").val(hmac);
+										var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret);
+										var signature = $.base64.encode(hmac);
+										
+										$("#s3Signature").val(signature);
 										var options = new FileUploadOptions();
-										options.key = "user/kzusy/${filename}";
 										options.mimeType = "image/jpeg";
-										options.fileName = imageURI.substr(imageURI.lastIndexOf('/')+1);
+										options.fileName = "user/kzusy/${filename}";
 										options.fileKey = "file";
 										
 										
@@ -464,12 +474,12 @@ function onDeviceReady()
 										var params = new Object();
 										params.key = "user/kzusy/${filename}";
 										params.bucket = "MobileResponse";
-										params.AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
+										var AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
+										params.Authorization = "AWS " + AWSAccessKeyId + ":" + signature;
 										
 										var ft = new FileTransfer();
 										var url = 'http://MobileResponse.s3.amazonaws.com';
-										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
-												  options);
+										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,options);
 									
 				// TODO: This sometimes flashes the map
 				onClick_QueueTab();

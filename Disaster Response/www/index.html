@@ -128,8 +128,8 @@
 		<form action="http://MobileResponse.s3.amazonaws.com/" name="file" method="post" enctype="multipart/form-data" style="display:none">
 			<input type="input" id="key" name="key" value="/user/kzusy/${filename}" />
 			<input type="hidden" id="s3AWSKey" name="AWSAccessKeyId" value="AKIAJPZTPJETTBZ5A5IA" />
-			<input type="hidden" id="s3Policy" name="Policy"/>
-			<input type="hidden" id="s3Signature" name="Signature" />
+			<!--<input type="hidden" id="s3Policy" name="Policy"/>
+			<input type="hidden" id="s3Signature" name="Signature" />-->
 		</form>
 	</body>
 	
@@ -153,5 +153,6 @@
 	<script type="text/javascript" charset="utf-8" src="jquery.sha1.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.md5.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
+	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
 	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
 </html>
