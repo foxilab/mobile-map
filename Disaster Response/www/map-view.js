@@ -35,7 +35,8 @@ var FusionTableId = new function () {
  * OpenLayers.Map
  */
 var map;
-var fusionLayer_Locations;
+var fusionLayer_Locations_Icons;
+var fusionLayer_Locations_HeatMap;
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
@@ -49,7 +50,7 @@ var isLandscape = false;
 var itemsInQueue = 0;
 var appNotifications = 0;
 //App
-var isAutoPush = true; 
+var isAutoPush = false; 
 
 var centered = false;
 var locatedSuccess = true;
@@ -112,9 +113,29 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
     visibility: false
 });
 
+// Resolution per level
+// 01 ....   78271.51695 
+// 02 ....   39135.758475 
+// 03 ....   19567.8792375 
+// 04 ....   9783.93961875 
+// 05 ....   4891.969809375 
+// 06 ....   2445.9849046875 
+// 07 ....   1222.99245234375 
+// 08 ....   611.496226171875 
+// 09 ....   305.7481103859375 
+// 10 ....   152.87405654296876 
+// 11 ....   76.43702827148438 
+// 12 ....   38.21851413574219 
+// 13 ....   19.109257067871095 
+// 14 ....   9.554628533935547 
+// 15 ....   4.777314266967774 
+// 16 ....   2.388657133483887 
+// 17 ....   1.1943285667419434 
+// 18 ....   0.5971642833709717 
+
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-var maxResolution = 15543.0339;
+var maxResolution = 78271.51695;
 var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
 
@@ -300,18 +321,32 @@ function googleSQL(sql, type, success, error) {
 	});
 }
 
-var fusionLayerOptions = {
+var fusionLayerOptions_Heat = {
 	displayProjection: WGS84,
 	projection: WGS84_google_mercator,
-	numZoomLevels : 20,
 	maxResolution: maxResolution,
 	maxExtent: maxExtent,
 	restrictedExtent: restrictedExtent,
 };
 
-function initializeFusionLayer() {
-	fusionLayer_Locations = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions);
+var fusionLayerOptions_Icon = {
+	displayProjection: WGS84,
+	projection: WGS84_google_mercator,
+	maxResolution: 38.21851413574219,
+	minResolution: "auto",
+};
+
+//FusionLayer variables
+var fLayer_heatMap = true;
+
+function initializeFusionLayer_Icons() {
+	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:false&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
+}
+
+function initializeFusionLayer_HeatMap() {
+	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap +"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -373,8 +408,8 @@ function onDeviceReady()
     
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
-	setupTabBar();
-	//setupNavBar();
+        setupTabBar();
+        //setupNavBar();
     
 	// do your thing!
 	var docHeight = $(window).height();
@@ -398,10 +433,11 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	
 	//Initalize the Fusion Table layer.
-	initializeFusionLayer();
+	initializeFusionLayer_Icons();
+	initializeFusionLayer_HeatMap();
 	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, fusionLayer_Locations, navigationLayer, statusLayer]);
+		map.addLayers([mapLayerOSM, fusionLayer_Locations_Icons, fusionLayer_Locations_HeatMap, navigationLayer, statusLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -482,6 +518,7 @@ function onDeviceReady()
 										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,options);
 									
 				// TODO: This sometimes flashes the map
+				updateQueueSize();
 				onClick_QueueTab();
 			},
 			function () { },
@@ -532,9 +569,9 @@ function onDeviceReady()
 		selectTabBarItem('More');
 	});
 						      
-    //Now that we are done loading everything, read the queue and find the size
-    // then update all the badges accordingly.
-    updateQueueSize();
+	//Now that we are done loading everything, read the queue and find the size
+	// then update all the badges accordingly.
+	updateQueueSize();
 }
 
 function clearQueueDialog() {
@@ -545,9 +582,13 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	$clone.find('img').attr('src', locRow.photo);
+	
+	if (locRow.name) {
+		$clone.find('h3').text(locRow.name);
+	}
 
 	if (locRow.status >= 1) {
-		$clone.find('h3').text(StatusRef.fromId(locRow.status).toString());
+		$clone.find('p').text(StatusRef.fromId(locRow.status).toString());
 	}
 
 	$clone.attr('rowid', locRow.id);
@@ -598,27 +639,41 @@ $(document).ready(function() {
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
-		forLocationQueueRows(sqlDb, [$queue_item.attr('rowid')], function(row) {
-			var latlon = row.location;
+		var $ul = $('#places-list');
+		$ul.remove('li');
 		
+		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
-				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + latlon + '&radius=500&key=' + GoogleApi.key(),
-				
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
+				success:	function(data) {
+					for (var i = 0; i < data.results.length; ++i) {						
+						$ul.append("<li class='location-list-item'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+					}
+					$ul.listview('refresh');
+				},
+				error:	function(xhr, status, error) {
+					console.log('places error');
+					console.log(xhr);
+					console.log(status);
+					console.log(error);
+				}
 			});
 		});
 	});
 
-	$('.status-list-item').on('click', function(e) {
-		// See the text for the currently selected queue list item
-		var $h3 = $queue_item.find('h3');
-		$h3.text($(this).text());
-		
+	$('.location-list-item').live('click', function() {
+		// Store back to local DB
+		var id = $queue_item.attr('rowid');
+		updateLocationName(sqlDb, id, $(this).text());
+	});
+
+	$('.status-list-item').on('click', function() {
 		// Store back to local DB
 		var id = $queue_item.attr('rowid');
 		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('.status-submit-button').on('click', function(e) {
+	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
                   
@@ -647,6 +702,7 @@ function submitToServer() {
 				if (rows.length > 1) {
 					sql += ';';
 				}
+				console.log(sql);
 // TODO: Whoever wrote this, I think it's in the wrong place, or maybe it was just test code...
 /*
 				var commaIndex = row.location.indexOf(",");
@@ -693,8 +749,7 @@ function submitToServer() {
 						deleteLocation(sqlDb, rowids[i]);
 					}
 					//The sqlDb has changed, update the queue size.
-					fusionLayer_Locations.redraw();
-					updateQueueSize();				
+					updateQueueSize();		
 				}
 			});
 		});
@@ -722,7 +777,8 @@ function getQueueSize(_tx) {
     //Gets all the rows from the locationqueue
     _tx.executeSql('SELECT * FROM locationqueue',[], 
        function(_tx, _result) { 
-           itemsInQueue = _result.rows.length; }, 
+           itemsInQueue = _result.rows.length;
+		   }, 
        function(_tx, _error) {
             console.log('SQL Execute error'); return true; }
     );

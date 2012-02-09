@@ -79,6 +79,23 @@ function createQueueTable(db) {
 	db.transaction(create, errorSql);
 }
 
+function forEachLocationQueueRow(db, rowids, func) {
+	if ($.isArray(rowids)) {
+		var val = -1;
+		var query = function (tx) {
+			tx.executeSql('SELECT * FROM locationqueue WHERE id IN (' + rowids.toString() + ')', [], function(t, results) {
+				if (func) {
+					for (var i = 0; i < results.rows.length; ++i) {
+						func.call(results.rows.item(i), results.rows.item(i));
+					}
+				}
+			});
+		};
+
+		db.transaction(query, errorSql);
+	}
+}
+
 function forLocationQueueRows(db, rowids, func) {
 	if ($.isArray(rowids)) {
 		var val = -1;
@@ -132,6 +149,14 @@ function locationValuesString(location, name, photo, date, status) {
 	values += ')';
 	
 	return values;
+}
+
+function updateLocationName(db, id, name) {
+	var update = function (tx) {
+		tx.executeSql('UPDATE locationqueue SET name=' + quote(name) + ' WHERE id=' + id);
+	};
+	
+	db.transaction(update, errorSql);
 }
 
 function updateLocationStatus(db, id, status) {
