@@ -279,16 +279,37 @@ var compassSuccess = function(heading){
 	
 	//Rotate map
 	var heading = heading.magneticHeading;
-	var mapRotation = 360 - heading;
-	var diff = (-1 * mapRotation) - map.events.rotationAngle;
-	if(diff > -180)
-		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-	else
-		$("#map").animate({rotate: (-1 * heading) + 'deg'}, 1000);
+	var newRotation = -360 + heading;
+	map.events.rotationAngle = newRotation;
+	var rotateBy = 0;
 	
-	map.events.rotationAngle = -1 * mapRotation;
-    navSymbolizer.rotation = mapRotation;
-    navigationLayer.redraw();
+	if(oldRotation <= -180)
+	{
+		if((newRotation <= (oldRotation + 180)) && (newRotation > oldRotation))
+			rotateBy = newRotation - oldRotation;//counter clockwise
+		else{
+			if(newRotation > oldRotation)
+				rotateBy = -360 + newRotation - oldRotation;
+			else
+				rotateBy = newRotation - oldRotation;
+		}
+	}else{
+		if((newRotation >= (oldRotation - 180)) && (newRotation <= oldRotation))
+			rotateBy = newRotation - oldRotation;//clockwise
+		else
+		{
+			if(newRotation > oldRotation)
+				rotatedBy = oldRotation + newRotation;
+			else
+				rotatedBy = -360 + oldRotation - newRotation;
+		}
+	}
+	
+	oldRotation = newRotation;
+	
+	$("#map").animate({rotate: '+=' + rotatedBy + 'deg'}, 1000);//counter clockwise
+   // navSymbolizer.rotation = mapRotation;
+   // navigationLayer.redraw();
 };
 
 var compassError = function(error){
