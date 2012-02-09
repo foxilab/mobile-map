@@ -394,9 +394,9 @@ function uploadFileToS3(filepath) {
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
-			{"bucket": "MobileResponse"},
+			["eq", "$bucket", "mobileresponse"],
 			["starts-with", "$key", "user/kzusy/"],
-			{"acl": "public-read"},
+			{"acl": "public-read" },
 			["starts-with", "$Content-Type", "image/"],
 		]
 	};
@@ -409,20 +409,22 @@ function uploadFileToS3(filepath) {
 
 	var params = {
 		key:					"user/kzusy/${filename}",
+		bucket: "mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
 		signature:			signature,
+		acl:	"public-read",
 		"Content-Type":	"image/jpeg"
 	};
 
 	var options = new FileUploadOptions();
 	options.mimeType = "image/jpeg";
-	options.fileName = "user/kzusy/${filename}";
 	options.fileKey = "file";
+	options.fileName = filepath.substr(filepath.lastIndexOf('/')+1);
 	options.params = params;
 
 	var ft = new FileTransfer();
-	var url = 'http://MobileResponse.s3.amazonaws.com';
+	var url = 'http://mobileresponse.s3.amazonaws.com';
 	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
 }
 
@@ -529,7 +531,9 @@ function onDeviceReady()
 												
 			navigator.camera.getPicture(function (imageURI) 
 			{
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + imageURI.substr(imageURI.lastIndexOf('/')+1);
+				
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, amazonURL, null);
 				uploadFileToS3(imageURI);
 									
 				// TODO: This sometimes flashes the map
@@ -727,7 +731,7 @@ function submitToServer() {
 				sql += squote(row.name) + ',';
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				sql += squote('placeholder') + ')'; // TODO: upload the photo and store the URL
+				sql += squote(row.photo) + ')'; // TODO: upload the photo and store the URL
 
 				if (rows.length > 1) {
 					sql += ';';
