@@ -332,7 +332,7 @@ var fusionLayerOptions_Heat = {
 var fusionLayerOptions_Icon = {
 	displayProjection: WGS84,
 	projection: WGS84_google_mercator,
-	maxResolution: 76.43702827148438,
+	maxResolution: 38.21851413574219,
 	minResolution: "auto",
 };
 
@@ -689,6 +689,7 @@ function submitToServer() {
 				if (rows.length > 1) {
 					sql += ';';
 				}
+				console.log(sql);
 // TODO: Whoever wrote this, I think it's in the wrong place, or maybe it was just test code...
 /*
 				var commaIndex = row.location.indexOf(",");
