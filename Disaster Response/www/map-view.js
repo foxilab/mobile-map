@@ -355,25 +355,11 @@ function initializeFusionLayer_HeatMap() {
  for more details -jm */
 
 function imageUploadSuccess(response){
-	var s = "{\n";
-	
-	for(var x in response)
-		s += "\t" + x + ": " + response[x] + "\n";
-	
-	s += "}";
-	
-	alert(s);
+	console.log(response);
 }
 
 function imageUploadFailure(response){
-	var s = "{\n";
-	
-	for(var x in response)
-		s += "\t" + x + ": " + response[x] + "\n";
-	
-	s += "}";
-	
-	alert(s);
+	console.log(response);
 }
 
 function onDeviceReady()
@@ -485,7 +471,6 @@ function onDeviceReady()
                 var location = new OpenLayers.Feature.Vector(point);
                 
                 navigationLayer.addFeatures([location]);*/
-										
 										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
 											  
 										//	  });
