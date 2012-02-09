@@ -55,6 +55,32 @@ var isAutoPush = false;
 var centered = false;
 var locatedSuccess = true;
 
+// Resolution per level
+// 01 ....   78271.51695 
+// 02 ....   39135.758475 
+// 03 ....   19567.8792375 
+// 04 ....   9783.93961875 
+// 05 ....   4891.969809375 
+// 06 ....   2445.9849046875 
+// 07 ....   1222.99245234375 
+// 08 ....   611.496226171875 
+// 09 ....   305.7481103859375 
+// 10 ....   152.87405654296876 
+// 11 ....   76.43702827148438 
+// 12 ....   38.21851413574219 
+// 13 ....   19.109257067871095 
+// 14 ....   9.554628533935547 
+// 15 ....   4.777314266967774 
+// 16 ....   2.388657133483887 
+// 17 ....   1.1943285667419434 
+// 18 ....   0.5971642833709717 
+
+var WGS84 = new OpenLayers.Projection("EPSG:4326");
+var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
+var maxResolution = 78271.51695;
+var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
+var restrictedExtent = maxExtent.clone();
+
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
@@ -87,19 +113,20 @@ var statusStyle = new OpenLayers.StyleMap({
     })
 });
 
-var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer",
-{
+var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
     styleMap: navStyle
 });
 
-var statusLayer = new OpenLayers.Layer.Vector("Status Layer",
-{
-    styleMap: statusStyle
+var statusLayer = new OpenLayers.Layer.Vector("Status Layer", {
+    styleMap: statusStyle,
+	displayProjection: WGS84,
+	projection: WGS84_google_mercator,
+	maxResolution: 38.21851413574219,
+	minResolution: "auto"
 });
 
 var statusSaveStrategy = new OpenLayers.Strategy.Save();
-var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
-{
+var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     strategies: [new OpenLayers.Strategy.BBOX(), statusSaveStrategy],
     protocol: new OpenLayers.Protocol.WFS({
        version: "1.1.0",
@@ -112,33 +139,6 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer",
     }),
     visibility: false
 });
-
-// Resolution per level
-// 01 ....   78271.51695 
-// 02 ....   39135.758475 
-// 03 ....   19567.8792375 
-// 04 ....   9783.93961875 
-// 05 ....   4891.969809375 
-// 06 ....   2445.9849046875 
-// 07 ....   1222.99245234375 
-// 08 ....   611.496226171875 
-// 09 ....   305.7481103859375 
-// 10 ....   152.87405654296876 
-// 11 ....   76.43702827148438 
-// 12 ....   38.21851413574219 
-// 13 ....   19.109257067871095 
-// 14 ....   9.554628533935547 
-// 15 ....   4.777314266967774 
-// 16 ....   2.388657133483887 
-// 17 ....   1.1943285667419434 
-// 18 ....   0.5971642833709717 
-
-var oldRotation = 0;
-var WGS84 = new OpenLayers.Projection("EPSG:4326");
-var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-var maxResolution = 78271.51695;
-var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
-var restrictedExtent = maxExtent.clone();
 
 var touchNavOptions = {
 dragPanOptions: {
@@ -367,12 +367,12 @@ var fLayer_heatMap = true;
 
 function initializeFusionLayer_Icons() {
 	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:false&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + !fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
 }
 
 function initializeFusionLayer_HeatMap() {
 	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap +"&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
+	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -525,9 +525,6 @@ function onDeviceReady()
 													  }).error(function(message){console.log(message)});*/
 
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-			console.log('DisplayProjection: ' + map.displayProjection);
-			console.log('Projection: ' + map.projection);
-			console.log('LonLat: ' + lonlat);
 												
 			navigator.camera.getPicture(function (imageURI) 
 			{
@@ -586,6 +583,10 @@ function onDeviceReady()
 	
 	$('#more-dialog').on('pageshow', function() {
 		selectTabBarItem('More');
+	});
+	
+	$('#status-dialog').on('pagehide', function() {
+		updateQueueSize();
 	});
 						      
 	//Now that we are done loading everything, read the queue and find the size
@@ -728,7 +729,12 @@ function submitToServer() {
 				var row = rows.item(i);
 				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
 				sql += squote(row.location) + ',';
-				sql += squote(row.name) + ',';
+				//--------------------------------------------------
+				//  DO NOT TOUCH! It may look wrong       +-Here
+				//    but this will run fine.             v
+					var name = row.name.replace(/\'/g, "\\'"); 
+					sql += squote(name) + ',';
+				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				sql += squote(row.photo) + ')'; // TODO: upload the photo and store the URL
@@ -736,39 +742,9 @@ function submitToServer() {
 				if (rows.length > 1) {
 					sql += ';';
 				}
-				console.log(sql);
-// TODO: Whoever wrote this, I think it's in the wrong place, or maybe it was just test code...
-/*
-				var commaIndex = row.location.indexOf(",");
-				var lon = row.location.substr(0, commaIndex);
-				var lat = row.location.substr(commaIndex+1);
-				var point = new OpenLayers.Geometry.Point(lon, lat);
-				
-				 var statusColor;
-				 
-				 if(row.status == 1)
-					 statusColor = "green";
-				 else if(row.status == 2)
-					 statusColor = "yellow";
-				 else if(row.status == 3)
-					 statusColor = "orange";
-				 else
-					 statusColor = "red";
-								 
-				var location = new OpenLayers.Feature.Vector(point, 
-				{
-					 name: row.name,
-					 status: statusColor,
-					 date: row.date
-				 });
-				 
-				statusLayer.addFeatures([location]);
-				statusWFSLayer.addFeatures([location]);
-				statusLayer.redraw();
-*/
 			}
 
-			// TODO: Whoever wrote this, are we using it, or should it be deleted?
+	// TODO: Whoever wrote this, are we using it, or should it be deleted?
 	//		if(isInternetConnection)
 	//			statusSaveStrategy.save();
 
@@ -783,11 +759,50 @@ function submitToServer() {
 						deleteLocation(sqlDb, rowids[i]);
 					}
 					//The sqlDb has changed, update the queue size.
-					updateQueueSize();		
+					updateQueueSize();
+					
+					//Hack to refesh the map icons, problem OpenLayers?
+						map.zoomOut(); map.zoomIn();
 				}
 			});
 		});
 	});
+}
+
+function addStatusPoints(_location, _status) {
+	var commaIndex = _location.indexOf(",");
+	var lat = _location.substr(0, commaIndex);
+	var lon = _location.substr(commaIndex+1);
+
+	var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
+	var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+	
+	var statusColor;
+	
+	if(_status == 1)
+		statusColor = "green";
+	else if(_status == 2)
+		statusColor = "yellow";
+	else if(_status == 3)
+		statusColor = "red";
+	else if(_status == 4)
+		statusColor = "purple";
+	else
+		statusColor = "black";
+	
+	var location = new OpenLayers.Feature.Vector(point, {
+		status: statusColor,
+	});
+	
+	statusLayer.addFeatures([location]);
+	//statusWFSLayer.addFeatures([location]);
+	statusLayer.redraw();
+}
+
+function clearStatusPoints() {
+	statusLayer.removeAllFeatures();
+	//statusWFSLayer.removeAllFeatures();
+	statusLayer.redraw();
 }
 
 /*
@@ -802,6 +817,7 @@ function updateQueueSize() {
     // lets remove the current queue times from the counters.
     appNotifications -= itemsInQueue;
     itemsInQueue = 0;
+	clearStatusPoints();
     
     //Now we are ready to start, lets get the QueueSize
     sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
@@ -812,6 +828,13 @@ function getQueueSize(_tx) {
     _tx.executeSql('SELECT * FROM locationqueue',[], 
        function(_tx, _result) { 
            itemsInQueue = _result.rows.length;
+		   
+		   for(var i = 0; i < itemsInQueue; i++) {
+				var row = _result.rows.item(i);
+				
+				addStatusPoints(row.location, row.status);
+			}
+		   
 		   }, 
        function(_tx, _error) {
             console.log('SQL Execute error'); return true; }
