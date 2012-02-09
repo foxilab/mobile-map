@@ -83,8 +83,8 @@ var restrictedExtent = maxExtent.clone();
 
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-	pointRadius : 10,
-    externalGraphic : "css/images/15x15_Blue_Arrow.png",
+	pointRadius : 15,
+    externalGraphic : "css/images/blue-circle.png",
 	fillOpacity: 1,
 	rotation: 0
 });
@@ -139,6 +139,33 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     }),
     visibility: false
 });
+
+// Resolution per level
+// 01 ....   78271.51695 
+// 02 ....   39135.758475 
+// 03 ....   19567.8792375 
+// 04 ....   9783.93961875 
+// 05 ....   4891.969809375 
+// 06 ....   2445.9849046875 
+// 07 ....   1222.99245234375 
+// 08 ....   611.496226171875 
+// 09 ....   305.7481103859375 
+// 10 ....   152.87405654296876 
+// 11 ....   76.43702827148438 
+// 12 ....   38.21851413574219 
+// 13 ....   19.109257067871095 
+// 14 ....   9.554628533935547 
+// 15 ....   4.777314266967774 
+// 16 ....   2.388657133483887 
+// 17 ....   1.1943285667419434 
+// 18 ....   0.5971642833709717 
+
+var oldRotation = 0;
+var WGS84 = new OpenLayers.Projection("EPSG:4326");
+var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
+var maxResolution = 78271.51695;
+var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
+var restrictedExtent = maxExtent.clone();
 
 var touchNavOptions = {
 dragPanOptions: {
@@ -220,8 +247,10 @@ var geolocationSuccess = function(position){
         var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
         var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
         
-        navigationLayer.removeAllFeatures();
-        navigationLayer.addFeatures([currentPosition]);
+        if(navigationLayer.features.length > 0)
+			navigationLayer.features[0].move(new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator));
+		else
+			navigationLayer.addFeatures([currentPosition]);
         
         if(!centered)
         {
@@ -235,7 +264,7 @@ var geolocationSuccess = function(position){
     locatedSuccess = true;
     //iPhone Quirks
     //  position.timestamp returns seconds instead of milliseconds.
-}
+};
 
 var geolocationError = function(error){
     
@@ -257,16 +286,18 @@ var geolocationError = function(error){
             var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
             var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
             
-            navigationLayer.addFeatures([currentPosition]);
-            
-            map.setCenter(new OpenLayers.LonLat(lon, lat)
+			if(navigationLayer.features.length == 0)
+			{
+				navigationLayer.addFeatures([currentPosition]);
+				map.setCenter(new OpenLayers.LonLat(lon, lat)
                           .transform(WGS84, WGS84_google_mercator), 2);
+			}
         }
         
         locatedSuccess = false;
     }
     
-}
+};
 
 var compassSuccess = function(heading){
 	//Rotate arrow
@@ -285,7 +316,7 @@ var compassSuccess = function(heading){
 	map.events.rotationAngle = -1 * mapRotation;
     navSymbolizer.rotation = mapRotation;
     navigationLayer.redraw();
-}
+};
 
 var compassError = function(error){
 	//error handling
@@ -294,7 +325,7 @@ var compassError = function(error){
 	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
         navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
 */
-}
+};
 
 function googleSQL(sql, type, success, error) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
@@ -356,11 +387,49 @@ function initializeFusionLayer_HeatMap() {
  for more details -jm */
 
 function imageUploadSuccess(response){
-	console.log(response);
+	console.log('image upload success');
+	console.log(response.response);
 }
 
 function imageUploadFailure(response){
-	console.log(response);
+	console.log('image upload error');
+	console.log(response.response);
+}
+
+function uploadFileToS3(filepath) {
+	var policy = {
+		"expiration": "2012-12-01T12:00:00.000Z",
+		"conditions": [
+			{"bucket": "MobileResponse"},
+			["starts-with", "$key", "user/kzusy/"],
+			{"acl": "public-read"},
+			["starts-with", "$Content-Type", "image/"],
+		]
+	};
+
+	var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
+	var encodedPolicy = $.base64.encode(JSON.stringify(policy));
+
+	var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret, { asString: true });
+	var signature = $.base64.encode(hmac);
+
+	var params = {
+		key:					"user/kzusy/${filename}",
+		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
+		policy:				encodedPolicy,
+		signature:			signature,
+		"Content-Type":	"image/jpeg"
+	};
+
+	var options = new FileUploadOptions();
+	options.mimeType = "image/jpeg";
+	options.fileName = "user/kzusy/${filename}";
+	options.fileKey = "file";
+	options.params = params;
+
+	var ft = new FileTransfer();
+	var url = 'http://MobileResponse.s3.amazonaws.com';
+	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
 }
 
 function onDeviceReady()
@@ -464,46 +533,7 @@ function onDeviceReady()
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-                
-               /* var point = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
-                var location = new OpenLayers.Feature.Vector(point);
-                
-                navigationLayer.addFeatures([location]);*/
-										//$.get("http://MobileResponse.s3-website-us-east-1.amazonaws.com", function(response){
-											  
-										//	  });
-										var policy = "{ \"expiration\": \"2012-03-01T12:00:00.000Z\"," +
-										"\"conditions\": [" +
-													   "{\"bucket\": \"MobileResponse\" }," +
-													   "{\"key\": \"user/kzusy/${filename}\"}," +
-													   "[\"starts-with\", \"$Content-Type\", \"image/\"]," +
-													   "]"+
-										"}";
-										
-										var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
-										var encodedPolicy = $.base64.encode(policy);
-										$("#s3Policy").val(encodedPolicy);
-										
-										var hmac = $.sha1(secret);
-										$("#s3Signature").val(hmac);
-										var options = new FileUploadOptions();
-										options.key = "user/kzusy/${filename}";
-										options.mimeType = "image/jpeg";
-										options.fileName = imageURI.substr(imageURI.lastIndexOf('/')+1);
-										options.fileKey = "file";
-										
-										
-										
-										
-										var params = new Object();
-										params.key = "user/kzusy/${filename}";
-										params.bucket = "MobileResponse";
-										params.AWSAccessKeyId = "AKIAJPZTPJETTBZ5A5IA";
-										
-										var ft = new FileTransfer();
-										var url = 'http://MobileResponse.s3.amazonaws.com';
-										ft.upload(imageURI, url, imageUploadSuccess, imageUploadFailure,
-												  options);
+				uploadFileToS3(imageURI);
 									
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
@@ -604,8 +634,8 @@ function showQueueItemDelete(e) {
 	});
 }
 
-$(document).ready(function() {
-	$(document).click(function() {
+$(document).ready(function () {
+	$(document).click(function () {
 		hideQueueItemDelete();
 	});
 
@@ -651,6 +681,21 @@ $(document).ready(function() {
 				}
 			});
 		});
+	});
+
+	$('#location-dialog').live('pageinit', function() {
+		var $locform = $(this).find('form');
+		$locform.submit(function() {
+			// Store back to local DB
+			var desc = $(this).find('input').val();
+			var id = $queue_item.attr('rowid');
+			updateLocationName(sqlDb, id, desc);
+			$('#location-dialog').dialog('close');
+		});
+	});
+	
+	$('#location-dialog').live('pagebeforeshow', function() {
+		$(this).find('input').val('');
 	});
 
 	$('.location-list-item').live('click', function() {
