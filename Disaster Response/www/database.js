@@ -151,6 +151,14 @@ function locationValuesString(location, name, photo, date, status) {
 	return values;
 }
 
+function updateLocationCoordinates(db, id, coords) {
+	var update = function (tx) {
+		tx.executeSql('UPDATE locationqueue SET location=' + quote(coords) + ' WHERE id=' + id);
+	};
+	
+	db.transaction(update, errorSql);
+}
+
 function updateLocationName(db, id, name) {
 	var update = function (tx) {
 		tx.executeSql('UPDATE locationqueue SET name=' + quote(name) + ' WHERE id=' + id);

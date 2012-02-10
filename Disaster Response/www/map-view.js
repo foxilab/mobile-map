@@ -373,9 +373,9 @@ function uploadFileToS3(filepath) {
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
-			{"bucket": "MobileResponse"},
+			{"bucket": "mobileresponse"},
 			["starts-with", "$key", "user/kzusy/"],
-			{"acl": "public-read"},
+			{"acl": "private"},
 			["starts-with", "$Content-Type", "image/"],
 		]
 	};
@@ -390,6 +390,7 @@ function uploadFileToS3(filepath) {
 		key:					"user/kzusy/${filename}",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
+		acl:					"private",
 		signature:			signature,
 		"Content-Type":	"image/jpeg"
 	};
@@ -641,7 +642,7 @@ $(document).ready(function () {
 				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
 				success:	function(data) {
 					for (var i = 0; i < data.results.length; ++i) {						
-						$ul.append("<li class='location-list-item'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+						$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
 					}
 					$ul.listview('refresh');
 				},
@@ -671,8 +672,22 @@ $(document).ready(function () {
 	});
 
 	$('.location-list-item').live('click', function() {
-		// Store back to local DB
 		var id = $queue_item.attr('rowid');
+		// Grab the real geographic coordinates and store them
+		$.ajax({
+			url:	'https://maps.googleapis.com/maps/api/place/details/json?reference=' + $(this).attr('reference') + '&sensor=false&key=' + GoogleApi.key(),
+			success:	function(data) {
+				updateLocationCoordinates(sqlDb, id, data.result.geometry.location.lat + ',' + data.result.geometry.location.lng);
+			},
+			error:	function(xhr, status, error) {
+				console.log('places detail error');
+				console.log(xhr);
+				console.log(status);
+				console.log(error);
+			}
+		});		
+		// Doing this outside the ajax success callback so that it happens immediately since
+		// we already have the required information.
 		updateLocationName(sqlDb, id, $(this).text());
 	});
 
