@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <head>
+        <!-- Change this if you want to allow scaling -->
+        <meta name="viewport" content="width=default-width; user-scalable=no" />
+        
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+            <link rel="stylesheet" href="HelloPhoneGap.css" type="text/css"/>
+            <script type="text/javascript" charset="utf-8" src="phonegap-1.3.0.js"></script>
+            <script type="text/javascript" charset="utf-8">
+                
+                function onBodyLoad() {
+                    document.addEventListener("deviceready",onDeviceReady,false);
+                }
+                
+                function onDeviceReady() {
+                    getDeviceProperties();
+                    getCurrentAcceleration();
+                    getLocation();
+                    checkConnection();
+                }
+                
+                function getDeviceProperties() {
+                    var element = document.getElementById('deviceProperties');
+                        element.innerHTML =
+                    ' - Device Name: '     + device.name     + '<br />' + 
+                    ' - Device PhoneGap: ' + device.phonegap + '<br />' + 
+                    ' - Device Platform: ' + device.platform + '<br />' + 
+                    ' - Device UUID: '     + device.uuid     + '<br />' + 
+                    ' - Device Version: '  + device.version  + '<br />';
+                }
+                
+                function getCurrentAcceleration() {
+                    navigator.accelerometer.getCurrentAcceleration(onAccelerationSuccess, onError);
+                }
+                
+                function onAccelerationSuccess(acceleration) {
+                    var element = document.getElementById('accelerationProperties');
+                        element.innerHTML = 
+                    ' - Acceleration X: ' + acceleration.x + '<br />' +
+                    ' - Acceleration Y: ' + acceleration.y + '<br />' +
+                    ' - Acceleration Z: ' + acceleration.z + '<br />' +
+                    ' - Timestamp: '      + acceleration.timestamp + '<br />';
+                }
+                
+                function getLocation() {
+                    navigator.geolocation.getCurrentPosition(onLocationSuccess, onError);
+                }
+                
+                function onLocationSuccess(position) {
+                    var element = document.getElementById('geolocationProperties');
+                    element.innerHTML = 
+                    ' - Latitude: '           + position.coords.latitude              + '<br />' +
+                    ' - Longitude: '          + position.coords.longitude             + '<br />' +
+                    ' - Altitude: '           + position.coords.altitude              + '<br />' +
+                    ' - Accuracy: '           + position.coords.accuracy              + '<br />' +
+                    ' - Altitude Accuracy: '  + position.coords.altitudeAccuracy      + '<br />' +
+                    ' - Heading: '            + position.coords.heading               + '<br />' +
+                    ' - Speed: '              + position.coords.speed                 + '<br />' +
+                    ' - Timestamp: '          + new Date(position.timestamp)          + '<br />';
+                }
+                
+                function checkConnection() {
+                    var networkState = navigator.network.connection.type;
+                    
+                    var states = {};
+                    states[Connection.UNKNOWN]  = 'Unknown connection';
+                    states[Connection.ETHERNET] = 'Ethernet connection';
+                    states[Connection.WIFI]     = 'WiFi connection';
+                    states[Connection.CELL_2G]  = 'Cell 2G connection';
+                    states[Connection.CELL_3G]  = 'Cell 3G connection';
+                    states[Connection.CELL_4G]  = 'Cell 4G connection';
+                    states[Connection.NONE]     = 'No network connection';
+                    
+                    var element = document.getElementById('networkProperties');
+                    element.innerHTML = 
+                    ' - Connection type: ' + states[networkState];
+                }
+                
+                function onError() {
+                    alert ("onError");
+                }
+                </script>
+            </head>
+    
+    <body onload="onBodyLoad()">
+        <div data-role="page" id='debug' data-theme='a'>
+        <DIV class="TitleBar">
+            <TABLE width="100%">
+                <TR>
+                    <TD><h1><b><u>Debugger</u></b></h1></TD>
+                    <TD align="right"><a href="index.html">back</a></TD>
+                </TR>
+            </TABLE>
+        </DIV>
+
+
+        <DIV class="phoneGapAPI"> 
+            <TABLE width="100%">
+                <TD>b><u>Device Properties:</u></b></TD>
+                <TR><TD id="deviceProperties" ></TD></TR>
+                
+                <TD><b><u>Acceleration:</u></b></TD>
+                <TR><TD id="accelerationProperties" ></TD></TR>
+				
+                <TR><TD><button class="phoneGapAPIButton" onclick="getCurrentAcceleration();">getCurrentAcceleration()</button></TD></TR>
+                
+                <TD><b><u>Geolocation:</u></b></TD>
+                <TR><TD id="geolocationProperties" ></TD></TR>
+				
+                <TR><TD><button class="phoneGapAPIButton" onclick="getLocation();">getLocation()</button></TD></TR>
+                
+                <TD><b><u>Netowrk:</u></b></TD>
+                <TR><TD id="networkProperties" ></TD></TR>
+				
+                <TR><TD><button class="phoneGapAPIButton" onclick="checkConnection();">checkConnection()</button></TD></TR>
+            </TABLE>
+         </DIV>
+		</div>
+    </body>
+</html>
