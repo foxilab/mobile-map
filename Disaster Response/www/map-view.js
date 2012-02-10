@@ -528,10 +528,8 @@ function onDeviceReady()
 												
 			navigator.camera.getPicture(function (imageURI) 
 			{
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + imageURI.substr(imageURI.lastIndexOf('/')+1);
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 				
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, amazonURL, null);
-				uploadFileToS3(imageURI);
 									
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
@@ -737,17 +735,20 @@ function submitToServer() {
 				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				sql += squote(row.photo) + ')'; // TODO: upload the photo and store the URL
-
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+				sql += squote(amazonURL) + ')'; // TODO: upload the photo and store the URL
+				
 				if (rows.length > 1) {
 					sql += ';';
 				}
+												
+				uploadFileToS3(row.photo);
 			}
 
 	// TODO: Whoever wrote this, are we using it, or should it be deleted?
 	//		if(isInternetConnection)
 	//			statusSaveStrategy.save();
-
+												
 			googleSQL(sql, 'POST', function(data) {
 				var rows = $.trim(data).split('\n');
 				var rowid = rows.shift();
