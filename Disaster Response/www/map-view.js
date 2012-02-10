@@ -373,16 +373,15 @@ function uploadFileToS3(filepath) {
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
-			["eq", "$bucket", "mobileresponse"],
+			{"bucket": "mobileresponse"},
 			["starts-with", "$key", "user/kzusy/"],
 			{"acl": "public-read" },
 			["starts-with", "$Content-Type", "image/"],
 		]
 	};
 
-	var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
 	var encodedPolicy = $.base64.encode(JSON.stringify(policy));
-
+	var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
 	var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret, { asString: true });
 	var signature = $.base64.encode(hmac);
 
@@ -391,6 +390,7 @@ function uploadFileToS3(filepath) {
 		bucket: "mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
+		acl:					"private",
 		signature:			signature,
 		acl:	"public-read",
 		"Content-Type":	"image/jpeg"
@@ -643,7 +643,7 @@ $(document).ready(function () {
 				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
 				success:	function(data) {
 					for (var i = 0; i < data.results.length; ++i) {						
-						$ul.append("<li class='location-list-item'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+						$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
 					}
 					$ul.listview('refresh');
 				},
@@ -673,8 +673,22 @@ $(document).ready(function () {
 	});
 
 	$('.location-list-item').live('click', function() {
-		// Store back to local DB
 		var id = $queue_item.attr('rowid');
+		// Grab the real geographic coordinates and store them
+		$.ajax({
+			url:	'https://maps.googleapis.com/maps/api/place/details/json?reference=' + $(this).attr('reference') + '&sensor=false&key=' + GoogleApi.key(),
+			success:	function(data) {
+				updateLocationCoordinates(sqlDb, id, data.result.geometry.location.lat + ',' + data.result.geometry.location.lng);
+			},
+			error:	function(xhr, status, error) {
+				console.log('places detail error');
+				console.log(xhr);
+				console.log(status);
+				console.log(error);
+			}
+		});		
+		// Doing this outside the ajax success callback so that it happens immediately since
+		// we already have the required information.
 		updateLocationName(sqlDb, id, $(this).text());
 	});
 
@@ -714,7 +728,7 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + row.photo.substr(row.photo.lastIndexOf('/')+1);
-				sql += squote(amazonURL) + ')'; // TODO: upload the photo and store the URL
+				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
 					sql += ';';
