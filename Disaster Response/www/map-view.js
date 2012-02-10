@@ -750,7 +750,7 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + row.photo.substr(row.photo.lastIndexOf('/')+1);
-				sql += squote(amazonURL) + ')'; // TODO: upload the photo and store the URL
+				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
 					sql += ';';
