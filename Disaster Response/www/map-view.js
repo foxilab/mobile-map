@@ -147,6 +147,7 @@ enableKinetic: true
 }
 };
 
+var oldRotation = 0;
 var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
 
 var options = {
@@ -279,35 +280,13 @@ var compassSuccess = function(heading){
 	
 	//Rotate map
 	var heading = heading.magneticHeading;
-	var newRotation = -360 + heading;
-	map.events.rotationAngle = newRotation;
-	var rotateBy = 0;
+	var mapRotation = 360 - heading;
 	
-	if(oldRotation <= -180)
-	{
-		if((newRotation <= (oldRotation + 180)) && (newRotation > oldRotation))
-			rotateBy = newRotation - oldRotation;//counter clockwise
-		else{
-			if(newRotation > oldRotation)
-				rotateBy = -360 + newRotation - oldRotation;
-			else
-				rotateBy = newRotation - oldRotation;
-		}
-	}else{
-		if((newRotation >= (oldRotation - 180)) && (newRotation <= oldRotation))
-			rotateBy = newRotation - oldRotation;//clockwise
-		else
-		{
-			if(newRotation > oldRotation)
-				rotatedBy = oldRotation + newRotation;
-			else
-				rotatedBy = -360 + oldRotation - newRotation;
-		}
-	}
+		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1500);
 	
-	oldRotation = newRotation;
+	map.events.rotationAngle = -1 * mapRotation;
 	
-	$("#map").animate({rotate: '+=' + rotatedBy + 'deg'}, 1000);//counter clockwise
    // navSymbolizer.rotation = mapRotation;
    // navigationLayer.redraw();
 };
@@ -465,9 +444,8 @@ function onDeviceReady()
     
 	// do your thing!
 	var docHeight = $(window).height();
-	var headerHeight = $("#header").height();
 	var footerHeight = $("#footer").height();
-	var mapHeight = docHeight - headerHeight - footerHeight - 50;
+	var mapHeight = docHeight - footerHeight - 50;
 	
 	var mapContainer = $("#mapContainer");
 	mapContainer.height(mapHeight +"px");
@@ -501,7 +479,7 @@ function onDeviceReady()
 		frequency: 3000
 	};
 	
-	//navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
+	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
 		defaultHandlerOptions : 
