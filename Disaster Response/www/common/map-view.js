@@ -853,10 +853,10 @@ function getQueueSizeErrorBC(_error) {
     This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
  */
 var tabBarItems = { tabs: [
-      {'name': 'Map'  , 'image': '/www/TabImages/Map.png'  , 'onSelect': onClick_MapTab},
-      {'name': 'Queue', 'image': '/www/TabImages/Queue.png', 'onSelect': onClick_QueueTab},
-      {'name': 'User' , 'image': '/www/TabImages/User.png' , 'onSelect': onClick_UserTab},
-      {'name': 'Debug', 'image': '/www/TabImages/Debug.png', 'onSelect': onClick_DebugTab},
+      {'name': 'Map'  , 'image': '/www/common/TabImages/Map.png'  , 'onSelect': onClick_MapTab},
+      {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png', 'onSelect': onClick_QueueTab},
+      {'name': 'User' , 'image': '/www/common/TabImages/User.png' , 'onSelect': onClick_UserTab},
+      {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png', 'onSelect': onClick_DebugTab},
       {'name': 'More' , 'image': 'tabButton:More'          , 'onSelect': onClick_MoreTab}]};
 
 /*
