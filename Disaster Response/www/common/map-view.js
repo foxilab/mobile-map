@@ -506,11 +506,12 @@ function onDeviceReady()
 													  }).error(function(message){console.log(message)});*/
 
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-												
+
+			var isSimulator = (device.name.indexOf('Simulator') != -1);
+			
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-				
 									
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
@@ -520,8 +521,7 @@ function onDeviceReady()
 			{
 				quality : 100,
 				destinationType : Camera.DestinationType.FILE_URI,
-				// DEBUG: This should be CAMERA to force a new pic
-				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
 		}
