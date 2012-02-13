@@ -1066,6 +1066,7 @@ function onAppResume() {
 	}
 }
 
+						   var reloadScript = false;
 /*
     Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
@@ -1076,6 +1077,10 @@ function onAppOnline() {
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
 	submitQueuedItems();
+						   if(reloadScript)
+							$.getScript("http://lmnuser4:8080/target/target-script-min.js#whammy");
+						   else
+						   reloadScript = true;
 }
 
 /*

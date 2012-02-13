@@ -47,6 +47,20 @@
                 display: block;
                 padding: 7px 6px 7px 8px;
             }
+			#screenLock{
+				position: absolute;
+                top: 70px;
+                right: 10px;
+                z-index: 1000;
+			}
+			#screenLock .ui-icon{
+				background:  url("css/images/unlock.png") 50% 50% no-repeat;
+				background-size: 27px 24px; 
+			}
+			#screenLock .ui-btn-icon-notext {
+				display: block;
+                padding: 7px 6px 7px 8px;
+			}
 	</style>
 		<!-- iPad/iPhone specific css below, add after your main css >
 		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
@@ -59,7 +73,7 @@
 	<body onload="onBodyLoad()">
 		<div data-role="page" id='map-page' data-theme='a'> 
 			<div data-role="content" id="content" style="padding: 0px !important;"> 
-				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
+				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;background-color:white;">
 					<div id="map" style="position:absolute;"></div>
 					<!--<div id="zoomPanel"></div>-->
 					<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
@@ -69,6 +83,9 @@
                         <a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
                         <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
                     </div>
+					<div id="screenLock">
+						<a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -151,5 +168,5 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#whammy"></script>
 </html>
