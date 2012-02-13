@@ -17,6 +17,8 @@
 
 @synthesize invokeString;
 
++ (NSString*) startPage { return @"common/index.html"; }
+
 - (id) init
 {	
 	/** If you need to do any extra app-specific initialization, you can do it here
@@ -36,7 +38,7 @@
         self.invokeString = [url absoluteString];
 		NSLog(@"Disaster Response launchOptions = %@",url);
     }    
-		
+
 	return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
