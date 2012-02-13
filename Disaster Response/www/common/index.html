@@ -49,13 +49,15 @@
             }
 			#screenLock{
 				position: absolute;
-                top: 70px;
+                top: 30px;
                 right: 10px;
                 z-index: 1000;
+				height:41px;
+				width:38px;
 			}
 			#screenLock .ui-icon{
-				background:  url("css/images/unlock.png") 50% 50% no-repeat;
-				background-size: 27px 24px; 
+				background:  url("css/images/lock.png") 50% 50% no-repeat;
+				background-size: 15px 15px;
 			}
 			#screenLock .ui-btn-icon-notext {
 				display: block;
@@ -84,7 +86,7 @@
                         <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
                     </div>
 					<div id="screenLock">
-						<a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
+						<a href="#" data-role="button" data-icon="custom" id="screenlockbutton" data-iconpos="notext"></a>
 					</div>
 				</div>
 			</div>

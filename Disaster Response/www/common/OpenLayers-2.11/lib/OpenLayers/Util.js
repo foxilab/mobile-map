@@ -346,6 +346,9 @@ OpenLayers.Util.onImageLoad = function() {
         this.style.display = "";  
     }
     OpenLayers.Element.removeClass(this, "olImageLoadError");
+	
+//	if(this.src != "css/images/nothing.png")
+//		$("#"+this.id).css('background-color', '');
 };
 
 /**
@@ -383,6 +386,8 @@ OpenLayers.Util.onImageLoadError = function() {
         }
     } else {
         OpenLayers.Element.addClass(this, "olImageLoadError");
+		//$("#" + this.id).css('background-color', 'white');
+		this.src = "css/images/nothing.png";
     }
     this.style.display = "";
 };
