@@ -390,12 +390,12 @@ function uploadFileToS3(filepath) {
 
 	var params = {
 		key:					"user/kzusy/${filename}",
-		bucket: "mobileresponse",
+		bucket:				"mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
 		acl:					"private",
 		signature:			signature,
-		acl:	"public-read",
+		acl:					"public-read",
 		"Content-Type":	"image/jpeg"
 	};
 
@@ -481,7 +481,7 @@ function onDeviceReady()
 	var compassOptions = {
 		frequency: 3000
 	};
-	
+
 	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
@@ -508,7 +508,7 @@ function onDeviceReady()
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 
 			var isSimulator = (device.name.indexOf('Simulator') != -1);
-			
+
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
