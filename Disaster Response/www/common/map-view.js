@@ -37,6 +37,7 @@ var FusionTableId = new function () {
 var map;
 var fusionLayer_Locations_Icons;
 var fusionLayer_Locations_HeatMap;
+var screenLocked = true;
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
@@ -279,14 +280,16 @@ var compassSuccess = function(heading){
 	navigationLayer.redraw();*/
 	
 	//Rotate map
-	var heading = heading.magneticHeading;
-	var mapRotation = 360 - heading;
-	
-		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1500);
-	
-	map.events.rotationAngle = -1 * mapRotation;
-	
+	if(!screenLocked)
+	{
+		var heading = heading.magneticHeading;
+		var mapRotation = 360 - heading;
+		
+			$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+			$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1500);
+		
+		map.events.rotationAngle = -1 * mapRotation;
+	}
    // navSymbolizer.rotation = mapRotation;
    // navigationLayer.redraw();
 };
@@ -708,6 +711,14 @@ $(document).ready(function () {
 						
 	$('#minus').click(function(){
 		map.zoomOut();
+	});
+				  
+	$('#screenlockbutton').click(function(){
+		if(screenLocked){
+			screenLocked = false;
+		 }else{
+			screenLocked = true;
+		 }
 	});
 });
 
