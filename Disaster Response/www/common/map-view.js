@@ -446,7 +446,15 @@ function onDeviceReady()
         //setupNavBar();
     
 	// do your thing!
-	var docHeight = $(window).height();
+    var windowHeight = $(window).height();
+    var windowWidth = $(window).width();
+	var docHeight = 0;
+	
+	if(windowHeight > windowWidth)
+		docHeight = windowHeight;
+	else
+		docHeight = windowWidth;
+	
 	var footerHeight = $("#footer").height();
 	var mapHeight = docHeight - footerHeight - 50;
 	
@@ -716,8 +724,10 @@ $(document).ready(function () {
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
 			screenLocked = false;
+			$("#screenLock .ui-icon").css("background", "url('css/images/unlock.png') 50% 50% no-repeat");
 		 }else{
 			screenLocked = true;
+			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
 		 }
 	});
 });
