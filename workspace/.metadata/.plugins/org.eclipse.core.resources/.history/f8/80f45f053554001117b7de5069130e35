@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+	<head>
+		<title></title>
+
+		<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+		<meta charset="utf-8">
+
+		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
+		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
+		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+		<style type="text/css">
+			#zoomPanel{
+				position:absolute;
+				z-index:1999;
+				background-image: url("http://openlayers.org/api/theme/default/img/zoom-panel.png");
+				height:54px;
+				width:18px;
+				cursor:pointer;
+			  }
+			.olControlZoomInItemInactive { 
+				position: absolute;
+				height: 18px;
+				width: 18px;
+			}
+				
+			.olControlZoomToMaxExtentItemInactive {
+				position: absolute;
+				top:18px;
+				height: 18px;
+				width: 18px;
+			}
+				
+			.olControlZoomOutItemInactive {
+				position: absolute;
+				top:36px;
+				height: 18px;
+				width: 18px;
+			}
+            #navigation {
+                position: absolute;
+                bottom: 70px;
+                left: 10px;
+                z-index: 1000;
+            }
+            #navigation .ui-btn-icon-notext {
+                display: block;
+                padding: 7px 6px 7px 8px;
+            }
+	</style>
+		<!-- iPad/iPhone specific css below, add after your main css >
+		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
+		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
+		-->
+		<!-- If your application is targeting iOS BEFORE 4.0 you MUST put json2.js from http://www.JSON.org/json2.js into your www directory and include it here -->
+		<script type="text/javascript" charset="utf-8" src="json2.js"></script>
+	</head>
+
+	<body onload="onBodyLoad()">
+		<div data-role="page" id='map-page' data-theme='a'> 
+			<div data-role="content" id="content" style="padding: 0px !important; margin: 0px !important"> 
+				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
+					<div id="map" style="position:absolute;"></div>
+					<!--<div id="zoomPanel"></div>-->
+					<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
+						<image src="css/images/Reflect_Vertical.png" alt="north"/>
+					</div>
+                    <div id="navigation" data-role="controlgroup" data-type="vertical">
+                        <a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
+                        <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
+                    </div>
+				</div>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='queue-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Locations</h1>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='c' style='float: right'>Submit</a>
+			</div>
+			<div data-role='content'>
+				<ul data-role='listview'>
+					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
+						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown'>
+							<img style='width: 100%; height: 100%' />
+							<h3>Press to Choose Location</h3>
+							<p>Press arrow to set status</p>
+						</a>
+						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown' data-theme='a'></a>
+					</li>
+				</ul>
+			</div>
+			<div data-role='footer'>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='c' style='float: right'>Submit</a>
+				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
+			</div>
+			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
+		</div>
+
+		<div data-role='dialog' id='location-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Nearby</h1>
+			</div>
+			<div data-role='content'>
+				<ul id='places-list' data-role="listview" data-filter="true" data-filter-placeholder="Building name, or description..." data-inset="true">
+				</ul>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='status-dialog' data-theme='a'>
+			<div data-role='content'>
+				<a class='status-list-item' status-ref='1' data-role='button' data-rel='back'>Operational</a>
+				<a class='status-list-item' status-ref='2' data-role='button' data-rel='back'>Limited Capabilities</a>
+				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
+				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-Operational</a>
+				<a data-role='button' data-rel='back' data-icon='delete'>Cancel</a>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='user-dialog' data-theme='a'>
+			<div data-role='content'>
+				<h3>User</h3>
+				<p>User data and variables go here.</p>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='more-dialog' data-theme='a'>
+			<div data-role='content'>
+				<h3>More</h3>
+				<p>App settings and options go here.</p>
+			</div>
+		</div>
+	</body>
+
+	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false"></script>
+	<script type="text/javascript" charset="utf-8" src="../phonegap-1.3.0.js"></script>
+	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
+	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
+
+	<!-- Plugins -->
+	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/NativeControls.js"></script>
+	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/Badge.js"></script>
+	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/ChildBrowser.js"></script>
+
+	<script type="text/javascript" charset="utf-8" src="database.js"></script>
+	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
+	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+</html>
