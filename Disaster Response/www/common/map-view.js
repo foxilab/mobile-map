@@ -390,12 +390,12 @@ function uploadFileToS3(filepath) {
 
 	var params = {
 		key:					"user/kzusy/${filename}",
-		bucket: "mobileresponse",
+		bucket:				"mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
 		acl:					"private",
 		signature:			signature,
-		acl:	"public-read",
+		acl:					"public-read",
 		"Content-Type":	"image/jpeg"
 	};
 
@@ -489,7 +489,7 @@ function onDeviceReady()
 	var compassOptions = {
 		frequency: 3000
 	};
-	
+
 	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
@@ -514,11 +514,12 @@ function onDeviceReady()
 													  }).error(function(message){console.log(message)});*/
 
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-												
+
+			var isSimulator = (device.name.indexOf('Simulator') != -1);
+
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-				
 									
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
@@ -528,8 +529,7 @@ function onDeviceReady()
 			{
 				quality : 100,
 				destinationType : Camera.DestinationType.FILE_URI,
-				// DEBUG: This should be CAMERA to force a new pic
-				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
 		}

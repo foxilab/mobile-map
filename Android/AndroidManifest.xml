@@ -49,5 +49,4 @@
            	<intent-filter> </intent-filter>
       	</activity>
     </application>
-
 </manifest>
