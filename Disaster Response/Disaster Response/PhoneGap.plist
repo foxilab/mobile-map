@@ -20,7 +20,6 @@
 	<false/>
 	<key>ExternalHosts</key>
 	<array>
-		<string>c</string>
 		<string>*</string>
 	</array>
 	<key>Plugins</key>

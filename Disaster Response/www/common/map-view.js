@@ -37,6 +37,7 @@ var FusionTableId = new function () {
 var map;
 var fusionLayer_Locations_Icons;
 var fusionLayer_Locations_HeatMap;
+var heatmapLayer;
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
@@ -77,10 +78,10 @@ var locatedSuccess = true;
 
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-var maxResolution = 78271.51695;
 var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
-
+var maxResolution = 78271.51695;
+var iconMaxResolution = 4.777314266967774;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
@@ -95,6 +96,13 @@ var statusSymbolizer = new OpenLayers.Symbolizer.Point({
     strokeColor: "${status}",
     fillOpacity: 0.4,
     rotation: 0
+});
+
+var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
+		pointRadius : 14,
+		externalGraphic : "${image}",
+		fillOpacity: 1,
+		rotation: 0
 });
 
 var navStyle = new OpenLayers.StyleMap({
@@ -113,6 +121,13 @@ var statusStyle = new OpenLayers.StyleMap({
     })
 });
 
+var fusionStyle = new OpenLayers.StyleMap({
+		"default" : new OpenLayers.Style(null, {
+			rules : [ new OpenLayers.Rule({
+						symbolizer : fusionSymbolizer})]
+		})
+});
+
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
     styleMap: navStyle
 });
@@ -121,7 +136,7 @@ var statusLayer = new OpenLayers.Layer.Vector("Status Layer", {
     styleMap: statusStyle,
 	displayProjection: WGS84,
 	projection: WGS84_google_mercator,
-	maxResolution: 38.21851413574219,
+	maxResolution: iconMaxResolution,
 	minResolution: "auto"
 });
 
@@ -138,6 +153,14 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
        schema: "http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
     }),
     visibility: false
+});
+
+var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
+		styleMap: fusionStyle,
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: iconMaxResolution,
+		minResolution: "auto"
 });
 
 var touchNavOptions = {
@@ -207,8 +230,7 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 										
 });*/
 
-function onBodyLoad()
-{
+function onBodyLoad(){
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
@@ -326,34 +348,6 @@ function googleSQL(sql, type, success, error) {
 	});
 }
 
-var fusionLayerOptions_Heat = {
-	displayProjection: WGS84,
-	projection: WGS84_google_mercator,
-	maxResolution: maxResolution,
-	maxExtent: maxExtent,
-	restrictedExtent: restrictedExtent,
-};
-
-var fusionLayerOptions_Icon = {
-	displayProjection: WGS84,
-	projection: WGS84_google_mercator,
-	maxResolution: 38.21851413574219,
-	minResolution: "auto",
-};
-
-//FusionLayer variables
-var fLayer_heatMap = true;
-
-function initializeFusionLayer_Icons() {
-	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + !fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
-}
-
-function initializeFusionLayer_HeatMap() {
-	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
-}
-
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
 /* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
@@ -407,6 +401,132 @@ function uploadFileToS3(filepath) {
 	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
 }
 
+/*
+ 		==============================================
+		 			HeatMap and Icons
+ 		==============================================
+ */
+
+function onMapMoveEnd(_event) {
+	//The map bounds has changed...get the bounds and convert it
+	var bounds = map.getExtent();
+	var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
+	var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
+	
+	//Generate the SQL
+	var sql = "SELECT Location,Status FROM " + FusionTableId.locations() + 
+		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
+		"LATLNG("+rightTop.lat+","+rightTop.lon+")))";
+			
+	//With the bounds and SQL, query the Fusion Table for the features.
+	googleSQL(sql, 'GET', fusionSQLSuccess);
+}
+
+function fusionSQLSuccess(data) {
+	var transformedTestData = { max: 0 , data: [] }
+	var heatMapData = [];
+	
+	//We got our new data set, remove all the old features.
+	fusionLayer.removeAllFeatures();
+	
+	
+	var rows = $.trim(data).split('\n');
+	var length = rows.length;
+	transformedTestData.max = length;
+	
+	for(var i = 1; i < length; i++){
+		var location = rows[i];
+		//Gather the lat,lon and status for each row.
+		var commaIndex = location.indexOf(",");
+		var lat = location.substr(1, commaIndex-1);
+		var lon = location.substr(commaIndex+1,location.substr(1, commaIndex).indexOf(","));
+		var status = parseInt(location.substr(location.length-1),10);
+		
+		//If only the icons are to be shown
+		if(map.getResolution() <= iconMaxResolution) {
+		
+			//convert the lat and lon for display
+			var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
+			//create a point for the layer
+			var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+			//and pick out a nice icon to go with the locations eyes.
+			var icon = getStatusIcon(status);
+		
+			var location = new OpenLayers.Feature.Vector(point, {image: icon});
+			fusionLayer.addFeatures([location]);
+		}
+		else {
+			heatMapData.push({
+				lonlat: new OpenLayers.LonLat(lon, lat),
+				count: (status*50)
+			});
+		}
+	}
+	
+	transformedTestData.data = heatMapData;
+	heatmapLayer.setDataSet(transformedTestData);
+	fusionLayer.redraw();
+}
+
+var heatmapGradient = {
+		0.05: "rgb(128,128,128)", 
+		0.25: "rgb(0,255,0)", 
+		0.50: "rgb(255,255,0)",
+		0.90: "rgb(255,165,0)", 
+		1.00: "rgb(255,0,0)"
+};
+
+function initHeatmap() {
+	var testData={
+		max: 500,
+		data: [
+			{lat: 0.0, lon: 0.0, count: 0}
+	]}
+	
+	var transformedTestData = { max: testData.max , data: [] },
+		data = testData.data,
+		datalen = data.length,
+		nudata = [];
+	
+    // in order to use the OpenLayers Heatmap Layer we have to transform our data into 
+    // { max: <max>, data: [{lonlat: <OpenLayers.LonLat>, count: <count>},...]}
+    while(datalen--) {
+        nudata.push({
+			lonlat: new OpenLayers.LonLat(data[datalen].lon, data[datalen].lat),
+			count: data[datalen].count
+		});
+    }
+	
+    transformedTestData.data = nudata;
+	heatmapLayer.setDataSet(transformedTestData);
+}
+
+function getStatusIcon(_status) {
+	switch(_status) {
+		case 1:
+			return "Buildings/Green.png";
+			break;
+		case 2:
+			return "Buildings/Yellow.png";
+			break;
+		case 3:
+			return "Buildings/Orange.png";
+			break;
+		case 4:
+			return "Buildings/Red.png";
+			break;
+		default:
+			return "Buildings/Gray.png";
+			break;
+	}
+}
+
+/*
+ 		==============================================
+ 						onDeviceReady
+ 		==============================================
+ */
+ 
 function onDeviceReady()
 {
 	//Now that the device is ready, lets set up our event listeners.
@@ -461,13 +581,14 @@ function onDeviceReady()
 	
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
-	
-	//Initalize the Fusion Table layer.
-	initializeFusionLayer_Icons();
-	initializeFusionLayer_HeatMap();
-	
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, fusionLayer_Locations_Icons, fusionLayer_Locations_HeatMap, navigationLayer, statusLayer]);
+	
+	//Set up the HeatMap
+	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
+	initHeatmap();
+	
+	map.events.register("moveend", map, onMapMoveEnd);
+	map.addLayers([mapLayerOSM, heatmapLayer, navigationLayer, statusLayer, fusionLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -772,29 +893,34 @@ function addStatusPoints(_location, _status) {
 	
 	var statusColor;
 	
-	if(_status == 1)
-		statusColor = "green";
-	else if(_status == 2)
-		statusColor = "yellow";
-	else if(_status == 3)
-		statusColor = "red";
-	else if(_status == 4)
-		statusColor = "purple";
-	else
-		statusColor = "black";
-	
+	switch(_status) {
+		case 1:
+			statusColor = "green";
+			break;
+		case 2:
+			statusColor = "yellow";
+			break;
+		case 3:
+			statusColor = "orange";
+			break;
+		case 4:
+			statusColor = "red";
+			break;
+		default:
+			statusColor = "black";
+			break;
+	}
+
 	var location = new OpenLayers.Feature.Vector(point, {
-		status: statusColor,
+		status: statusColor
 	});
 	
 	statusLayer.addFeatures([location]);
-	//statusWFSLayer.addFeatures([location]);
 	statusLayer.redraw();
 }
 
 function clearStatusPoints() {
 	statusLayer.removeAllFeatures();
-	//statusWFSLayer.removeAllFeatures();
 	statusLayer.redraw();
 }
 
@@ -1163,3 +1289,37 @@ function onBatteryStatus(_info) {
     //_info.level = % of battery (0-100).
     //_info.isPlugged = true if the device is plugged in.
 }
+
+/*
+	 ==============================================
+	 					Old Code
+	 ==============================================
+	 
+	 No longer used but held onto just in case
+*/
+/*
+var fusionLayerOptions_Heat = {
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: maxResolution,
+		maxExtent: maxExtent,
+		restrictedExtent: restrictedExtent,
+};
+						   
+var fusionLayerOptions_Icon = {
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: 38.21851413574219,
+		minResolution: "auto",
+};
+						   
+var fLayer_heatMap = true;
+function initializeFusionLayer_Icons() {
+	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
+		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + !fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
+}
+						   
+function initializeFusionLayer_HeatMap() {
+	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
+		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
+}*/
