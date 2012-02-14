@@ -531,7 +531,7 @@ function onDeviceReady()
 			{
 				quality : 100,
 				destinationType : Camera.DestinationType.FILE_URI,
-				sourceType : /*(isSimulator) ? */Camera.PictureSourceType.SAVEDPHOTOALBUM,// : Camera.PictureSourceType.CAMERA,
+				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
 		}
@@ -715,8 +715,7 @@ $(document).ready(function () {
 		submitToServer();
 	});
          
-	$("#northIndicator").dblclick(function(){
-		console.log("nav double click");
+	$("#northIndicator").on("taphold", function(){
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
