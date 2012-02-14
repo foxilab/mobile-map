@@ -81,7 +81,7 @@ var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 var maxResolution = 78271.51695;
 var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
-
+var photoguid;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
@@ -389,7 +389,7 @@ function uploadFileToS3(filepath) {
 	var signature = $.base64.encode(hmac);
 
 	var params = {
-		key:					"user/kzusy/${filename}",
+		key:					"user/kzusy/" + photoguid + "-${filename}",
 		bucket:				"mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
@@ -412,6 +412,7 @@ function uploadFileToS3(filepath) {
 
 function onDeviceReady()
 {
+	photoguid = device.uuid;
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -493,6 +494,7 @@ function onDeviceReady()
 	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
+		//console.log("device uuid: " + device.uuid);
 		defaultHandlerOptions : 
 		{
 			'single' : true, 'double' : false, 'pixelTolerance' : 0, 'stopSingle' : false, 'stopDouble' : false 
@@ -520,7 +522,7 @@ function onDeviceReady()
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-									
+						
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
 				onClick_QueueTab();
@@ -529,7 +531,7 @@ function onDeviceReady()
 			{
 				quality : 100,
 				destinationType : Camera.DestinationType.FILE_URI,
-				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+				sourceType : /*(isSimulator) ? */Camera.PictureSourceType.SAVEDPHOTOALBUM,// : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
 		}
@@ -748,7 +750,7 @@ function submitToServer() {
 				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
 				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
