@@ -645,6 +645,10 @@ $(document).ready(function () {
 
 		//An item was removed, update the queue size.
 		updateQueueSize();
+
+		if (itemsInQueue === 0) {
+			$('#queue-dialog').dialog('close');
+		}
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
@@ -655,8 +659,20 @@ $(document).ready(function () {
 			$.ajax({
 				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
 				success:	function(data) {
-					for (var i = 0; i < data.results.length; ++i) {						
-						$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+					var placesList = new Array();
+					for (var i = 0; i < data.results.length; ++i) {
+						var alreadyAdded = false;
+						for (var j = 0; j < placesList.length; ++j) {
+							if (data.results[i].reference == placesList[j]) {
+								alreadyAdded = true;
+								break;
+							}
+						}
+						
+						if (!alreadyAdded) {
+							placesList.push(data.results[i].reference);
+							$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+						}
 					}
 					$ul.listview('refresh');
 				},
