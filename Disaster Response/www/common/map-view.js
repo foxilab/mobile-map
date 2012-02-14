@@ -443,7 +443,8 @@ function onDeviceReady()
     
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
-        setupTabBar();
+	setupTabBar();
+	selectTabBarItem('Map');
         //setupNavBar();
     
 	// do your thing!
@@ -511,10 +512,6 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
-												/*$.get('http://MobileResponse.s3.amazonaws.com', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA", Date}, function(results){
-													  console.log(results);
-													  }).error(function(message){console.log(message)});*/
-
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 
 			var isSimulator = (device.name.indexOf('Simulator') != -1);
@@ -637,6 +634,12 @@ $(document).ready(function () {
 	$('.queue-list-item').live('swiperight', hideQueueItemDelete);
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
+	$('#queue-tab-button').live('click', function(e) {
+		if (itemsInQueue === 0) {
+			e.preventDefault();
+		}
+	});
+
 	$('#queue-item-delete').live('click', function(e) {
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
@@ -730,7 +733,7 @@ $(document).ready(function () {
 	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
-         
+
 	$("#northIndicator").on("taphold", function(){
 		if(!screenLocked){
 			screenLocked = true;
@@ -887,10 +890,10 @@ function getQueueSize(_tx) {
 }
 
 function getQueueSizeSuccessCB() {
-    //Now itemsInQueue is at the current count, update everything
-    appNotifications += itemsInQueue;
-    updateTabItemBadge('Queue', itemsInQueue);
-    updateAppBadge(appNotifications);
+	//Now itemsInQueue is at the current count, update everything
+	appNotifications += itemsInQueue;
+	updateTabItemBadge('Queue', itemsInQueue);
+	updateAppBadge(appNotifications);
 }
 
 function getQueueSizeErrorBC(_error) {
@@ -1037,35 +1040,43 @@ function onClick_RightNavBarButton() {
              NativeControls Tab onClick Functions
         ==============================================
  */
+var selectedTabBarItem = 'Map';
 function onClick_MapTab() {
-    //console.log('onClick: MapTab');
+	//console.log('onClick: MapTab');
 	selectTabBarItem('Map');
-    $.mobile.changePage('#map-page', 'pop');
+	selectedTabBarItem = 'Map';
+	$.mobile.changePage('#map-page', 'pop');
 }
 
 function onClick_QueueTab() {
-    //console.log('onClick: QueueTab');
-	selectTabBarItem('Queue');
-    $.mobile.changePage('#queue-dialog', 'pop');
+	if (itemsInQueue != 0) {
+		selectTabBarItem('Queue');
+		selectedTabBarItem = 'Queue';
+		$.mobile.changePage('#queue-dialog', 'pop');
+	}
+	else {
+		nativeControls.selectTabBarItem(selectedTabBarItem);
+	}
 }
 
 function onClick_UserTab() {
-    //console.log('onClick: UserTab');
 	selectTabBarItem('User');
-    $.mobile.changePage('#user-dialog', 'pop');
+	selectedTabBarItem = 'User';
+	$.mobile.changePage('#user-dialog', 'pop');
 }
 
 function onClick_MoreTab() {
-    //console.log('onClick: MoreTab');
 	selectTabBarItem('More');
-    $.mobile.changePage('#more-dialog', 'pop');
+	selectedTabBarItem = 'More';
+	$.mobile.changePage('#more-dialog', 'pop');
 }
 
 //Temporary option to allow us to open a different tab and access debug information
 // like Device, iOS version, current location, etc.
 function onClick_DebugTab() {
-    //console.log('onClick: DebugTab');
+	//console.log('onClick: DebugTab');
 	selectTabBarItem('Debug');
+	selectedTabBarItem = 'Debug';
 	window.open ('Debug.html','_self',false);
 }
 
