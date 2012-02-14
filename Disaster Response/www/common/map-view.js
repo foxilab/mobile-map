@@ -286,7 +286,7 @@ var compassSuccess = function(heading){
 		var mapRotation = 360 - heading;
 		
 			$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-			$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1500);
+			$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
 		
 		map.events.rotationAngle = -1 * mapRotation;
 	}
@@ -364,12 +364,12 @@ function initializeFusionLayer_HeatMap() {
 
 function imageUploadSuccess(response){
 	console.log('image upload success');
-	console.log(response.response);
+	//console.log(response.response);
 }
 
 function imageUploadFailure(response){
 	console.log('image upload error');
-	console.log(response.response);
+	//console.log(response.response);
 }
 
 function uploadFileToS3(filepath) {
@@ -714,7 +714,20 @@ $(document).ready(function () {
 	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
-                  
+         
+	$("#northIndicator").dblclick(function(){
+		console.log("nav double click");
+		if(!screenLocked){
+			screenLocked = true;
+			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+		}
+		
+		$("#map").animate({rotate: '0deg'}, 1000);
+		$("#northIndicator").animate({rotate: '0deg'}, 1000);
+	
+		map.events.rotationAngle = 0;
+	});
+	
 	$('#plus').click(function(){
 		map.zoomIn();
 	});
@@ -751,6 +764,7 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+												
 				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
