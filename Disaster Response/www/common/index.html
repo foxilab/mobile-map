@@ -47,6 +47,22 @@
                 display: block;
                 padding: 7px 6px 7px 8px;
             }
+			#screenLock{
+				position: absolute;
+                top: 30px;
+                right: 10px;
+                z-index: 1000;
+				height:41px;
+				width:38px;
+			}
+			#screenLock .ui-icon{
+				background:  url("css/images/lock.png") 50% 50% no-repeat;
+				background-size: 15px 15px;
+			}
+			#screenLock .ui-btn-icon-notext {
+				display: block;
+                padding: 7px 6px 7px 8px;
+			}
 	</style>
 		<!-- iPad/iPhone specific css below, add after your main css >
 		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
@@ -59,7 +75,7 @@
 	<body onload="onBodyLoad()">
 		<div data-role="page" id='map-page' data-theme='a'> 
 			<div data-role="content" id="content" style="padding: 0px !important;"> 
-				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;">
+				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;background-color:white;">
 					<div id="map" style="position:absolute;"></div>
 					<!--<div id="zoomPanel"></div>-->
 					<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
@@ -69,6 +85,20 @@
                         <a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
                         <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
                     </div>
+					<div id="screenLock">
+						<a href="#" data-role="button" data-icon="custom" id="screenlockbutton" data-iconpos="notext"></a>
+					</div>
+				</div>
+			</div>
+			<div data-role='footer'>
+				<div data-role="navbar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home" class="ui-btn-active">Map</a></li>
+						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">User</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+						<li><a href="Debug.html" data-icon="search">Debug</a></li>
+					</ul>
 				</div>
 			</div>
 		</div>

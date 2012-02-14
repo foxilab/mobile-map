@@ -346,6 +346,9 @@ OpenLayers.Util.onImageLoad = function() {
         this.style.display = "";  
     }
     OpenLayers.Element.removeClass(this, "olImageLoadError");
+	
+//	if(this.src != "css/images/nothing.png")
+//		$("#"+this.id).css('background-color', '');
 };
 
 /**
@@ -382,9 +385,9 @@ OpenLayers.Util.onImageLoadError = function() {
             this.src = this.src;
         }
     } else {
-        //OpenLayers.Element.addClass(this, "olImageLoadError");
-        this.src = "css/images/nothing.png";
-        this.style.background = "white";
+        OpenLayers.Element.addClass(this, "olImageLoadError");
+		//$("#" + this.id).css('background-color', 'white');
+		this.src = "css/images/nothing.png";
     }
     this.style.display = "";
 };

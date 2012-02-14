@@ -35,9 +35,11 @@ var FusionTableId = new function () {
  * OpenLayers.Map
  */
 var map;
-var fusionLayer_Locations_Icons;
-var fusionLayer_Locations_HeatMap;
+//var fusionLayer_Locations_Icons;
+//var fusionLayer_Locations_HeatMap;
 var heatmapLayer;
+var screenLocked = true;
+
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
@@ -82,6 +84,7 @@ var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
 var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
+var photoguid;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
@@ -301,14 +304,16 @@ var compassSuccess = function(heading){
 	navigationLayer.redraw();*/
 	
 	//Rotate map
-	var heading = heading.magneticHeading;
-	var mapRotation = 360 - heading;
-	
-		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1500);
-	
-	map.events.rotationAngle = -1 * mapRotation;
-	
+	if(!screenLocked)
+	{
+		var heading = heading.magneticHeading;
+		var mapRotation = 360 - heading;
+		
+			$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+			$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
+		
+		map.events.rotationAngle = -1 * mapRotation;
+	}
    // navSymbolizer.rotation = mapRotation;
    // navigationLayer.redraw();
 };
@@ -355,12 +360,12 @@ function googleSQL(sql, type, success, error) {
 
 function imageUploadSuccess(response){
 	console.log('image upload success');
-	console.log(response.response);
+	//console.log(response.response);
 }
 
 function imageUploadFailure(response){
 	console.log('image upload error');
-	console.log(response.response);
+	//console.log(response.response);
 }
 
 function uploadFileToS3(filepath) {
@@ -380,13 +385,13 @@ function uploadFileToS3(filepath) {
 	var signature = $.base64.encode(hmac);
 
 	var params = {
-		key:					"user/kzusy/${filename}",
-		bucket: "mobileresponse",
+		key:					"user/kzusy/" + photoguid + "-${filename}",
+		bucket:				"mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
 		acl:					"private",
 		signature:			signature,
-		acl:	"public-read",
+		acl:					"public-read",
 		"Content-Type":	"image/jpeg"
 	};
 
@@ -529,6 +534,7 @@ function getStatusIcon(_status) {
  
 function onDeviceReady()
 {
+	photoguid = device.uuid;
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -559,11 +565,20 @@ function onDeviceReady()
     
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
-        setupTabBar();
+	setupTabBar();
+	selectTabBarItem('Map');
         //setupNavBar();
     
 	// do your thing!
-	var docHeight = $(window).height();
+    var windowHeight = $(window).height();
+    var windowWidth = $(window).width();
+	var docHeight = 0;
+	
+	if(windowHeight > windowWidth)
+		docHeight = windowHeight;
+	else
+		docHeight = windowWidth;
+	
 	var footerHeight = $("#footer").height();
 	var mapHeight = docHeight - footerHeight - 50;
 	
@@ -599,10 +614,11 @@ function onDeviceReady()
 	var compassOptions = {
 		frequency: 3000
 	};
-	
+
 	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
 	{
+		//console.log("device uuid: " + device.uuid);
 		defaultHandlerOptions : 
 		{
 			'single' : true, 'double' : false, 'pixelTolerance' : 0, 'stopSingle' : false, 'stopDouble' : false 
@@ -619,17 +635,14 @@ function onDeviceReady()
 		trigger : function (e) 
 		{
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
-												/*$.get('http://MobileResponse.s3.amazonaws.com', {AWSAccessKeyId: "AKIAJPZTPJETTBZ5A5IA", Date}, function(results){
-													  console.log(results);
-													  }).error(function(message){console.log(message)});*/
-
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-												
+
+			var isSimulator = (device.name.indexOf('Simulator') != -1);
+
 			navigator.camera.getPicture(function (imageURI) 
 			{
 				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-				
-									
+						
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
 				onClick_QueueTab();
@@ -638,8 +651,7 @@ function onDeviceReady()
 			{
 				quality : 100,
 				destinationType : Camera.DestinationType.FILE_URI,
-				// DEBUG: This should be CAMERA to force a new pic
-				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
 		}
@@ -745,6 +757,12 @@ $(document).ready(function () {
 	$('.queue-list-item').live('swiperight', hideQueueItemDelete);
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
+	$('#queue-tab-button').live('click', function(e) {
+		if (itemsInQueue === 0) {
+			e.preventDefault();
+		}
+	});
+
 	$('#queue-item-delete').live('click', function(e) {
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
@@ -753,6 +771,10 @@ $(document).ready(function () {
 
 		//An item was removed, update the queue size.
 		updateQueueSize();
+
+		if (itemsInQueue === 0) {
+			$('#queue-dialog').dialog('close');
+		}
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
@@ -763,8 +785,20 @@ $(document).ready(function () {
 			$.ajax({
 				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
 				success:	function(data) {
-					for (var i = 0; i < data.results.length; ++i) {						
-						$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+					var placesList = new Array();
+					for (var i = 0; i < data.results.length; ++i) {
+						var alreadyAdded = false;
+						for (var j = 0; j < placesList.length; ++j) {
+							if (data.results[i].reference == placesList[j]) {
+								alreadyAdded = true;
+								break;
+							}
+						}
+						
+						if (!alreadyAdded) {
+							placesList.push(data.results[i].reference);
+							$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
+						}
 					}
 					$ul.listview('refresh');
 				},
@@ -822,13 +856,35 @@ $(document).ready(function () {
 	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
-                  
+
+	$("#northIndicator").on("taphold", function(){
+		if(!screenLocked){
+			screenLocked = true;
+			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+		}
+		
+		$("#map").animate({rotate: '0deg'}, 1000);
+		$("#northIndicator").animate({rotate: '0deg'}, 1000);
+	
+		map.events.rotationAngle = 0;
+	});
+	
 	$('#plus').click(function(){
 		map.zoomIn();
 	});
 						
 	$('#minus').click(function(){
 		map.zoomOut();
+	});
+				  
+	$('#screenlockbutton').click(function(){
+		if(screenLocked){
+			screenLocked = false;
+			$("#screenLock .ui-icon").css("background", "url('css/images/unlock.png') 50% 50% no-repeat");
+		 }else{
+			screenLocked = true;
+			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+		 }
 	});
 });
 
@@ -848,7 +904,8 @@ function submitToServer() {
 				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+												
 				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
@@ -961,10 +1018,10 @@ function getQueueSize(_tx) {
 }
 
 function getQueueSizeSuccessCB() {
-    //Now itemsInQueue is at the current count, update everything
-    appNotifications += itemsInQueue;
-    updateTabItemBadge('Queue', itemsInQueue);
-    updateAppBadge(appNotifications);
+	//Now itemsInQueue is at the current count, update everything
+	appNotifications += itemsInQueue;
+	updateTabItemBadge('Queue', itemsInQueue);
+	updateAppBadge(appNotifications);
 }
 
 function getQueueSizeErrorBC(_error) {
@@ -1111,35 +1168,43 @@ function onClick_RightNavBarButton() {
              NativeControls Tab onClick Functions
         ==============================================
  */
+var selectedTabBarItem = 'Map';
 function onClick_MapTab() {
-    //console.log('onClick: MapTab');
+	//console.log('onClick: MapTab');
 	selectTabBarItem('Map');
-    $.mobile.changePage('#map-page', 'pop');
+	selectedTabBarItem = 'Map';
+	$.mobile.changePage('#map-page', 'pop');
 }
 
 function onClick_QueueTab() {
-    //console.log('onClick: QueueTab');
-	selectTabBarItem('Queue');
-    $.mobile.changePage('#queue-dialog', 'pop');
+	if (itemsInQueue != 0) {
+		selectTabBarItem('Queue');
+		selectedTabBarItem = 'Queue';
+		$.mobile.changePage('#queue-dialog', 'pop');
+	}
+	else {
+		nativeControls.selectTabBarItem(selectedTabBarItem);
+	}
 }
 
 function onClick_UserTab() {
-    //console.log('onClick: UserTab');
 	selectTabBarItem('User');
-    $.mobile.changePage('#user-dialog', 'pop');
+	selectedTabBarItem = 'User';
+	$.mobile.changePage('#user-dialog', 'pop');
 }
 
 function onClick_MoreTab() {
-    //console.log('onClick: MoreTab');
 	selectTabBarItem('More');
-    $.mobile.changePage('#more-dialog', 'pop');
+	selectedTabBarItem = 'More';
+	$.mobile.changePage('#more-dialog', 'pop');
 }
 
 //Temporary option to allow us to open a different tab and access debug information
 // like Device, iOS version, current location, etc.
 function onClick_DebugTab() {
-    //console.log('onClick: DebugTab');
+	//console.log('onClick: DebugTab');
 	selectTabBarItem('Debug');
+	selectedTabBarItem = 'Debug';
 	window.open ('Debug.html','_self',false);
 }
 
@@ -1192,6 +1257,7 @@ function onAppResume() {
 	}
 }
 
+						   var reloadScript = false;
 /*
     Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
@@ -1202,6 +1268,10 @@ function onAppOnline() {
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
 	submitQueuedItems();
+						   if(reloadScript)
+							$.getScript("http://lmnuser4:8080/target/target-script-min.js#whammy");
+						   else
+						   reloadScript = true;
 }
 
 /*
