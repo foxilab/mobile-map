@@ -483,15 +483,22 @@ function fusionSQLSuccess(data) {
 	
 	//start at 1, rows[0] is our titles
 	for(var i = 1; i < length; i++){
-		var locationData = rows[i].split(",")
+		var locationData = rows[i].split(",");
+		var nameBugFix = rows[i].split('"');
 		
 		//Gathering intel..., stay frosty
 			var lat = parseFloat(locationData[0].substr(1, locationData[0].length));
 			var lon = parseFloat(locationData[1].substr(0, locationData[1].length-1));
-			var name = locationData[2];
-			var status = parseInt(locationData[3]);
-			var date = locationData[4];
-			var image = locationData[5];
+			
+			var name; var positon = 2;
+			if(locationData[2][0] == '"')
+				name = nameBugFix[(positon+=1)];
+			else
+				name = locationData[positon];
+				
+			var status = parseInt(locationData[(positon+=1)]);
+			var date = locationData[(positon+=1)];
+			var image = locationData[(positon+=1)];
 		
 		//If only the icons are to be shown
 		if(map.getResolution() <= iconMaxResolution) {
