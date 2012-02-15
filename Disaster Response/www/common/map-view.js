@@ -102,7 +102,7 @@ var statusSymbolizer = new OpenLayers.Symbolizer.Point({
 });
 
 var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 14,
+		pointRadius : 15,
 		externalGraphic : "${image}",
 		fillOpacity: 1,
 		rotation: 0
@@ -419,7 +419,7 @@ function onMapMoveEnd(_event) {
 	var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
 	
 	//Generate the SQL
-	var sql = "SELECT Location,Status FROM " + FusionTableId.locations() + 
+	var sql = "SELECT * FROM " + FusionTableId.locations() + 
 		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
 		"LATLNG("+rightTop.lat+","+rightTop.lon+")))";
 			
@@ -427,25 +427,70 @@ function onMapMoveEnd(_event) {
 	googleSQL(sql, 'GET', fusionSQLSuccess);
 }
 
+function createPopUp(_id, _lat, _lon, _name, _status, _date, _image) {
+	var htmlContent = "<div class='popupWindow' style='font-family: sans-serif; color: ";
+	
+	switch(_status) {
+		case 1:
+			htmlContent += "green;'>";
+			break;
+		case 2:
+			htmlContent += "yellow;'>";
+			break;
+		case 3:
+			htmlContent += "orange;'>";
+			break;
+		case 4:
+			htmlContent += "red;'>";
+			break;
+		default:
+			htmlContent += "gray;'>";
+			break;
+	}
+
+	htmlContent += "<b>Name:</b> "+_name+"<br>";
+	htmlContent += "<b>Date:</b> "+_date+"<br>";
+	htmlContent += "<div style='text-align: center;'><img src='";
+	
+	if(isInternetConnection == true && _image != "placeholder")
+		htmlContent += _image;
+	else
+		htmlContent += "../common/Buildings/Placeholder.jpg";
+	
+	htmlContent += "' height='150' width='175' style='vertical-align: top;'/></div>";
+	htmlContent += "</div>";
+	
+	var popup = new OpenLayers.Popup(_name,
+			new OpenLayers.LonLat(_lon,_lat),
+			new OpenLayers.Size(250,200),
+			htmlContent,
+			true);
+			
+	return popup;
+}
+
 function fusionSQLSuccess(data) {
 	var transformedTestData = { max: 0 , data: [] }
 	var heatMapData = [];
-	
+		
 	//We got our new data set, remove all the old features.
 	fusionLayer.removeAllFeatures();
-	
 	
 	var rows = $.trim(data).split('\n');
 	var length = rows.length;
 	transformedTestData.max = length;
 	
+	//start at 1, rows[0] is our titles
 	for(var i = 1; i < length; i++){
-		var location = rows[i];
-		//Gather the lat,lon and status for each row.
-		var commaIndex = location.indexOf(",");
-		var lat = location.substr(1, commaIndex-1);
-		var lon = location.substr(commaIndex+1,location.substr(1, commaIndex).indexOf(","));
-		var status = parseInt(location.substr(location.length-1),10);
+		var locationData = rows[i].split(",")
+		
+		//Gathering intel..., stay frosty
+			var lat = parseFloat(locationData[0].substr(1, locationData[0].length));
+			var lon = parseFloat(locationData[1].substr(0, locationData[1].length-1));
+			var name = locationData[2];
+			var status = parseInt(locationData[3]);
+			var date = locationData[4];
+			var image = locationData[5];
 		
 		//If only the icons are to be shown
 		if(map.getResolution() <= iconMaxResolution) {
@@ -458,6 +503,7 @@ function fusionSQLSuccess(data) {
 			var icon = getStatusIcon(status);
 		
 			var location = new OpenLayers.Feature.Vector(point, {image: icon});
+			location.popup = createPopUp(location.id, lonlat.lat, lonlat.lon, name, status, date, image);
 			fusionLayer.addFeatures([location]);
 		}
 		else {
@@ -532,6 +578,7 @@ function getStatusIcon(_status) {
  		==============================================
  */
  
+var popupOverPhoto = false;
 function onDeviceReady()
 {
 	photoguid = device.uuid;
@@ -634,6 +681,7 @@ function onDeviceReady()
 		},
 		trigger : function (e) 
 		{
+		if(popupOverPhoto == false) {
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 
@@ -654,6 +702,30 @@ function onDeviceReady()
 				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
+		}
+		}
+	});
+	
+	selectControl = new OpenLayers.Control.SelectFeature(
+		[fusionLayer], {
+			clickout: true, toggle: false,
+			multiple: false, hover: false,
+				toggleKey: "ctrlKey", // ctrl key removes from selection
+				multipleKey: "shiftKey" // shift key adds to selection
+		}
+	);
+														 
+	map.addControl(selectControl);
+	selectControl.activate();
+	
+	fusionLayer.events.on({
+		"featureselected": function(e) {
+			popupOverPhoto = true;
+			map.addPopup(e.feature.popup);
+		},
+		"featureunselected": function(e) {
+			map.removePopup(e.feature.popup);
+			popupOverPhoto = false;
 		}
 	});
 
