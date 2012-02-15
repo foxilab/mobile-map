@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D37250E114EC1BB400AE2504 /* Badge.m in Sources */ = {isa = PBXBuildFile; fileRef = D37250D314EC1BB400AE2504 /* Badge.m */; };
+		D37250E214EC1BB400AE2504 /* ChildBrowser.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D37250D514EC1BB400AE2504 /* ChildBrowser.bundle */; };
+		D37250E314EC1BB400AE2504 /* ChildBrowserCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = D37250D714EC1BB400AE2504 /* ChildBrowserCommand.m */; };
+		D37250E414EC1BB400AE2504 /* ChildBrowserViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37250D914EC1BB400AE2504 /* ChildBrowserViewController.m */; };
+		D37250E514EC1BB400AE2504 /* ChildBrowserViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D37250DA14EC1BB400AE2504 /* ChildBrowserViewController.xib */; };
+		D37250E614EC1BB400AE2504 /* NativeControls.m in Sources */ = {isa = PBXBuildFile; fileRef = D37250DD14EC1BB400AE2504 /* NativeControls.m */; };
+		D37250E714EC1BB400AE2504 /* PGNavigationBar.xib in Resources */ = {isa = PBXBuildFile; fileRef = D37250DE14EC1BB400AE2504 /* PGNavigationBar.xib */; };
+		D37250E814EC1BB400AE2504 /* PGNavigationBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37250E014EC1BB400AE2504 /* PGNavigationBarController.m */; };
 		D37D1C2714EC152300F871E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37D1C2614EC152300F871E0 /* Foundation.framework */; };
 		D37D1C2914EC152300F871E0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37D1C2814EC152300F871E0 /* UIKit.framework */; };
 		D37D1C2B14EC152300F871E0 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37D1C2A14EC152300F871E0 /* CoreGraphics.framework */; };
@@ -35,9 +43,23 @@
 		D37D1C6714EC152300F871E0 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D37D1C6614EC152300F871E0 /* AppDelegate.m */; };
 		D37D1C6A14EC152300F871E0 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D37D1C6914EC152300F871E0 /* MainViewController.m */; };
 		D37D1C6C14EC152300F871E0 /* MainViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = D37D1C6B14EC152300F871E0 /* MainViewController.xib */; };
+		D37D1C7514EC163B00F871E0 /* www in Resources */ = {isa = PBXBuildFile; fileRef = D37D1C7414EC163B00F871E0 /* www */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D37250D214EC1BB400AE2504 /* Badge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Badge.h; sourceTree = "<group>"; };
+		D37250D314EC1BB400AE2504 /* Badge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Badge.m; sourceTree = "<group>"; };
+		D37250D514EC1BB400AE2504 /* ChildBrowser.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = ChildBrowser.bundle; sourceTree = "<group>"; };
+		D37250D614EC1BB400AE2504 /* ChildBrowserCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChildBrowserCommand.h; sourceTree = "<group>"; };
+		D37250D714EC1BB400AE2504 /* ChildBrowserCommand.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChildBrowserCommand.m; sourceTree = "<group>"; };
+		D37250D814EC1BB400AE2504 /* ChildBrowserViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChildBrowserViewController.h; sourceTree = "<group>"; };
+		D37250D914EC1BB400AE2504 /* ChildBrowserViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChildBrowserViewController.m; sourceTree = "<group>"; };
+		D37250DA14EC1BB400AE2504 /* ChildBrowserViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ChildBrowserViewController.xib; sourceTree = "<group>"; };
+		D37250DC14EC1BB400AE2504 /* NativeControls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeControls.h; sourceTree = "<group>"; };
+		D37250DD14EC1BB400AE2504 /* NativeControls.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeControls.m; sourceTree = "<group>"; };
+		D37250DE14EC1BB400AE2504 /* PGNavigationBar.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PGNavigationBar.xib; sourceTree = "<group>"; };
+		D37250DF14EC1BB400AE2504 /* PGNavigationBarController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PGNavigationBarController.h; sourceTree = "<group>"; };
+		D37250E014EC1BB400AE2504 /* PGNavigationBarController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PGNavigationBarController.m; sourceTree = "<group>"; };
 		D37D1C2214EC152300F871E0 /* Disaster Response.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disaster Response.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D37D1C2614EC152300F871E0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D37D1C2814EC152300F871E0 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -52,10 +74,10 @@
 		D37D1C3A14EC152300F871E0 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		D37D1C3C14EC152300F871E0 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		D37D1C3E14EC152300F871E0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
-		D37D1C4214EC152300F871E0 /* Disaster Response-Info.plist */ = {isa = PBXFileReference; path = "Disaster Response-Info.plist"; sourceTree = "<group>"; };
+		D37D1C4214EC152300F871E0 /* Disaster Response-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Disaster Response-Info.plist"; sourceTree = "<group>"; };
 		D37D1C4414EC152300F871E0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D37D1C4614EC152300F871E0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		D37D1C4814EC152300F871E0 /* Disaster Response-Prefix.pch */ = {isa = PBXFileReference; path = "Disaster Response-Prefix.pch"; sourceTree = "<group>"; };
+		D37D1C4814EC152300F871E0 /* Disaster Response-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Disaster Response-Prefix.pch"; sourceTree = "<group>"; };
 		D37D1C4914EC152300F871E0 /* PhoneGap.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhoneGap.framework; path = /Users/Shared/PhoneGap/Frameworks/PhoneGap.framework; sourceTree = "<absolute>"; };
 		D37D1C4E14EC152300F871E0 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Resources/en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D37D1C5214EC152300F871E0 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = Resources/es.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -66,12 +88,13 @@
 		D37D1C5E14EC152300F871E0 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default@2x.png"; path = "Resources/splash/Default@2x.png"; sourceTree = "<group>"; };
 		D37D1C6014EC152300F871E0 /* Capture.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = Capture.bundle; path = Resources/Capture.bundle; sourceTree = "<group>"; };
 		D37D1C6214EC152300F871E0 /* PhoneGap.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PhoneGap.plist; sourceTree = "<group>"; };
-		D37D1C6514EC152300F871E0 /* AppDelegate.h */ = {isa = PBXFileReference; name = AppDelegate.h; path = Classes/AppDelegate.h; sourceTree = "<group>"; };
+		D37D1C6514EC152300F871E0 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Classes/AppDelegate.h; sourceTree = "<group>"; };
 		D37D1C6614EC152300F871E0 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Classes/AppDelegate.m; sourceTree = "<group>"; };
-		D37D1C6814EC152300F871E0 /* MainViewController.h */ = {isa = PBXFileReference; name = MainViewController.h; path = Classes/MainViewController.h; sourceTree = "<group>"; };
+		D37D1C6814EC152300F871E0 /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MainViewController.h; path = Classes/MainViewController.h; sourceTree = "<group>"; };
 		D37D1C6914EC152300F871E0 /* MainViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = MainViewController.m; path = Classes/MainViewController.m; sourceTree = "<group>"; };
 		D37D1C6B14EC152300F871E0 /* MainViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MainViewController.xib; path = Classes/MainViewController.xib; sourceTree = "<group>"; };
-		D37D1C6E14EC152300F871E0 /* README */ = {isa = PBXFileReference; name = README; path = Plugins/README; sourceTree = "<group>"; };
+		D37D1C6E14EC152300F871E0 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; name = README; path = Plugins/README; sourceTree = "<group>"; };
+		D37D1C7414EC163B00F871E0 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,9 +129,47 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D37250D114EC1BB400AE2504 /* Badge */ = {
+			isa = PBXGroup;
+			children = (
+				D37250D214EC1BB400AE2504 /* Badge.h */,
+				D37250D314EC1BB400AE2504 /* Badge.m */,
+			);
+			name = Badge;
+			path = Plugins/Badge;
+			sourceTree = "<group>";
+		};
+		D37250D414EC1BB400AE2504 /* ChildBrowser */ = {
+			isa = PBXGroup;
+			children = (
+				D37250D514EC1BB400AE2504 /* ChildBrowser.bundle */,
+				D37250D614EC1BB400AE2504 /* ChildBrowserCommand.h */,
+				D37250D714EC1BB400AE2504 /* ChildBrowserCommand.m */,
+				D37250D814EC1BB400AE2504 /* ChildBrowserViewController.h */,
+				D37250D914EC1BB400AE2504 /* ChildBrowserViewController.m */,
+				D37250DA14EC1BB400AE2504 /* ChildBrowserViewController.xib */,
+			);
+			name = ChildBrowser;
+			path = Plugins/ChildBrowser;
+			sourceTree = "<group>";
+		};
+		D37250DB14EC1BB400AE2504 /* NativeControls */ = {
+			isa = PBXGroup;
+			children = (
+				D37250DC14EC1BB400AE2504 /* NativeControls.h */,
+				D37250DD14EC1BB400AE2504 /* NativeControls.m */,
+				D37250DE14EC1BB400AE2504 /* PGNavigationBar.xib */,
+				D37250DF14EC1BB400AE2504 /* PGNavigationBarController.h */,
+				D37250E014EC1BB400AE2504 /* PGNavigationBarController.m */,
+			);
+			name = NativeControls;
+			path = Plugins/NativeControls;
+			sourceTree = "<group>";
+		};
 		D37D1C1414EC152200F871E0 = {
 			isa = PBXGroup;
 			children = (
+				D37D1C7414EC163B00F871E0 /* www */,
 				D37D1C4014EC152300F871E0 /* Disaster Response */,
 				D37D1C2514EC152300F871E0 /* Frameworks */,
 				D37D1C2314EC152300F871E0 /* Products */,
@@ -229,6 +290,9 @@
 		D37D1C6D14EC152300F871E0 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				D37250D114EC1BB400AE2504 /* Badge */,
+				D37250D414EC1BB400AE2504 /* ChildBrowser */,
+				D37250DB14EC1BB400AE2504 /* NativeControls */,
 				D37D1C6E14EC152300F871E0 /* README */,
 			);
 			name = Plugins;
@@ -299,6 +363,10 @@
 				D37D1C6114EC152300F871E0 /* Capture.bundle in Resources */,
 				D37D1C6314EC152300F871E0 /* PhoneGap.plist in Resources */,
 				D37D1C6C14EC152300F871E0 /* MainViewController.xib in Resources */,
+				D37D1C7514EC163B00F871E0 /* www in Resources */,
+				D37250E214EC1BB400AE2504 /* ChildBrowser.bundle in Resources */,
+				D37250E514EC1BB400AE2504 /* ChildBrowserViewController.xib in Resources */,
+				D37250E714EC1BB400AE2504 /* PGNavigationBar.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +396,11 @@
 				D37D1C4714EC152300F871E0 /* main.m in Sources */,
 				D37D1C6714EC152300F871E0 /* AppDelegate.m in Sources */,
 				D37D1C6A14EC152300F871E0 /* MainViewController.m in Sources */,
+				D37250E114EC1BB400AE2504 /* Badge.m in Sources */,
+				D37250E314EC1BB400AE2504 /* ChildBrowserCommand.m in Sources */,
+				D37250E414EC1BB400AE2504 /* ChildBrowserViewController.m in Sources */,
+				D37250E614EC1BB400AE2504 /* NativeControls.m in Sources */,
+				D37250E814EC1BB400AE2504 /* PGNavigationBarController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -486,6 +559,7 @@
 				D37D1C7314EC152300F871E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
