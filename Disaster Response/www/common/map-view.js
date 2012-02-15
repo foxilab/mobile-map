@@ -1374,6 +1374,9 @@ function onAppResume() {
 function onAppOnline() {
 	console.log('Listener: App has internet connection.');
 	isInternetConnection = true;
+	
+	//Hack to update the popup menus
+		onMapMoveEnd(null);
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
 	submitQueuedItems();
@@ -1390,6 +1393,9 @@ function onAppOnline() {
 function onAppOffline() {
 	console.log('Listener: App has lost internet connection.');
 	isInternetConnection = false;
+	
+	//Hack to update the popup menus
+		onMapMoveEnd(null);
 }
 
 /*
