@@ -88,7 +88,7 @@ var photoguid;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
-    externalGraphic : "css/images/blue-circle.png",
+    externalGraphic : "css/images/15x15_Blue_Arrow.png",
 	fillOpacity: 1,
 	rotation: 0
 });
@@ -303,19 +303,20 @@ var compassSuccess = function(heading){
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
 	
+	var heading = heading.magneticHeading;
+	var mapRotation = 360 - heading;
+	
 	//Rotate map
 	if(!screenLocked)
 	{
-		var heading = heading.magneticHeading;
-		var mapRotation = 360 - heading;
-		
-			$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-			$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
+		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
 		
 		map.events.rotationAngle = -1 * mapRotation;
+	}else{
+		navSymbolizer.rotation = mapRotation;
+		navigationLayer.redraw();
 	}
-   // navSymbolizer.rotation = mapRotation;
-   // navigationLayer.redraw();
 };
 
 var compassError = function(error){
@@ -581,6 +582,7 @@ function getStatusIcon(_status) {
 var popupOverPhoto = false;
 function onDeviceReady()
 {
+	console.log("ready");
 	photoguid = device.uuid;
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
@@ -610,6 +612,7 @@ function onDeviceReady()
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
+	console.log("booga booga");
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
 	setupTabBar();
@@ -645,7 +648,27 @@ function onDeviceReady()
 	map.events.mapSideLength = mapHeight;
 	var mapLayerOSM = new OpenLayers.Layer.OSM();
 	
+	var queueDialog = $("#queue-dialog");
+	var locationsDialog = $("#location-dialog");
+	var statusDialog = $("#status-dialog");
+	var userDialog = $("#user-dialog");
+	var moreDialog = $("#more-dialog");
+	
+	queueDialog.css("min-height", docHeight );
+	locationsDialog.height(docHeight);
+	statusDialog.height(docHeight);
+	userDialog.height(docHeight);
+	moreDialog.height(docHeight);
+	
+	console.log("docHeight: " + docHeight);
+	console.log("queueDialog: " + queueDialog.height());
+	
+	
+	//Initalize the Fusion Table layer.
+	//initializeFusionLayer_Icons();
+	//initializeFusionLayer_HeatMap();
 	//Set up the HeatMap
+	
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
 	
@@ -933,6 +956,8 @@ $(document).ready(function () {
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
+			navigationLayer.redraw();
 		}
 		
 		$("#map").animate({rotate: '0deg'}, 1000);
@@ -953,10 +978,14 @@ $(document).ready(function () {
 		if(screenLocked){
 			screenLocked = false;
 			$("#screenLock .ui-icon").css("background", "url('css/images/unlock.png') 50% 50% no-repeat");
+			navSymbolizer.externalGraphic = "css/images/blue-circle.png";
 		 }else{
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
 		 }
+								 
+								 navigationLayer.redraw();
 	});
 });
 
@@ -977,7 +1006,8 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
-												
+										
+												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
