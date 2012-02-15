@@ -35,9 +35,11 @@ var FusionTableId = new function () {
  * OpenLayers.Map
  */
 var map;
-var fusionLayer_Locations_Icons;
-var fusionLayer_Locations_HeatMap;
+//var fusionLayer_Locations_Icons;
+//var fusionLayer_Locations_HeatMap;
+var heatmapLayer;
 var screenLocked = true;
+
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
@@ -78,14 +80,15 @@ var locatedSuccess = true;
 
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-var maxResolution = 78271.51695;
 var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
+var maxResolution = 78271.51695;
+var iconMaxResolution = 4.777314266967774;
 var photoguid;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
-    externalGraphic : "css/images/blue-circle.png",
+    externalGraphic : "css/images/15x15_Blue_Arrow.png",
 	fillOpacity: 1,
 	rotation: 0
 });
@@ -96,6 +99,13 @@ var statusSymbolizer = new OpenLayers.Symbolizer.Point({
     strokeColor: "${status}",
     fillOpacity: 0.4,
     rotation: 0
+});
+
+var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
+		pointRadius : 15,
+		externalGraphic : "${image}",
+		fillOpacity: 1,
+		rotation: 0
 });
 
 var navStyle = new OpenLayers.StyleMap({
@@ -114,6 +124,13 @@ var statusStyle = new OpenLayers.StyleMap({
     })
 });
 
+var fusionStyle = new OpenLayers.StyleMap({
+		"default" : new OpenLayers.Style(null, {
+			rules : [ new OpenLayers.Rule({
+						symbolizer : fusionSymbolizer})]
+		})
+});
+
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
     styleMap: navStyle
 });
@@ -122,7 +139,7 @@ var statusLayer = new OpenLayers.Layer.Vector("Status Layer", {
     styleMap: statusStyle,
 	displayProjection: WGS84,
 	projection: WGS84_google_mercator,
-	maxResolution: 38.21851413574219,
+	maxResolution: iconMaxResolution,
 	minResolution: "auto"
 });
 
@@ -139,6 +156,14 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
        schema: "http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
     }),
     visibility: false
+});
+
+var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
+		styleMap: fusionStyle,
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: iconMaxResolution,
+		minResolution: "auto"
 });
 
 var touchNavOptions = {
@@ -208,8 +233,7 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 										
 });*/
 
-function onBodyLoad()
-{
+function onBodyLoad(){
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
@@ -279,19 +303,20 @@ var compassSuccess = function(heading){
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
 	
+	var heading = heading.magneticHeading;
+	var mapRotation = 360 - heading;
+	
 	//Rotate map
 	if(!screenLocked)
 	{
-		var heading = heading.magneticHeading;
-		var mapRotation = 360 - heading;
-		
-			$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-			$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
+		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
 		
 		map.events.rotationAngle = -1 * mapRotation;
+	}else{
+		navSymbolizer.rotation = mapRotation;
+		navigationLayer.redraw();
 	}
-   // navSymbolizer.rotation = mapRotation;
-   // navigationLayer.redraw();
 };
 
 var compassError = function(error){
@@ -327,34 +352,6 @@ function googleSQL(sql, type, success, error) {
 			}
 		}
 	});
-}
-
-var fusionLayerOptions_Heat = {
-	displayProjection: WGS84,
-	projection: WGS84_google_mercator,
-	maxResolution: maxResolution,
-	maxExtent: maxExtent,
-	restrictedExtent: restrictedExtent,
-};
-
-var fusionLayerOptions_Icon = {
-	displayProjection: WGS84,
-	projection: WGS84_google_mercator,
-	maxResolution: 38.21851413574219,
-	minResolution: "auto",
-};
-
-//FusionLayer variables
-var fLayer_heatMap = true;
-
-function initializeFusionLayer_Icons() {
-	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + !fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
-}
-
-function initializeFusionLayer_HeatMap() {
-	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
-	"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
 }
 
 /* When this function is called, PhoneGap has been initialized and is ready to roll */
@@ -410,8 +407,189 @@ function uploadFileToS3(filepath) {
 	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
 }
 
+/*
+ 		==============================================
+		 			HeatMap and Icons
+ 		==============================================
+ */
+
+function onMapMoveEnd(_event) {
+	//The map bounds has changed...get the bounds and convert it
+	var bounds = map.getExtent();
+	var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
+	var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
+	
+	//Generate the SQL
+	var sql = "SELECT * FROM " + FusionTableId.locations() + 
+		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
+		"LATLNG("+rightTop.lat+","+rightTop.lon+")))";
+			
+	//With the bounds and SQL, query the Fusion Table for the features.
+	googleSQL(sql, 'GET', fusionSQLSuccess);
+}
+
+function createPopUp(_id, _lat, _lon, _name, _status, _date, _image) {
+	var htmlContent = "<div class='popupWindow' style='font-family: sans-serif; color: ";
+	
+	switch(_status) {
+		case 1:
+			htmlContent += "green;'>";
+			break;
+		case 2:
+			htmlContent += "yellow;'>";
+			break;
+		case 3:
+			htmlContent += "orange;'>";
+			break;
+		case 4:
+			htmlContent += "red;'>";
+			break;
+		default:
+			htmlContent += "gray;'>";
+			break;
+	}
+
+	htmlContent += "<b>Name:</b> "+_name+"<br>";
+	htmlContent += "<b>Date:</b> "+_date+"<br>";
+	htmlContent += "<div style='text-align: center;'><img src='";
+	
+	if(isInternetConnection == true && _image != "placeholder")
+		htmlContent += _image;
+	else
+		htmlContent += "../common/Buildings/Placeholder.jpg";
+	
+	htmlContent += "' height='150' width='175' style='vertical-align: top;'/></div>";
+	htmlContent += "</div>";
+	
+	var popup = new OpenLayers.Popup(_name,
+			new OpenLayers.LonLat(_lon,_lat),
+			new OpenLayers.Size(250,200),
+			htmlContent,
+			true);
+			
+	return popup;
+}
+
+function fusionSQLSuccess(data) {
+	var transformedTestData = { max: 0 , data: [] }
+	var heatMapData = [];
+		
+	//We got our new data set, remove all the old features.
+	fusionLayer.removeAllFeatures();
+	
+	var rows = $.trim(data).split('\n');
+	var length = rows.length;
+	transformedTestData.max = length;
+	
+	//start at 1, rows[0] is our titles
+	for(var i = 1; i < length; i++){
+		var locationData = rows[i].split(",");
+		var nameBugFix = rows[i].split('"');
+		
+		//Gathering intel..., stay frosty
+			var lat = parseFloat(locationData[0].substr(1, locationData[0].length));
+			var lon = parseFloat(locationData[1].substr(0, locationData[1].length-1));
+			
+			var name; var positon = 2;
+			if(locationData[2][0] == '"')
+				name = nameBugFix[(positon+=1)];
+			else
+				name = locationData[positon];
+				
+			var status = parseInt(locationData[(positon+=1)]);
+			var date = locationData[(positon+=1)];
+			var image = locationData[(positon+=1)];
+		
+		//If only the icons are to be shown
+		if(map.getResolution() <= iconMaxResolution) {
+		
+			//convert the lat and lon for display
+			var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
+			//create a point for the layer
+			var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+			//and pick out a nice icon to go with the locations eyes.
+			var icon = getStatusIcon(status);
+		
+			var location = new OpenLayers.Feature.Vector(point, {image: icon});
+			location.popup = createPopUp(location.id, lonlat.lat, lonlat.lon, name, status, date, image);
+			fusionLayer.addFeatures([location]);
+		}
+		else {
+			heatMapData.push({
+				lonlat: new OpenLayers.LonLat(lon, lat),
+				count: (status*50)
+			});
+		}
+	}
+	
+	transformedTestData.data = heatMapData;
+	heatmapLayer.setDataSet(transformedTestData);
+	fusionLayer.redraw();
+}
+
+var heatmapGradient = {
+		0.05: "rgb(128,128,128)", 
+		0.25: "rgb(0,255,0)", 
+		0.50: "rgb(255,255,0)",
+		0.90: "rgb(255,165,0)", 
+		1.00: "rgb(255,0,0)"
+};
+
+function initHeatmap() {
+	var testData={
+		max: 500,
+		data: [
+			{lat: 0.0, lon: 0.0, count: 0}
+	]}
+	
+	var transformedTestData = { max: testData.max , data: [] },
+		data = testData.data,
+		datalen = data.length,
+		nudata = [];
+	
+    // in order to use the OpenLayers Heatmap Layer we have to transform our data into 
+    // { max: <max>, data: [{lonlat: <OpenLayers.LonLat>, count: <count>},...]}
+    while(datalen--) {
+        nudata.push({
+			lonlat: new OpenLayers.LonLat(data[datalen].lon, data[datalen].lat),
+			count: data[datalen].count
+		});
+    }
+	
+    transformedTestData.data = nudata;
+	heatmapLayer.setDataSet(transformedTestData);
+}
+
+function getStatusIcon(_status) {
+	switch(_status) {
+		case 1:
+			return "Buildings/Green.png";
+			break;
+		case 2:
+			return "Buildings/Yellow.png";
+			break;
+		case 3:
+			return "Buildings/Orange.png";
+			break;
+		case 4:
+			return "Buildings/Red.png";
+			break;
+		default:
+			return "Buildings/Gray.png";
+			break;
+	}
+}
+
+/*
+ 		==============================================
+ 						onDeviceReady
+ 		==============================================
+ */
+ 
+var popupOverPhoto = false;
 function onDeviceReady()
 {
+	console.log("ready");
 	photoguid = device.uuid;
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
@@ -441,6 +619,7 @@ function onDeviceReady()
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
+	console.log("booga booga");
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
 	setupTabBar();
@@ -474,13 +653,34 @@ function onDeviceReady()
 	
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
+	var mapLayerOSM = new OpenLayers.Layer.OSM();
+	
+	var queueDialog = $("#queue-dialog");
+	var locationsDialog = $("#location-dialog");
+	var statusDialog = $("#status-dialog");
+	var userDialog = $("#user-dialog");
+	var moreDialog = $("#more-dialog");
+	
+	queueDialog.css("min-height", docHeight );
+	locationsDialog.height(docHeight);
+	statusDialog.height(docHeight);
+	userDialog.height(docHeight);
+	moreDialog.height(docHeight);
+	
+	console.log("docHeight: " + docHeight);
+	console.log("queueDialog: " + queueDialog.height());
+	
 	
 	//Initalize the Fusion Table layer.
-	initializeFusionLayer_Icons();
-	initializeFusionLayer_HeatMap();
+	//initializeFusionLayer_Icons();
+	//initializeFusionLayer_HeatMap();
+	//Set up the HeatMap
 	
-	var mapLayerOSM = new OpenLayers.Layer.OSM();
-		map.addLayers([mapLayerOSM, fusionLayer_Locations_Icons, fusionLayer_Locations_HeatMap, navigationLayer, statusLayer]);
+	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
+	initHeatmap();
+	
+	map.events.register("moveend", map, onMapMoveEnd);
+	map.addLayers([mapLayerOSM, heatmapLayer, navigationLayer, statusLayer, fusionLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
 	{
@@ -511,6 +711,7 @@ function onDeviceReady()
 		},
 		trigger : function (e) 
 		{
+		if(popupOverPhoto == false) {
 			var lonlat = map.getLonLatFromViewPortPx(e.xy);
 			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 
@@ -531,6 +732,30 @@ function onDeviceReady()
 				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 				allowEdit : false
 			});
+		}
+		}
+	});
+	
+	selectControl = new OpenLayers.Control.SelectFeature(
+		[fusionLayer], {
+			clickout: true, toggle: false,
+			multiple: false, hover: false,
+				toggleKey: "ctrlKey", // ctrl key removes from selection
+				multipleKey: "shiftKey" // shift key adds to selection
+		}
+	);
+														 
+	map.addControl(selectControl);
+	selectControl.activate();
+	
+	fusionLayer.events.on({
+		"featureselected": function(e) {
+			popupOverPhoto = true;
+			map.addPopup(e.feature.popup);
+		},
+		"featureunselected": function(e) {
+			map.removePopup(e.feature.popup);
+			popupOverPhoto = false;
 		}
 	});
 
@@ -738,6 +963,8 @@ $(document).ready(function () {
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
+			navigationLayer.redraw();
 		}
 		
 		$("#map").animate({rotate: '0deg'}, 1000);
@@ -758,10 +985,14 @@ $(document).ready(function () {
 		if(screenLocked){
 			screenLocked = false;
 			$("#screenLock .ui-icon").css("background", "url('css/images/unlock.png') 50% 50% no-repeat");
+			navSymbolizer.externalGraphic = "css/images/blue-circle.png";
 		 }else{
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
 		 }
+								 
+								 navigationLayer.redraw();
 	});
 });
 
@@ -782,7 +1013,8 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
-												
+										
+												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
 				
 				if (rows.length > 1) {
@@ -827,29 +1059,34 @@ function addStatusPoints(_location, _status) {
 	
 	var statusColor;
 	
-	if(_status == 1)
-		statusColor = "green";
-	else if(_status == 2)
-		statusColor = "yellow";
-	else if(_status == 3)
-		statusColor = "red";
-	else if(_status == 4)
-		statusColor = "purple";
-	else
-		statusColor = "black";
-	
+	switch(_status) {
+		case 1:
+			statusColor = "green";
+			break;
+		case 2:
+			statusColor = "yellow";
+			break;
+		case 3:
+			statusColor = "orange";
+			break;
+		case 4:
+			statusColor = "red";
+			break;
+		default:
+			statusColor = "black";
+			break;
+	}
+
 	var location = new OpenLayers.Feature.Vector(point, {
-		status: statusColor,
+		status: statusColor
 	});
 	
 	statusLayer.addFeatures([location]);
-	//statusWFSLayer.addFeatures([location]);
 	statusLayer.redraw();
 }
 
 function clearStatusPoints() {
 	statusLayer.removeAllFeatures();
-	//statusWFSLayer.removeAllFeatures();
 	statusLayer.redraw();
 }
 
@@ -1231,3 +1468,37 @@ function onBatteryStatus(_info) {
     //_info.level = % of battery (0-100).
     //_info.isPlugged = true if the device is plugged in.
 }
+
+/*
+	 ==============================================
+	 					Old Code
+	 ==============================================
+	 
+	 No longer used but held onto just in case
+*/
+/*
+var fusionLayerOptions_Heat = {
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: maxResolution,
+		maxExtent: maxExtent,
+		restrictedExtent: restrictedExtent,
+};
+						   
+var fusionLayerOptions_Icon = {
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: 38.21851413574219,
+		minResolution: "auto",
+};
+						   
+var fLayer_heatMap = true;
+function initializeFusionLayer_Icons() {
+	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
+		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + !fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
+}
+						   
+function initializeFusionLayer_HeatMap() {
+	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
+		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
+}*/
