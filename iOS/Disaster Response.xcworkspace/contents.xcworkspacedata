@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:Disaster Response.xcodeproj">
+      location = "container:Disaster Response/Disaster Response.xcodeproj">
    </FileRef>
 </Workspace>
