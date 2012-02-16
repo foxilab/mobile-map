@@ -571,7 +571,7 @@ var popupOverPhoto = false;
 function getPicture(lonlat){
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
-		
+	
 		navigator.camera.getPicture(function (imageURI) 
 		{
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -614,11 +614,12 @@ function getVideo(lonlat){
 		}else{
 			navigator.device.capture.captureVideo(function (videoURI) 
 			{
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, videoURI.fullPath, null);
+												  console.log(videoURI);
+				/*insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, videoURI.fullPath, null);
 				
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
-				onClick_QueueTab();
+				onClick_QueueTab();*/
 			},
 			function () { },
 			{
