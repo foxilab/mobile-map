@@ -85,6 +85,8 @@ var restrictedExtent = maxExtent.clone();
 var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
 var photoguid;
+var cameraORvideoPopup;
+var clickedLonLat;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
@@ -580,17 +582,80 @@ function getStatusIcon(_status) {
 	}
 }
 
+var popupOverPhoto = false;
+
+function getPicture(){
+	if(popupOverPhoto == false) {
+		togglePhotoVideoDialog();
+		var isSimulator = (device.name.indexOf('Simulator') != -1);
+		
+		navigator.camera.getPicture(function (imageURI) 
+		{
+			insertToLocationQueueTable(sqlDb, clickedLonLat.lon, clickedLonLat.lat, null, imageURI, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			onClick_QueueTab();
+		},
+		function () { },
+		{
+			quality : 100,
+			destinationType : Camera.DestinationType.FILE_URI,
+			sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+			allowEdit : false
+		});
+	}
+}
+
+function getVideo(lonlat){
+	if(popupOverPhoto == false) {
+		togglePhotoVideoDialog();
+		var isSimulator = (device.name.indexOf('Simulator') != -1);
+		
+		navigator.device.capture.captureVideo(function (videoURI) 
+		{
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, videoURI.fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			onClick_QueueTab();
+		},
+		function () { },
+		{
+			limit: 1
+		});
+	}
+}
+
+function togglePhotoVideoDialog(){
+	cameraORvideoPopup.toggle();
+}
 /*
  		==============================================
  						onDeviceReady
  		==============================================
  */
- 
-var popupOverPhoto = false;
+
+function searchForAddress(address){
+	$.get("https://maps.googleapis.com/maps/api/geocode/json", {'address': address, 'sensor': false, }, function(results){
+	  if(results.status == "OK")
+	  {
+		  var lat = results.results[0].geometry.location.lat;
+		  var lon = results.results[0].geometry.location.lng;
+	  
+		  var lonlat = new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator);
+		  
+		  map.setCenter(lonlat, 17);
+	  }
+	});
+}
+
 function onDeviceReady()
 {
 	console.log("ready");
 	photoguid = device.uuid;
+	cameraORvideoPopup = $("#cameraORvideoPopup");
+	
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -619,7 +684,6 @@ function onDeviceReady()
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
-	console.log("booga booga");
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
 	setupTabBar();
@@ -711,28 +775,13 @@ function onDeviceReady()
 		},
 		trigger : function (e) 
 		{
-		if(popupOverPhoto == false) {
-			var lonlat = map.getLonLatFromViewPortPx(e.xy);
-			lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-
-			var isSimulator = (device.name.indexOf('Simulator') != -1);
-
-			navigator.camera.getPicture(function (imageURI) 
+			if(!cameraORvideoPopup.is(":visible"))
 			{
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-						
-				// TODO: This sometimes flashes the map
-				updateQueueSize();
-				onClick_QueueTab();
-			},
-			function () { },
-			{
-				quality : 100,
-				destinationType : Camera.DestinationType.FILE_URI,
-				sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
-				allowEdit : false
-			});
-		}
+				var lonlat = map.getLonLatFromViewPortPx(e.xy);
+				clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+			}
+			
+			togglePhotoVideoDialog();
 		}
 	});
 	
@@ -973,12 +1022,32 @@ $(document).ready(function () {
 		map.events.rotationAngle = 0;
 	});
 	
+	$('#addressSearchDiv .ui-listview-filter').submit(function(){
+		var address = $('#addressSearchDiv .ui-input-text').val();
+		searchForAddress(address);
+	});
+	
 	$('#plus').click(function(){
 		map.zoomIn();
 	});
 						
 	$('#minus').click(function(){
 		map.zoomOut();
+	});
+				  
+	$('#cameraButton').click(function(){
+		getPicture();
+		clickedLonLat = null;
+	});
+	
+	$('#videoButton').click(function(){
+		getVideo();
+		clickedLonLat = null;
+	});
+		
+	$('#cancelButton').click(function(){
+		togglePhotoVideoDialog();
+		clickedLonLat = null;
 	});
 				  
 	$('#screenlockbutton').click(function(){
@@ -992,7 +1061,7 @@ $(document).ready(function () {
 			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
 		 }
 								 
-								 navigationLayer.redraw();
+		navigationLayer.redraw();
 	});
 });
 
@@ -1023,10 +1092,6 @@ function submitToServer() {
 												
 				uploadFileToS3(row.photo);
 			}
-
-	// TODO: Whoever wrote this, are we using it, or should it be deleted?
-	//		if(isInternetConnection)
-	//			statusSaveStrategy.save();
 												
 			googleSQL(sql, 'POST', function(data) {
 				var rows = $.trim(data).split('\n');
