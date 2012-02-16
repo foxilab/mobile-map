@@ -569,7 +569,6 @@ function getStatusColor(_status) {
 var popupOverPhoto = false;
 
 function getPicture(lonlat){
-	if(popupOverPhoto == false) {
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
 		console.log(clickedLonLat.lon + ", " + clickedLonLat.lat);
@@ -588,11 +587,9 @@ function getPicture(lonlat){
 			sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 			allowEdit : false
 		});
-	}
 }
 
 function getVideo(lonlat){
-	if(popupOverPhoto == false) {
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
 		
@@ -608,7 +605,6 @@ function getVideo(lonlat){
 		{
 			limit: 1
 		});
-	}
 }
 
 function togglePhotoVideoDialog(){
