@@ -1316,7 +1316,6 @@ function onClick_MapTab() {
 }
 
 function onClick_QueueTab() {
-						   alert("onclick");
 	if (itemsInQueue != 0) {
 		selectTabBarItem('Queue');
 		selectedTabBarItem = 'Queue';
