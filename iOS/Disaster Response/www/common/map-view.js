@@ -641,13 +641,13 @@ function getVideo(lonlat){
 function togglePhotoVideoDialog(){
 	cameraORvideoPopup.toggle();
 	
-//	if (cameraORvideoPopup.is(':visible')) {
+	if (cameraORvideoPopup.is(':visible')) {
 		cameraORvideoPopup.position({
 			my:	'center',
 			at:	'center',
 			of:	$('#map')
 		});
-//	}
+	}
 }
 
 function getStatusIcon(_status) {
