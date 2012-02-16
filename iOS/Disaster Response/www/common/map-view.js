@@ -366,13 +366,23 @@ function imageUploadFailure(response) {
 }
 
 function uploadFileToS3(filepath) {
+	
+	var extensionIndex = filepath.lastIndexOf(".");
+	var extension = filepath.substr(extensionIndex+1);
+	var type;
+	
+	if(extension == "MOV")
+		type = "video";
+	else
+		type = "image";
+	
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
 			{"bucket": "mobileresponse"},
 			["starts-with", "$key", "user/kzusy/"],
 			{"acl": "public-read" },
-			["starts-with", "$Content-Type", "image/"],
+			["starts-with", "$Content-Type", type + "/"],
 		]
 	};
 
@@ -389,11 +399,11 @@ function uploadFileToS3(filepath) {
 		acl:					"private",
 		signature:			signature,
 		acl:					"public-read",
-		"Content-Type":	"image/jpeg"
+		"Content-Type":	(type == "video") ? "video/quicktime" : "image/jpeg"
 	};
 
 	var options = new FileUploadOptions();
-	options.mimeType = "image/jpeg";
+	options.mimeType = (type == "video") ? "video/quicktime" : "image/jpeg";
 	options.fileKey = "file";
 	options.fileName = filepath.substr(filepath.lastIndexOf('/')+1);
 	options.params = params;
@@ -612,14 +622,14 @@ function getVideo(lonlat){
 				allowEdit : false
 			});
 		}else{
-			navigator.device.capture.captureVideo(function (videoURI) 
+			navigator.device.capture.captureVideo(function (mediaFiles) 
 			{
-												  console.log(videoURI);
-				/*insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, videoURI.fullPath, null);
+												  console.log(mediaFiles[0].type);
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 				
 				// TODO: This sometimes flashes the map
 				updateQueueSize();
-				onClick_QueueTab();*/
+				onClick_QueueTab();
 			},
 			function () { },
 			{
