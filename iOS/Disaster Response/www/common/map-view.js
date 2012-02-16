@@ -35,11 +35,10 @@ var FusionTableId = new function () {
  * OpenLayers.Map
  */
 var map;
-//var fusionLayer_Locations_Icons;
-//var fusionLayer_Locations_HeatMap;
 var heatmapLayer;
 var screenLocked = true;
-
+//var fusionLayer_Locations_Icons;
+//var fusionLayer_Locations_HeatMap;
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
@@ -169,10 +168,10 @@ var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
 });
 
 var touchNavOptions = {
-dragPanOptions: {
-interval: 0, //non-zero kills performance on some mobile phones
-enableKinetic: true
-}
+	dragPanOptions: {
+		interval: 0, //non-zero kills performance on some mobile phones
+		enableKinetic: true
+	}
 };
 
 var oldRotation = 0;
@@ -235,16 +234,15 @@ OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 										
 });*/
 
-function onBodyLoad(){
+function onBodyLoad() {
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
-var geolocationSuccess = function(position){
+var geolocationSuccess = function(position) {
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
 	
-    if(map)
-    {
+    if(map) {
         var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
         var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
         
@@ -253,8 +251,7 @@ var geolocationSuccess = function(position){
 		else
 			navigationLayer.addFeatures([currentPosition]);
         
-        if(!centered)
-        {
+        if(!centered) {
             map.setCenter(new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude)
                           .transform(WGS84, WGS84_google_mercator), 17);
             
@@ -267,10 +264,9 @@ var geolocationSuccess = function(position){
     //  position.timestamp returns seconds instead of milliseconds.
 };
 
-var geolocationError = function(error){
+var geolocationError = function(error) {
     
-    if(locatedSuccess)
-    {
+    if(locatedSuccess) {
         //error handling
         if(error == PositionError.PERMISSION_DENIED)
             navigator.notification.alert("Location permission denied", function(){}, 'Error', 'Okay');
@@ -279,16 +275,14 @@ var geolocationError = function(error){
         else
             navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');
         
-        if(navigationLayer.features.length == 0)
-        {
+        if(navigationLayer.features.length == 0) {
             var lon = -77.020000;
             var lat = 38.890000;
             
             var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
             var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
             
-			if(navigationLayer.features.length == 0)
-			{
+			if(navigationLayer.features.length == 0) {
 				navigationLayer.addFeatures([currentPosition]);
 				map.setCenter(new OpenLayers.LonLat(lon, lat)
                           .transform(WGS84, WGS84_google_mercator), 2);
@@ -300,7 +294,7 @@ var geolocationError = function(error){
     
 };
 
-var compassSuccess = function(heading){
+var compassSuccess = function(heading) {
 	//Rotate arrow
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
@@ -309,19 +303,18 @@ var compassSuccess = function(heading){
 	var mapRotation = 360 - heading;
 	
 	//Rotate map
-	if(!screenLocked)
-	{
+	if(!screenLocked) {
 		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
 		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
 		
 		map.events.rotationAngle = -1 * mapRotation;
-	}else{
+	}else {
 		navSymbolizer.rotation = mapRotation;
 		navigationLayer.redraw();
 	}
 };
 
-var compassError = function(error){
+var compassError = function(error) {
 	//error handling
 /*	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
         navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
@@ -361,12 +354,12 @@ function googleSQL(sql, type, success, error) {
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
-function imageUploadSuccess(response){
+function imageUploadSuccess(response) {
 	console.log('image upload success');
 	//console.log(response.response);
 }
 
-function imageUploadFailure(response){
+function imageUploadFailure(response) {
 	console.log('image upload error');
 	//console.log(response.response);
 }
@@ -432,25 +425,8 @@ function onMapMoveEnd(_event) {
 
 function createPopUp(_id, _lat, _lon, _name, _status, _date, _image) {
 	var htmlContent = "<div class='popupWindow' style='font-family: sans-serif; color: ";
-	
-	switch(_status) {
-		case 1:
-			htmlContent += "green;'>";
-			break;
-		case 2:
-			htmlContent += "yellow;'>";
-			break;
-		case 3:
-			htmlContent += "orange;'>";
-			break;
-		case 4:
-			htmlContent += "red;'>";
-			break;
-		default:
-			htmlContent += "gray;'>";
-			break;
-	}
-
+	htmlContent += getStatusColor(_status);
+	htmlContent += "'>";
 	htmlContent += "<b>Name:</b> "+_name+"<br>";
 	htmlContent += "<b>Date:</b> "+_date+"<br>";
 	htmlContent += "<div style='text-align: center;'><img src='";
@@ -467,9 +443,15 @@ function createPopUp(_id, _lat, _lon, _name, _status, _date, _image) {
 			new OpenLayers.LonLat(_lon,_lat),
 			new OpenLayers.Size(250,200),
 			htmlContent,
-			true);
+			true,
+			popupOnCloseCallback);
 			
 	return popup;
+}
+
+function popupOnCloseCallback(_event) {
+	map.removePopup(this);
+	selectControl.unselectAll();
 }
 
 function fusionSQLSuccess(data) {
@@ -483,28 +465,28 @@ function fusionSQLSuccess(data) {
 	var length = rows.length;
 	transformedTestData.max = length;
 	
-	//start at 1, rows[0] is our titles
+	//start at 1, rows[0] is our column titles.
 	for(var i = 1; i < length; i++){
 		var locationData = rows[i].split(",");
 		var nameBugFix = rows[i].split('"');
 		
 		//Gathering intel..., stay frosty
-			var lat = parseFloat(locationData[0].substr(1, locationData[0].length));
-			var lon = parseFloat(locationData[1].substr(0, locationData[1].length-1));
+		var lat = parseFloat(locationData[0].substr(1, locationData[0].length));
+		var lon = parseFloat(locationData[1].substr(0, locationData[1].length-1));
 			
-			var name; var positon = 2;
-			if(locationData[2][0] == '"')
-				name = nameBugFix[(positon+=1)];
+		//If the name contains a ',' this method breaks. But there is an easy fix.
+		var name; var positon = 2;
+			if(locationData[2][0] == '"')			//Check to see if there is an issue:
+				name = nameBugFix[(positon+=1)];	//If so, increase the positon.
 			else
-				name = locationData[positon];
+				name = locationData[positon];		//Otherwise continue like normal.
 				
-			var status = parseInt(locationData[(positon+=1)]);
-			var date = locationData[(positon+=1)];
-			var image = locationData[(positon+=1)];
+		var status = parseInt(locationData[(positon+=1)]);
+		var date = locationData[(positon+=1)];
+		var image = locationData[(positon+=1)];
 		
 		//If only the icons are to be shown
 		if(map.getResolution() <= iconMaxResolution) {
-		
 			//convert the lat and lon for display
 			var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
 			//create a point for the layer
@@ -512,11 +494,13 @@ function fusionSQLSuccess(data) {
 			//and pick out a nice icon to go with the locations eyes.
 			var icon = getStatusIcon(status);
 		
+			//Create a point and add it to the fusionLayer
 			var location = new OpenLayers.Feature.Vector(point, {image: icon});
 			location.popup = createPopUp(location.id, lonlat.lat, lonlat.lon, name, status, date, image);
 			fusionLayer.addFeatures([location]);
 		}
 		else {
+			//If we don't want to see the icons, push the data to the heatMap.
 			heatMapData.push({
 				lonlat: new OpenLayers.LonLat(lon, lat),
 				count: (status*50)
@@ -524,6 +508,7 @@ function fusionSQLSuccess(data) {
 		}
 	}
 	
+	//Update all the layers to show the new data.
 	transformedTestData.data = heatMapData;
 	heatmapLayer.setDataSet(transformedTestData);
 	fusionLayer.redraw();
@@ -537,17 +522,15 @@ var heatmapGradient = {
 		1.00: "rgb(255,0,0)"
 };
 
+//This function just readys the heatmap layer
 function initHeatmap() {
-	var testData={
-		max: 500,
-		data: [
+	var testData = {
+		max: 1, data: [
 			{lat: 0.0, lon: 0.0, count: 0}
 	]}
 	
 	var transformedTestData = { max: testData.max , data: [] },
-		data = testData.data,
-		datalen = data.length,
-		nudata = [];
+		data = testData.data, datalen = data.length, nudata = [];
 	
     // in order to use the OpenLayers Heatmap Layer we have to transform our data into 
     // { max: <max>, data: [{lonlat: <OpenLayers.LonLat>, count: <count>},...]}
@@ -562,22 +545,22 @@ function initHeatmap() {
 	heatmapLayer.setDataSet(transformedTestData);
 }
 
-function getStatusIcon(_status) {
+function getStatusColor(_status) {
 	switch(_status) {
 		case 1:
-			return "Buildings/Green.png";
+			return "Green";
 			break;
 		case 2:
-			return "Buildings/Yellow.png";
+			return "yellow";
 			break;
 		case 3:
-			return "Buildings/Orange.png";
+			return "orange";
 			break;
 		case 4:
-			return "Buildings/Red.png";
+			return "red";
 			break;
 		default:
-			return "Buildings/Gray.png";
+			return "gray";
 			break;
 	}
 }
@@ -630,6 +613,11 @@ function getVideo(lonlat){
 function togglePhotoVideoDialog(){
 	cameraORvideoPopup.toggle();
 }
+
+function getStatusIcon(_status) {
+	return "Buildings/" + getStatusColor(_status) + ".png";
+}
+
 /*
  		==============================================
  						onDeviceReady
@@ -650,6 +638,8 @@ function searchForAddress(address){
 	});
 }
 
+var selectControl;
+
 function onDeviceReady()
 {
 	console.log("ready");
@@ -664,7 +654,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	//  window.addEventListener("orientationchange", onOrientationChange,  true);
+	//window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -746,8 +736,7 @@ function onDeviceReady()
 	map.events.register("moveend", map, onMapMoveEnd);
 	map.addLayers([mapLayerOSM, heatmapLayer, navigationLayer, statusLayer, fusionLayer]);
 		
-	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, 
-	{
+	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
 		enableHighAccuracy: true,
 		maximumAge: 3000
 	});
@@ -757,15 +746,12 @@ function onDeviceReady()
 	};
 
 	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
-	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, 
-	{
+	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 		//console.log("device uuid: " + device.uuid);
-		defaultHandlerOptions : 
-		{
+		defaultHandlerOptions : {
 			'single' : true, 'double' : false, 'pixelTolerance' : 0, 'stopSingle' : false, 'stopDouble' : false 
 		},
-		initialize : function (options) 
-		{
+		initialize : function (options) {
 			this.handlerOptions = OpenLayers.Util.extend( {}, this.defaultHandlerOptions );
 			OpenLayers.Control.prototype.initialize.apply( this, arguments );
 			this.handler = new OpenLayers.Handler.Click( this, {
@@ -787,23 +773,20 @@ function onDeviceReady()
 	
 	selectControl = new OpenLayers.Control.SelectFeature(
 		[fusionLayer], {
-			clickout: true, toggle: false,
-			multiple: false, hover: false,
-				toggleKey: "ctrlKey", // ctrl key removes from selection
-				multipleKey: "shiftKey" // shift key adds to selection
-		}
+			clickout: true, toggle: false, multiple: false, hover: false,
+				toggleKey: "ctrlKey", multipleKey: "shiftKey" }
 	);
 														 
 	map.addControl(selectControl);
 	selectControl.activate();
 	
 	fusionLayer.events.on({
-		"featureselected": function(e) {
+		"featureselected": function(_event) {
 			popupOverPhoto = true;
-			map.addPopup(e.feature.popup);
+			map.addPopup(_event.feature.popup);
 		},
-		"featureunselected": function(e) {
-			map.removePopup(e.feature.popup);
+		"featureunselected": function(_event) {
+			map.removePopup(_event.feature.popup);
 			popupOverPhoto = false;
 		}
 	});
@@ -1114,47 +1097,6 @@ function submitToServer() {
 	});
 }
 
-function addStatusPoints(_location, _status) {
-	var commaIndex = _location.indexOf(",");
-	var lat = _location.substr(0, commaIndex);
-	var lon = _location.substr(commaIndex+1);
-
-	var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
-	var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
-	
-	var statusColor;
-	
-	switch(_status) {
-		case 1:
-			statusColor = "green";
-			break;
-		case 2:
-			statusColor = "yellow";
-			break;
-		case 3:
-			statusColor = "orange";
-			break;
-		case 4:
-			statusColor = "red";
-			break;
-		default:
-			statusColor = "black";
-			break;
-	}
-
-	var location = new OpenLayers.Feature.Vector(point, {
-		status: statusColor
-	});
-	
-	statusLayer.addFeatures([location]);
-	statusLayer.redraw();
-}
-
-function clearStatusPoints() {
-	statusLayer.removeAllFeatures();
-	statusLayer.redraw();
-}
-
 /*
         ==============================================
                      QueueSize Functions
@@ -1176,19 +1118,17 @@ function updateQueueSize() {
 function getQueueSize(_tx) {
     //Gets all the rows from the locationqueue
     _tx.executeSql('SELECT * FROM locationqueue',[], 
-       function(_tx, _result) { 
-           itemsInQueue = _result.rows.length;
+		function(_tx, _result) { 
+			itemsInQueue = _result.rows.length;
 		   
-		   for(var i = 0; i < itemsInQueue; i++) {
+			for(var i = 0; i < itemsInQueue; i++) {
 				var row = _result.rows.item(i);
-				
 				addStatusPoints(row.location, row.status);
 			}
-		   
-		   }, 
-       function(_tx, _error) {
-            console.log('SQL Execute error'); return true; }
-    );
+		}, 
+		function(_tx, _error) {
+			console.log('SQL Execute error'); return true; }
+	);
 }
 
 function getQueueSizeSuccessCB() {
@@ -1202,6 +1142,29 @@ function getQueueSizeErrorBC(_error) {
     console.log('getQueueSizeError: ' + _error.message);
 }
 
+function addStatusPoints(_location, _status) {
+	var commaIndex = _location.indexOf(",");
+	var lat = _location.substr(0, commaIndex);
+	var lon = _location.substr(commaIndex+1);
+						   
+	var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
+	var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+						   
+	var statusColor = getStatusColor(_status);
+						   
+	var location = new OpenLayers.Feature.Vector(point, {
+		status: statusColor
+	});
+						   
+	statusLayer.addFeatures([location]);
+	statusLayer.redraw();
+}
+						   
+function clearStatusPoints() {
+	statusLayer.removeAllFeatures();
+	statusLayer.redraw();
+}
+
 /*
         ==============================================
                   NativeControls Functions
@@ -1210,11 +1173,12 @@ function getQueueSizeErrorBC(_error) {
     This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
  */
 var tabBarItems = { tabs: [
-      {'name': 'Map'  , 'image': '/www/common/TabImages/Map.png'  , 'onSelect': onClick_MapTab},
-      {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png', 'onSelect': onClick_QueueTab},
-      {'name': 'User' , 'image': '/www/common/TabImages/User.png' , 'onSelect': onClick_UserTab},
-      {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png', 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'          , 'onSelect': onClick_MoreTab}]};
+      {'name': 'Map'  , 'image': '/www/common/TabImages/Map.png'  	, 'onSelect': onClick_MapTab},
+      {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
+      {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
+      {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
+      {'name': 'More' , 'image': 'tabButton:More'          			, 'onSelect': onClick_MoreTab}]
+};
 
 /*
     This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
@@ -1566,4 +1530,5 @@ function initializeFusionLayer_Icons() {
 function initializeFusionLayer_HeatMap() {
 	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
 		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
-}*/
+}
+*/
