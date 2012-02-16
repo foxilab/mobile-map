@@ -309,7 +309,8 @@ var compassSuccess = function(heading) {
 		
 		map.events.rotationAngle = -1 * mapRotation;
 	}else {
-		navSymbolizer.rotation = mapRotation;
+		//navSymbolizer.rotation = mapRotation;
+		navSymbolizer.rotation = heading;
 		navigationLayer.redraw();
 	}
 };
@@ -591,7 +592,6 @@ function getPicture(lonlat){
 }
 
 function getVideo(lonlat){
-	console.log("get video");
 	if(popupOverPhoto == false) {
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
@@ -764,11 +764,14 @@ function onDeviceReady()
 		{
 			if(!cameraORvideoPopup.is(":visible"))
 			{
-				var lonlat = map.getLonLatFromViewPortPx(e.xy);
-				clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-			}
-			
-			togglePhotoVideoDialog();
+				if(!popupOverPhoto)
+				{
+					var lonlat = map.getLonLatFromViewPortPx(e.xy);
+					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+					togglePhotoVideoDialog();
+				}
+			}else
+				togglePhotoVideoDialog();
 		}
 	});
 	
