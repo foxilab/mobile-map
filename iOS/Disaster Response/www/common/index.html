@@ -49,7 +49,7 @@
             }
 			#screenLock{
 				position: absolute;
-                top: 30px;
+                top: 40px;
                 right: 10px;
                 z-index: 1000;
 				height:41px;
@@ -64,6 +64,36 @@
                 padding: 7px 6px 7px 8px;
 			}
 			 
+			#cameraButton .ui-icon{
+				background: url("css/images/Camera_Alt.png") 50% 50% no-repeat;
+			}
+			
+			#videoButton .ui-icon{
+				background: url("css/images/Cinema.png") 50% 50% no-repeat;
+			}
+			
+			#addressSearchDiv{
+				position:absolute;
+				z-index:1000;
+				top:15px;
+				right:5px;
+				width:40%;
+			}
+			
+			#cameraORvideoPopup{
+				display:none;
+				position:relative;
+				z-index:1000;
+				top:20%;
+				margin:auto;
+				background-color:#505050;
+				height:180px;
+				width:300px;
+				border:5px solid black;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}
 			/*.ui-dialog .ui-footer { 
 				height: 1232px !important;
 			}*/
@@ -91,6 +121,18 @@
                     </div>
 					<div id="screenLock">
 						<a href="#" data-role="button" data-icon="custom" id="screenlockbutton" data-iconpos="notext"></a>
+					</div>
+					<div id="addressSearchDiv">
+						<ul id='old-places-list' data-role="listview" data-filter="true" data-filter-placeholder="Search for address..." data-inset="true">
+						</ul>
+					</div>
+					<div id="cameraORvideoPopup">
+						<a style="position:absolute;left:38px;color:white;font-size:20px;padding-top:10px;">Please provide context</a>
+						<div data-role="controlgroup" style="position:relative;padding:30px;">
+							<a href="#" data-role="button" data-icon="custom" id="cameraButton" >Picture</a>
+							<a href="#" data-role="button" data-icon="custom" id="videoButton">Video</a>
+							<a href="#" data-role="button" data-icon="back" id="cancelButton">Cancel</a>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -187,6 +229,6 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC6566"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
+	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
+	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
 </html>
