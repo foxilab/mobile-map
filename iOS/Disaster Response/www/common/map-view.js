@@ -579,7 +579,7 @@ function getPicture(lonlat){
 			
 			// TODO: This sometimes flashes the map
 			updateQueueSize();
-			onClick_QueueTab();
+			showQueueTab();
 		},
 		function () { },
 		{
@@ -602,7 +602,7 @@ function getVideo(lonlat){
 			
 			// TODO: This sometimes flashes the map
 			updateQueueSize();
-			onClick_QueueTab();
+			showQueueTab();
 		},
 		function () { },
 		{
@@ -902,17 +902,18 @@ $(document).ready(function () {
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
+		// If we were the last item in the queue, close the dialog
+		if (itemsInQueue === 1) {
+			$('#queue-dialog').dialog('close');
+		}
+
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
 		$(this).hide();
 		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
 
-		//An item was removed, update the queue size.
+		// An item was removed, update the queue size.
 		updateQueueSize();
-
-		if (itemsInQueue === 0) {
-			$('#queue-dialog').dialog('close');
-		}
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
@@ -1079,7 +1080,7 @@ function submitToServer() {
 												
 				uploadFileToS3(row.photo);
 			}
-												
+
 			googleSQL(sql, 'POST', function(data) {
 				var rows = $.trim(data).split('\n');
 				var rowid = rows.shift();
@@ -1094,7 +1095,7 @@ function submitToServer() {
 					updateQueueSize();
 					
 					//Hack to refesh the map icons, problem OpenLayers?
-						map.zoomOut(); map.zoomIn();
+					map.zoomOut(); map.zoomIn();
 				}
 			});
 		});
@@ -1109,14 +1110,14 @@ function submitToServer() {
     Calling this function will do everything for you, it reads the SQL database and then updates the size as well as the badges.
  */
 function updateQueueSize() {
-    //We are updating the queue count, so first
-    // lets remove the current queue times from the counters.
-    appNotifications -= itemsInQueue;
-    itemsInQueue = 0;
+	//We are updating the queue count, so first
+	// lets remove the current queue times from the counters.
+	appNotifications -= itemsInQueue;
+	itemsInQueue = 0;
 	clearStatusPoints();
-    
-    //Now we are ready to start, lets get the QueueSize
-    sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
+
+	//Now we are ready to start, lets get the QueueSize
+	sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
 }
 
 function getQueueSize(_tx) {
@@ -1318,12 +1319,15 @@ function onClick_MapTab() {
 	$.mobile.changePage('#map-page', 'pop');
 }
 
+function showQueueTab() {
+	selectTabBarItem('Queue');
+	selectedTabBarItem = 'Queue';
+	$.mobile.changePage('#queue-dialog', 'pop');
+}
+
 function onClick_QueueTab() {
-	console.log('clicked queue tab');
 	if (itemsInQueue > 0) {
-		selectTabBarItem('Queue');
-		selectedTabBarItem = 'Queue';
-		$.mobile.changePage('#queue-dialog', 'pop');
+		showQueueTab();
 	}
 	else {
 		nativeControls.selectTabBarItem(selectedTabBarItem);
