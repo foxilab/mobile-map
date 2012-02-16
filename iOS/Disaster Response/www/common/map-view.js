@@ -309,7 +309,8 @@ var compassSuccess = function(heading) {
 		
 		map.events.rotationAngle = -1 * mapRotation;
 	}else {
-		navSymbolizer.rotation = mapRotation;
+		//navSymbolizer.rotation = mapRotation;
+		navSymbolizer.rotation = heading;
 		navigationLayer.redraw();
 	}
 };
@@ -567,14 +568,14 @@ function getStatusColor(_status) {
 
 var popupOverPhoto = false;
 
-function getPicture(){
+function getPicture(lonlat){
 	if(popupOverPhoto == false) {
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
-		
+		console.log(clickedLonLat.lon + ", " + clickedLonLat.lat);
 		navigator.camera.getPicture(function (imageURI) 
 		{
-			insertToLocationQueueTable(sqlDb, clickedLonLat.lon, clickedLonLat.lat, null, imageURI, null);
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 			
 			// TODO: This sometimes flashes the map
 			updateQueueSize();
@@ -763,11 +764,14 @@ function onDeviceReady()
 		{
 			if(!cameraORvideoPopup.is(":visible"))
 			{
-				var lonlat = map.getLonLatFromViewPortPx(e.xy);
-				clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-			}
-			
-			togglePhotoVideoDialog();
+				if(!popupOverPhoto)
+				{
+					var lonlat = map.getLonLatFromViewPortPx(e.xy);
+					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+					togglePhotoVideoDialog();
+				}
+			}else
+				togglePhotoVideoDialog();
 		}
 	});
 	
@@ -1019,12 +1023,12 @@ $(document).ready(function () {
 	});
 				  
 	$('#cameraButton').click(function(){
-		getPicture();
+		getPicture(clickedLonLat);
 		clickedLonLat = null;
 	});
 	
 	$('#videoButton').click(function(){
-		getVideo();
+		getVideo(clickedLonLat);
 		clickedLonLat = null;
 	});
 		
