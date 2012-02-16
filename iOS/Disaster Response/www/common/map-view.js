@@ -1177,7 +1177,7 @@ var tabBarItems = { tabs: [
       {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'          			, 'onSelect': onClick_MoreTab}]
+      {'name': 'More' , 'image': 'tabButton:More'							, 'onSelect': onClick_MoreTab}]
 };
 
 /*
@@ -1315,7 +1315,8 @@ function onClick_MapTab() {
 }
 
 function onClick_QueueTab() {
-	if (itemsInQueue != 0) {
+	console.log('clicked queue tab');
+	if (itemsInQueue > 0) {
 		selectTabBarItem('Queue');
 		selectedTabBarItem = 'Queue';
 		$.mobile.changePage('#queue-dialog', 'pop');
