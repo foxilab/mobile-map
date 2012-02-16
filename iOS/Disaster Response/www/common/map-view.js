@@ -578,64 +578,68 @@ function getStatusColor(_status) {
 
 var popupOverPhoto = false;
 
+function getAudio(lonlat) {
+	console.log('audio');	
+}
+
 function getPicture(lonlat){
-		togglePhotoVideoDialog();
-		var isSimulator = (device.name.indexOf('Simulator') != -1);
+	togglePhotoVideoDialog();
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
+
+	navigator.camera.getPicture(function (imageURI) 
+	{
+		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+		
+		// TODO: This sometimes flashes the map
+		updateQueueSize();
+		showQueueTab();
+	},
+	function () { },
+	{
+		quality : 100,
+		destinationType : Camera.DestinationType.FILE_URI,
+		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+		allowEdit : false
+	});
+}
+
+function getVideo(lonlat){
+	togglePhotoVideoDialog();
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
 	
+	if(isSimulator)
+	{
 		navigator.camera.getPicture(function (imageURI) 
 		{
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 			
 			// TODO: This sometimes flashes the map
 			updateQueueSize();
-			showQueueTab();
+			onClick_QueueTab();
 		},
 		function () { },
 		{
 			quality : 100,
 			destinationType : Camera.DestinationType.FILE_URI,
-			sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+			sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+			MediaType: Camera.MediaType.ALLMEDIA,
 			allowEdit : false
 		});
-}
-
-function getVideo(lonlat){
-		togglePhotoVideoDialog();
-		var isSimulator = (device.name.indexOf('Simulator') != -1);
-		
-		if(isSimulator)
+	}else{
+		navigator.device.capture.captureVideo(function (mediaFiles) 
 		{
-			navigator.camera.getPicture(function (imageURI) 
-			{
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-				
-				// TODO: This sometimes flashes the map
-				updateQueueSize();
-				onClick_QueueTab();
-			},
-			function () { },
-			{
-				quality : 100,
-				destinationType : Camera.DestinationType.FILE_URI,
-				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
-				MediaType: Camera.MediaType.ALLMEDIA,
-				allowEdit : false
-			});
-		}else{
-			navigator.device.capture.captureVideo(function (mediaFiles) 
-			{
-												  console.log(mediaFiles[0].type);
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
-				
-				// TODO: This sometimes flashes the map
-				updateQueueSize();
-				onClick_QueueTab();
-			},
-			function () { },
-			{
-				limit: 1
-			});
-		}
+											  console.log(mediaFiles[0].type);
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			onClick_QueueTab();
+		},
+		function () { },
+		{
+			limit: 1
+		});
+	}
 }
 
 function togglePhotoVideoDialog(){
@@ -1058,6 +1062,11 @@ $(document).ready(function () {
 		map.zoomOut();
 	});
 				  
+	$('#audioButton').click(function(){
+		getAudio(clickedLonLat);
+		clickedLonLat = null;
+	});
+
 	$('#cameraButton').click(function(){
 		getPicture(clickedLonLat);
 		clickedLonLat = null;
