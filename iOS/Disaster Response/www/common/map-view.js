@@ -571,7 +571,7 @@ var popupOverPhoto = false;
 function getPicture(lonlat){
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
-		console.log(clickedLonLat.lon + ", " + clickedLonLat.lat);
+		
 		navigator.camera.getPicture(function (imageURI) 
 		{
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
@@ -593,18 +593,38 @@ function getVideo(lonlat){
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
 		
-		navigator.device.capture.captureVideo(function (videoURI) 
+		if(isSimulator)
 		{
-			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, videoURI.fullPath, null);
-			
-			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			onClick_QueueTab();
-		},
-		function () { },
-		{
-			limit: 1
-		});
+			navigator.camera.getPicture(function (imageURI) 
+			{
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+				
+				// TODO: This sometimes flashes the map
+				updateQueueSize();
+				onClick_QueueTab();
+			},
+			function () { },
+			{
+				quality : 100,
+				destinationType : Camera.DestinationType.FILE_URI,
+				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+				MediaType: Camera.MediaType.ALLMEDIA,
+				allowEdit : false
+			});
+		}else{
+			navigator.device.capture.captureVideo(function (videoURI) 
+			{
+				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, videoURI.fullPath, null);
+				
+				// TODO: This sometimes flashes the map
+				updateQueueSize();
+				onClick_QueueTab();
+			},
+			function () { },
+			{
+				limit: 1
+			});
+		}
 }
 
 function togglePhotoVideoDialog(){
