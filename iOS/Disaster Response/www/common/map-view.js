@@ -567,14 +567,14 @@ function getStatusColor(_status) {
 
 var popupOverPhoto = false;
 
-function getPicture(){
+function getPicture(lonlat){
 	if(popupOverPhoto == false) {
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
-		
+		console.log(clickedLonLat.lon + ", " + clickedLonLat.lat);
 		navigator.camera.getPicture(function (imageURI) 
 		{
-			insertToLocationQueueTable(sqlDb, clickedLonLat.lon, clickedLonLat.lat, null, imageURI, null);
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 			
 			// TODO: This sometimes flashes the map
 			updateQueueSize();
@@ -591,6 +591,7 @@ function getPicture(){
 }
 
 function getVideo(lonlat){
+	console.log("get video");
 	if(popupOverPhoto == false) {
 		togglePhotoVideoDialog();
 		var isSimulator = (device.name.indexOf('Simulator') != -1);
@@ -1019,12 +1020,12 @@ $(document).ready(function () {
 	});
 				  
 	$('#cameraButton').click(function(){
-		getPicture();
+		getPicture(clickedLonLat);
 		clickedLonLat = null;
 	});
 	
 	$('#videoButton').click(function(){
-		getVideo();
+		getVideo(clickedLonLat);
 		clickedLonLat = null;
 	});
 		
@@ -1315,6 +1316,7 @@ function onClick_MapTab() {
 }
 
 function onClick_QueueTab() {
+						   alert("onclick");
 	if (itemsInQueue != 0) {
 		selectTabBarItem('Queue');
 		selectedTabBarItem = 'Queue';
