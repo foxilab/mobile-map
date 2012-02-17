@@ -374,9 +374,13 @@ function mimeTypeFromExt(filepath) {
 		mime = "video/quicktime";
 	else if (extension == "wav")
 		mime = "audio/wav";
+	else if (extension == "mp3")
+		mime = "audio/mpeg";
 	else if (extension == "jpg" || extension == "jpeg")
 		mime = "image/jpeg";
-
+	else if (extension == "png")
+		mime = "image/png";
+		
 	return mime;
 }
 
@@ -679,9 +683,19 @@ function searchForAddress(address){
 		  var lat = results.results[0].geometry.location.lat;
 		  var lon = results.results[0].geometry.location.lng;
 	  
+		  console.log("from google: " + lon + ", " + lat);
 		  var lonlat = new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator);
 		  
 		  map.setCenter(lonlat, 17);
+		  
+		  var formattedAddress = results.results[0].formatted_address;
+		  
+		  if(!formattedAddress)
+			formattedAddress = address;
+		  
+		  console.log("being inserted: " + lonlat.lon + ", " + lonlat.lat);
+		  insertToAddressSearchTable(sqlDb, lonlat.lon, lonlat.lat, formattedAddress);
+		  addToAddressList(lonlat.lon, lonlat.lat, formattedAddress);
 	  }
 	});
 }
@@ -715,6 +729,8 @@ function onDeviceReady()
 			sqlDb = window.openDatabase('mobdisapp', '0.1', 'MobDisAppDB', 3145728);
 			createStatusRefTable(sqlDb);
 			createQueueTable(sqlDb);
+			createAddressSearchTable(sqlDb);
+			forAllAddresses(sqlDb, addToAddressList);
 		}
 	}
 	catch (e) {
@@ -912,6 +928,27 @@ function addToQueueDialog(locRow) {
 	$clone.trigger('create').show();
 }
 
+function addToAddressList(){
+	var location;
+	var address;
+	var _class;
+	
+	if(arguments.length == 1)
+	{
+		location = arguments[0].coordinates;
+		address = arguments[0].address;
+		_class = "address-list-item ui-screen-hidden hid-myself";
+	}else{
+		location = arguments[1] + "," + arguments[0];
+		address = arguments[2];
+		_class = "address-list-item";
+	}
+	
+	var newListElement = "<li class='" + _class + "' location='" + location + "'><a href='#'>" + address + "</a></li>";
+	$('#old-places-list').append(newListElement);
+	$('#old-places-list').listview('refresh');
+}
+
 function hideQueueItemDelete(e) {
 	$('#queue-item-delete').hide();
 }
@@ -1064,6 +1101,24 @@ $(document).ready(function () {
 		searchForAddress(address);
 	});
 	
+	$('.address-list-item').live('click', function(){
+		var coordinates = $(this).attr('location');
+		var commaIndex = coordinates.indexOf(",");
+		var lat = coordinates.substring(0, commaIndex);
+		var lon = coordinates.substr(commaIndex+1);
+		
+								 console.log(lon + "," + lat);
+		map.setCenter(new OpenLayers.LonLat(lon, lat), 17);							
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').focus(function(){
+			 $('.address-list-item .hid-myself').removeClass('ui-screen-hidden hid-myself');
+	});
+		
+	$('#addressSearchDiv .ui-listview-filter').blur(function(){
+			$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
+	});
+				  
 	$('#plus').click(function(){
 		map.zoomIn();
 	});

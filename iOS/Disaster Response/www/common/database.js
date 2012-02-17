@@ -79,6 +79,14 @@ function createQueueTable(db) {
 	db.transaction(create, errorSql);
 }
 
+function createAddressSearchTable(db){
+	var create = function (tx){
+		tx.executeSql('CREATE TABLE IF NOT EXISTS searchAddresses (id INTEGER PRIMARY KEY, coordinates TEXT NOT NULL, address TEXT NOT NULL)');
+	};
+	
+	db.transaction(create, errorSql);
+}
+
 function forEachLocationQueueRow(db, rowids, func) {
 	if ($.isArray(rowids)) {
 		var val = -1;
@@ -107,6 +115,19 @@ function forLocationQueueRows(db, rowids, func) {
 
 		db.transaction(query, errorSql);
 	}
+}
+function forAllAddresses(db, func) {
+	var query = function (tx){
+		tx.executeSql('SELECT * FROM searchAddresses ORDER BY id DESC', [], function(t, results){
+			  if(func){
+				  for(var i=0; i < results.rows.length; ++i){
+					  func.call(null, results.rows.item(i));
+				  }
+			  }
+		});
+	};
+	
+	db.transaction(query, errorSql);
 }
 
 function forAllLocations(db, func) {
@@ -173,6 +194,23 @@ function updateLocationStatus(db, id, status) {
 	};
 	
 	db.transaction(update, errorSql);
+}
+
+function insertToAddressSearchTable(db, lon, lat, address){
+	var key = -1;
+	
+	var insert = function(tx){
+		var values = 'VALUES(';
+		values += quote(lat + ',' + lon) + ',';
+		values += quote(address) + ')';
+		
+		tx.executeSql('INSERT INTO searchAddresses (coordinates, address) ' + values, [], function(t, results){
+			key = results.insertId;
+		});
+	};
+	
+	db.transaction(insert, errorSql);
+	return key;
 }
 
 function insertToLocationQueueTable(db, lon, lat, name, photo, status) {
