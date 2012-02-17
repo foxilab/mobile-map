@@ -897,8 +897,28 @@ function clearQueueDialog() {
 function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
-	$clone.find('img').attr('src', locRow.photo);
 	
+	var type = mimeTypeFromExt(locRow.photo);
+	type = type.substr(0, type.indexOf('/'));
+
+	if (type == "image") {
+		$clone.find('img').attr('src', locRow.photo);
+	}
+	else if (type == "audio") {
+		$clone.find('img').attr('src', 'css/images/glyphish/66-microphone.png');
+		$clone.find('img').addClass('ui-li-icon');
+	}
+	else if (type == "video") {
+		// TODO: maybe we should get a thumbnail and put the play button in the middle?
+		$clone.find('img').attr('src', 'css/images/glyphish/45-movie-1.png');
+		$clone.find('img').addClass('ui-li-icon');
+	}
+	else {
+		// Should be impossible to get here
+		console.log('unsupported media type in addToQueueDialog');
+		return;
+	}
+
 	if (locRow.name) {
 		$clone.find('h3').text(locRow.name);
 	}
