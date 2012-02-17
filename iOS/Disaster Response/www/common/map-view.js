@@ -355,34 +355,41 @@ function googleSQL(sql, type, success, error) {
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
-function imageUploadSuccess(response) {
-	console.log('image upload success');
+function mediaUploadSuccess(response) {
+	console.log('media upload success');
 	//console.log(response.response);
 }
 
-function imageUploadFailure(response) {
-	console.log('image upload error');
+function mediaUploadFailure(response) {
+	console.log('media upload error');
 	//console.log(response.response);
+}
+
+function mimeTypeFromExt(filepath) {
+	var extensionIndex = filepath.lastIndexOf(".");
+	var extension = filepath.substr(extensionIndex+1).toLowerCase();
+	var mime = null;
+
+	if (extension == "mov")
+		mime = "video/quicktime";
+	else if (extension == "wav")
+		mime = "audio/wav";
+	else if (extension == "jpg" || extension == "jpeg")
+		mime = "image/jpeg";
+
+	return mime;
 }
 
 function uploadFileToS3(filepath) {
-	
-	var extensionIndex = filepath.lastIndexOf(".");
-	var extension = filepath.substr(extensionIndex+1);
-	var type;
-	
-	if(extension == "MOV")
-		type = "video";
-	else
-		type = "image";
-	
+	var mimeType = mimeTypeFromExt(filepath);
+
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
-			{"bucket": "mobileresponse"},
-			["starts-with", "$key", "user/kzusy/"],
-			{"acl": "public-read" },
-			["starts-with", "$Content-Type", type + "/"],
+			{"bucket":			"mobileresponse"},
+			["starts-with",	"$key", "user/kzusy/"],
+			{"acl":				"public-read" },
+			{"Content-Type":	mimeType}
 		]
 	};
 
@@ -399,18 +406,18 @@ function uploadFileToS3(filepath) {
 		acl:					"private",
 		signature:			signature,
 		acl:					"public-read",
-		"Content-Type":	(type == "video") ? "video/quicktime" : "image/jpeg"
+		"Content-Type":	mimeType
 	};
 
 	var options = new FileUploadOptions();
-	options.mimeType = (type == "video") ? "video/quicktime" : "image/jpeg";
+	options.mimeType = mimeType;
 	options.fileKey = "file";
 	options.fileName = filepath.substr(filepath.lastIndexOf('/')+1);
 	options.params = params;
 
 	var ft = new FileTransfer();
 	var url = 'http://mobileresponse.s3.amazonaws.com';
-	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
+	ft.upload(filepath, url, mediaUploadSuccess, mediaUploadFailure, options);
 }
 
 /*
@@ -578,64 +585,69 @@ function getStatusColor(_status) {
 
 var popupOverPhoto = false;
 
-function getPicture(lonlat){
-		togglePhotoVideoDialog();
-		var isSimulator = (device.name.indexOf('Simulator') != -1);
+function getAudio(lonlat) {
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
 	
-		navigator.camera.getPicture(function (imageURI) 
-		{
+	if (isSimulator) {
+		// TODO: Allow user to choose file?
+	}
+	else {
+		navigator.device.capture.captureAudio(function (mediaFiles) {
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
+		});
+	}
+}
+
+function getPicture(lonlat) {
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
+
+	navigator.camera.getPicture(function (imageURI) {
+		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+		
+		// TODO: This sometimes flashes the map
+		updateQueueSize();
+		showQueueTab();
+	},
+	function () { }, {
+		quality : 100,
+		destinationType : Camera.DestinationType.FILE_URI,
+		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+		allowEdit : false
+	});
+}
+
+function getVideo(lonlat) {
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
+
+	if (isSimulator) {
+		navigator.camera.getPicture(function (imageURI) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 			
 			// TODO: This sometimes flashes the map
 			updateQueueSize();
 			showQueueTab();
 		},
-		function () { },
-		{
+		function () { }, {
 			quality : 100,
 			destinationType : Camera.DestinationType.FILE_URI,
-			sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+			sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+			MediaType: Camera.MediaType.ALLMEDIA,
 			allowEdit : false
 		});
-}
-
-function getVideo(lonlat){
-		togglePhotoVideoDialog();
-		var isSimulator = (device.name.indexOf('Simulator') != -1);
-		
-		if(isSimulator)
-		{
-			navigator.camera.getPicture(function (imageURI) 
-			{
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-				
-				// TODO: This sometimes flashes the map
-				updateQueueSize();
-				onClick_QueueTab();
-			},
-			function () { },
-			{
-				quality : 100,
-				destinationType : Camera.DestinationType.FILE_URI,
-				sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
-				MediaType: Camera.MediaType.ALLMEDIA,
-				allowEdit : false
-			});
-		}else{
-			navigator.device.capture.captureVideo(function (mediaFiles) 
-			{
-												  console.log(mediaFiles[0].type);
-				insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
-				
-				// TODO: This sometimes flashes the map
-				updateQueueSize();
-				onClick_QueueTab();
-			},
-			function () { },
-			{
-				limit: 1
-			});
-		}
+	}
+	else {
+		navigator.device.capture.captureVideo(function (mediaFiles) {
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
+		});
+	}
 }
 
 function togglePhotoVideoDialog(){
@@ -846,6 +858,8 @@ function onDeviceReady()
 	});
 					  
 	$('#queue-dialog').on('pageshow', function() {
+		cameraORvideoPopup.hide();
+		
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		selectTabBarItem('Queue');
@@ -1058,6 +1072,11 @@ $(document).ready(function () {
 		map.zoomOut();
 	});
 				  
+	$('#audioButton').click(function(){
+		getAudio(clickedLonLat);
+		clickedLonLat = null;
+	});
+
 	$('#cameraButton').click(function(){
 		getPicture(clickedLonLat);
 		clickedLonLat = null;
