@@ -640,6 +640,14 @@ function getVideo(lonlat){
 
 function togglePhotoVideoDialog(){
 	cameraORvideoPopup.toggle();
+	
+	if (cameraORvideoPopup.is(':visible')) {
+		cameraORvideoPopup.position({
+			my:	'center',
+			at:	'center',
+			of:	$('#map')
+		});
+	}
 }
 
 function getStatusIcon(_status) {
@@ -1064,15 +1072,15 @@ $(document).ready(function () {
 		togglePhotoVideoDialog();
 		clickedLonLat = null;
 	});
-				  
+
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
 			screenLocked = false;
-			$("#screenLock .ui-icon").css("background", "url('css/images/unlock.png') 50% 50% no-repeat");
+			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/unlock.png) !important");
 			navSymbolizer.externalGraphic = "css/images/blue-circle.png";
 		 }else{
 			screenLocked = true;
-			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/glyphish/54-lock.png) !important");
 			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
 		 }
 								 

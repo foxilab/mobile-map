@@ -6,9 +6,11 @@
 		<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
 		<meta charset="utf-8">
 
+		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
 		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
 		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
 		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+
 		<style type="text/css">
 			#zoomPanel{
 				position:absolute;
@@ -37,41 +39,28 @@
 				height: 18px;
 				width: 18px;
 			}
-            #navigation {
-                position: absolute;
-                bottom: 70px;
-                left: 10px;
-                z-index: 1000;
-            }
-            #navigation .ui-btn-icon-notext {
-                display: block;
-                padding: 7px 6px 7px 8px;
-            }
+			#navigation {
+				position: absolute;
+				bottom: 70px;
+				left: 10px;
+				z-index: 1000;
+			}
+			#navigation .ui-btn-icon-notext {
+				display: block;
+				padding: 7px 6px 7px 8px;
+			}
 			#screenLock{
 				position: absolute;
-                top: 40px;
-                right: 10px;
-                z-index: 1000;
-				height:41px;
-				width:38px;
-			}
-			#screenLock .ui-icon{
-				background:  url("css/images/lock.png") 50% 50% no-repeat;
-				background-size: 15px 15px;
+				top: 40px;
+            right: 5px;
+				z-index: 1000;
 			}
 			#screenLock .ui-btn-icon-notext {
 				display: block;
-                padding: 7px 6px 7px 8px;
+				padding: 10px;
+				padding-top: 6px;
 			}
 			 
-			#cameraButton .ui-icon{
-				background: url("css/images/Camera_Alt.png") 50% 50% no-repeat;
-			}
-			
-			#videoButton .ui-icon{
-				background: url("css/images/Cinema.png") 50% 50% no-repeat;
-			}
-			
 			#addressSearchDiv{
 				position:absolute;
 				z-index:1000;
@@ -79,7 +68,7 @@
 				right:5px;
 				width:40%;
 			}
-			
+
 			#cameraORvideoPopup{
 				display:none;
 				position:relative;
@@ -87,7 +76,6 @@
 				top:20%;
 				margin:auto;
 				background-color:#505050;
-				height:180px;
 				width:300px;
 				border:5px solid black;
 				-webkit-border-radius: 10px;
@@ -120,18 +108,18 @@
                         <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
                     </div>
 					<div id="screenLock">
-						<a href="#" data-role="button" data-icon="custom" id="screenlockbutton" data-iconpos="notext"></a>
+						<a href="#" data-role="button" data-icon="glyphish-lock" id="screenlockbutton" data-iconpos="notext"></a>
 					</div>
 					<div id="addressSearchDiv">
 						<ul id='old-places-list' data-role="listview" data-filter="true" data-filter-placeholder="Search for address..." data-inset="true">
 						</ul>
 					</div>
-					<div id="cameraORvideoPopup">
-						<a style="position:absolute;left:38px;color:white;font-size:20px;padding-top:10px;">Select capture method</a>
-						<div data-role="controlgroup" style="position:relative;padding:30px;">
-							<a href="#" data-role="button" data-icon="custom" id="cameraButton" >Picture</a>
-							<a href="#" data-role="button" data-icon="custom" id="videoButton">Video</a>
-							<a href="#" data-role="button" data-icon="back" id="cancelButton">Cancel</a>
+					<div id="cameraORvideoPopup" style="text-align:center;">
+						<span style="color:white; font-size:20px; margin-top:10px;">Select capture method</span>
+						<div data-role="controlgroup" style="padding: 20px;">
+							<a href="#" data-role="button" data-icon="glyphish-microphone" id="soundButton">Sound</a>
+							<a href="#" data-role="button" data-icon="glyphish-camera" id="cameraButton">Picture</a>
+							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
 				</div>
@@ -204,6 +192,8 @@
 			<div data-role='content'>
 				<h3>More</h3>
 				<p>App settings and options go here.</p>
+				<h3>Some icons by Glyphish</h3>
+				<a href="http://glyphish.com">http://glyphish.com</a>
 			</div>
 		</div>
 	</body>

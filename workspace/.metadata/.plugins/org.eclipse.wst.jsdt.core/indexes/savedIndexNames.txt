@@ -1,5 +1,0 @@
-INDEX VERSION 1.122+/Users/mfawcett/dev/mobile-map/workspace/.metadata/.plugins/org.eclipse.wst.jsdt.core/indexes
-3806716177.index
-806400715.index
-175656213.index
-206835433.index
