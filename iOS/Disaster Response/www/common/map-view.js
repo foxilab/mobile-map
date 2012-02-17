@@ -603,7 +603,6 @@ function getAudio(lonlat) {
 }
 
 function getPicture(lonlat) {
-	togglePhotoVideoDialog();
 	var isSimulator = (device.name.indexOf('Simulator') != -1);
 
 	navigator.camera.getPicture(function (imageURI) {
@@ -622,13 +621,15 @@ function getPicture(lonlat) {
 }
 
 function getVideo(lonlat) {
-	togglePhotoVideoDialog();
 	var isSimulator = (device.name.indexOf('Simulator') != -1);
-	var filepath = null;
-	
-	if(isSimulator) {
+
+	if (isSimulator) {
 		navigator.camera.getPicture(function (imageURI) {
-			filepath = imageURI;
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
 		},
 		function () { }, {
 			quality : 100,
@@ -640,18 +641,12 @@ function getVideo(lonlat) {
 	}
 	else {
 		navigator.device.capture.captureVideo(function (mediaFiles) {
-			console.log('error in video success callback');
-			filepath = mediaFiles[0].fullPath;
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
 		});
-	}
-	
-	if (filepath) {
-		console.log('error in getVideo');
-		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, filepath, null);
-		
-		// TODO: This sometimes flashes the map
-		updateQueueSize();
-		showQueueTab();
 	}
 }
 
