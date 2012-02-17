@@ -69,11 +69,11 @@ function createStatusRefTable(db) {
 
 function createQueueTable(db) {
 	/* LOCATIONQUEUE
-	ID		LOCATION			NAME			PHOTO			DATE					STATUS
+	ID		LOCATION			NAME			MEDIA			DATE					STATUS
 	0		100.1, 38.4		Wal-Mart		/file/URI	ISO8601 string		1
 	*/
 	var create = function (tx) {
-		tx.executeSql('CREATE TABLE IF NOT EXISTS locationqueue (id INTEGER PRIMARY KEY, location TEXT NOT NULL, name TEXT, photo TEXT NOT NULL, date TEXT NOT NULL, status INTEGER, FOREIGN KEY(status) REFERENCES statusref(id))');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS locationqueue (id INTEGER PRIMARY KEY, location TEXT NOT NULL, name TEXT, media TEXT NOT NULL, date TEXT NOT NULL, status INTEGER, FOREIGN KEY(status) REFERENCES statusref(id))');
 	};
 
 	db.transaction(create, errorSql);
@@ -131,13 +131,13 @@ function quotedOrNull(str) {
 	return 'NULL';
 }
 
-function locationValuesString(location, name, photo, date, status) {
+function locationValuesString(location, name, media, date, status) {
 	var values = 'VALUES(';
 	
 	values += quotedOrNull(location) + ',';
 	values += quotedOrNull(name) + ',';
-	values += quotedOrNull(photo) + ',';
-	values += quotedOrNull(photo) + ',';
+	values += quotedOrNull(media) + ',';
+	values += quotedOrNull(date) + ',';
 	
 	if (status) {
 		values += status;
@@ -175,7 +175,7 @@ function updateLocationStatus(db, id, status) {
 	db.transaction(update, errorSql);
 }
 
-function insertToLocationQueueTable(db, lon, lat, name, photo, status) {
+function insertToLocationQueueTable(db, lon, lat, name, media, status) {
 	var key = -1;
 	var insert = function (tx) {
 		var values = 'VALUES(';
@@ -187,7 +187,7 @@ function insertToLocationQueueTable(db, lon, lat, name, photo, status) {
 			values += 'NULL,';
 		}
 
-		values += quote(photo) + ',';
+		values += quote(media) + ',';
 		values += "datetime('now'),";
 		
 		if (status) {
@@ -199,7 +199,7 @@ function insertToLocationQueueTable(db, lon, lat, name, photo, status) {
 
 		values += ')';
 
-		tx.executeSql('INSERT INTO locationqueue (location, name, photo, date, status) ' + values, [], function(t, results) {
+		tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
 			key = results.insertId;
 		});
 	};

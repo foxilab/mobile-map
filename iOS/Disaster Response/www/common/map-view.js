@@ -898,11 +898,11 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	
-	var type = mimeTypeFromExt(locRow.photo);
+	var type = mimeTypeFromExt(locRow.media);
 	type = type.substr(0, type.indexOf('/'));
 
 	if (type == "image") {
-		$clone.find('img').attr('src', locRow.photo);
+		$clone.find('img').attr('src', locRow.media);
 	}
 	else if (type == "audio") {
 		$clone.find('img').attr('src', 'css/images/glyphish/66-microphone.png');
@@ -1133,7 +1133,7 @@ function submitToServer() {
 			var sql = '';
 			for (var i = 0; i < rows.length; ++i) {
 				var row = rows.item(i);
-				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
+				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,MediaURL) VALUES (';
 				sql += squote(row.location) + ',';
 				//--------------------------------------------------
 				//  DO NOT TOUCH! It may look wrong       +-Here
@@ -1143,7 +1143,7 @@ function submitToServer() {
 				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.media.substr(row.media.lastIndexOf('/')+1);
 										
 												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
@@ -1152,7 +1152,7 @@ function submitToServer() {
 					sql += ';';
 				}
 												
-				uploadFileToS3(row.photo);
+				uploadFileToS3(row.media);
 			}
 
 			googleSQL(sql, 'POST', function(data) {
