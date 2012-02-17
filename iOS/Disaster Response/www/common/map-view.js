@@ -421,35 +421,107 @@ function onMapMoveEnd(_event) {
 	googleSQL(sql, 'GET', fusionSQLSuccess);
 }
 
-function createPopUp(_id, _lat, _lon, _name, _status, _date, _image) {
-	var htmlContent = "<div class='popupWindow' style='font-family: sans-serif; color: ";
-	htmlContent += getStatusColor(_status);
-	htmlContent += "'>";
-	htmlContent += "<b>Name:</b> "+_name+"<br>";
-	htmlContent += "<b>Date:</b> "+_date+"<br>";
-	htmlContent += "<div style='text-align: center;'><img src='";
+function createPopUp(_feature) {
+	//console.log("I have Popup in the attic."); 
+	//	What? The mere fact that you call making love "Popup" tells me you're not ready.
+	var popupName = "blankPopup";
+	var popupLon, popupLat;
+	var htmlContent = "";
+	var popupImageDefault = "../common/Buildings/Placeholder.jpg";
 	
-	if(isInternetConnection == true && _image != "placeholder")
-		htmlContent += _image;
-	else
-		htmlContent += "../common/Buildings/Placeholder.jpg";
+	if(_feature.attributes.locations.length <= 1) {
+		popupName = _feature.attributes.locations[0].name;
+		status = _feature.attributes.locations[0].status;
+		date = _feature.attributes.locations[0].date;
+		image = _feature.attributes.locations[0].image;
+		popupLon = _feature.attributes.locations[0].lon;
+		popupLat = _feature.attributes.locations[0].lat;
 	
-	htmlContent += "' height='150' width='175' style='vertical-align: top;'/></div>";
-	htmlContent += "</div>";
+		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: ";
+		htmlContent += getStatusColor(parseInt(status));
+		htmlContent += ";'>";
+		
+		htmlContent += "<div><img src='";
+		if(isInternetConnection == true && image != "placeholder")
+			htmlContent += image;
+		else
+			htmlContent += popupImageDefault;
 	
-	var popup = new OpenLayers.Popup(_name,
-			new OpenLayers.LonLat(_lon,_lat),
-			new OpenLayers.Size(250,200),
-			htmlContent,
-			true,
-			popupOnCloseCallback);
+		htmlContent += "' height='64' width='64' align='left;'/></div>";
+		htmlContent += "<b>Name:</b> "+popupName+"<br>";
+		htmlContent += "<b>Date:</b> "+date+"<br>";
+		
+		htmlContent += "</div>";
+	}
+	else {
+		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
+		htmlContent += "I have tons of stuff.";
+		
+		popupLon = _feature.attributes.locations[0].lon;
+		popupLat = _feature.attributes.locations[0].lat;
+	}
+		
+	//Now that our content is all ready, return the popup!
+	var popup = new OpenLayers.Popup(popupName,
+		new OpenLayers.LonLat(popupLon,popupLat).transform(map.displayProjection, map.projection),
+		new OpenLayers.Size(300,200),
+		htmlContent,
+		true,
+		popupOnCloseCallback);
+		
+	//popup.setBackgroundColor("");
 			
 	return popup;
 }
 
 function popupOnCloseCallback(_event) {
-	map.removePopup(this);
 	selectControl.unselectAll();
+}
+
+var LocationPopup;
+function createLocationPopup(_feature) {
+	
+}
+
+function destroyLocationPopup(_feature) {
+	
+}
+
+//Given a row from the fusionSQL call, create a location object
+function getDataFromFusionRow(_row) {
+	//Take the information and split it 
+		var locationDataSplit = _row.split(",");
+		var nameBugFixSplit = _row.split('"');
+	
+	//Gathering intel..., stay frosty
+	//{
+		var lat = parseFloat(locationDataSplit[0].substr(1, locationDataSplit[0].length));
+		var lon = parseFloat(locationDataSplit[1].substr(0, locationDataSplit[1].length-1));	
+		
+		//If the name contains a ',' this method breaks. But there is an easy fix.
+		var name; var positon = 2;
+		if(locationDataSplit[2][0] == '"')			//Check to see if there is an issue:
+			name = nameBugFixSplit[(positon+=1)];	//If so, increase the positon.
+		else
+			name = locationDataSplit[positon];		//Otherwise continue like normal.
+			
+		var status = parseInt(locationDataSplit[(positon+=1)]);
+		var date = locationDataSplit[(positon+=1)];
+		var image = locationDataSplit[(positon+=1)];
+	//}
+	
+	//Build a location
+	var location = [{
+			name: name,
+			position: nameBugFixSplit[1],
+			lat: lat,
+			lon: lon,
+			status: status,
+			date: date,
+			image: image
+	}];
+	
+	return location;
 }
 
 function fusionSQLSuccess(data) {
@@ -461,50 +533,66 @@ function fusionSQLSuccess(data) {
 	
 	var rows = $.trim(data).split('\n');
 	var length = rows.length;
-	transformedTestData.max = length;
+	transformedTestData.max = (length-1);
 	
-	//start at 1, rows[0] is our column titles.
-	for(var i = 1; i < length; i++){
-		var locationData = rows[i].split(",");
-		var nameBugFix = rows[i].split('"');
+	var locationArray = [[]];
+	var exists = false;
+	
+	//With the data, we want to split it up and get it into a format we can use
+	//	start at 1, rows[0] is our column titles.
+	for(var i = 1; i < length; i++) {
+		var location = getDataFromFusionRow(rows[i]);
 		
-		//Gathering intel..., stay frosty
-		var lat = parseFloat(locationData[0].substr(1, locationData[0].length));
-		var lon = parseFloat(locationData[1].substr(0, locationData[1].length-1));
-			
-		//If the name contains a ',' this method breaks. But there is an easy fix.
-		var name; var positon = 2;
-			if(locationData[2][0] == '"')			//Check to see if there is an issue:
-				name = nameBugFix[(positon+=1)];	//If so, increase the positon.
-			else
-				name = locationData[positon];		//Otherwise continue like normal.
-				
-		var status = parseInt(locationData[(positon+=1)]);
-		var date = locationData[(positon+=1)];
-		var image = locationData[(positon+=1)];
-		
-		//If only the icons are to be shown
-		if(map.getResolution() <= iconMaxResolution) {
-			//convert the lat and lon for display
-			var lonlat = new OpenLayers.LonLat(lon,lat).transform(map.displayProjection, map.projection);
-			//create a point for the layer
-			var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
-			//and pick out a nice icon to go with the locations eyes.
-			var icon = getStatusIcon(status);
-		
-			//Create a point and add it to the fusionLayer
-			var location = new OpenLayers.Feature.Vector(point, {image: icon});
-			location.popup = createPopUp(location.id, lonlat.lat, lonlat.lon, name, status, date, image);
-			fusionLayer.addFeatures([location]);
+		//Now that we have our location, loop through and find out if it already exists.
+		for(var locA = 0; locA < locationArray.length; locA++) {
+			for(var loc = 0; loc < locationArray[locA].length; loc++) {
+				//If the positions are the same, these are the same place
+				if(locationArray[locA][loc].position == location[0].position) {
+					//So add the location to this spot in the locationArray
+					locationArray[locA].push(location);
+					exists = true;
+					break;	//Okay we are done here.
+				}
+			}
 		}
-		else {
-			//If we don't want to see the icons, push the data to the heatMap.
-			heatMapData.push({
-				lonlat: new OpenLayers.LonLat(lon, lat),
-				count: (status*50)
-			});
-		}
+		
+		//Does it exist?
+		if(exists == false)
+			locationArray.push(location);
+		exists = false;
 	}
+	
+	//Yeah! Now that we have all of our data sorted, lets get it showing!
+	// Lets loop through our data again
+	for(var locA = 0; locA < locationArray.length; locA++) {
+		for(var loc = 0; loc < locationArray[locA].length; loc++) {
+			if(map.getResolution() <= iconMaxResolution) {
+				//Icons
+				//convert the lat and lon for display
+				var lonlat = new OpenLayers.LonLat(locationArray[locA][loc].lon,locationArray[locA][loc].lat).transform(map.displayProjection, map.projection);
+				//create a point for the layer
+				var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+				//and pick out a nice icon to go with the locations eyes.
+				var icon = getStatusIcon(locationArray[locA][loc].status);
+			
+				//Create a point and add it to the fusionLayer
+				// pass in all the location statuses
+				var locationFeature = new OpenLayers.Feature.Vector(point, {image: icon, locations: locationArray[locA]});
+				locationFeature.popup = createPopUp(locationFeature);
+				fusionLayer.addFeatures([locationFeature]);
+				break; //Ladies please, one point per location!
+			}//end if
+			else {
+				//Heatmap - We need to go deeper with the heatmaps
+				heatMapData.push({
+					lonlat: new OpenLayers.LonLat(locationArray[locA][loc].lon, 
+						locationArray[locA][loc].lat),
+					count: (parseInt(locationArray[locA][loc].status)*50)
+				});
+				break;
+			}//end else
+		}//end for loc
+	}//end for locA
 	
 	//Update all the layers to show the new data.
 	transformedTestData.data = heatMapData;
@@ -549,16 +637,16 @@ function getStatusColor(_status) {
 			return "Green";
 			break;
 		case 2:
-			return "yellow";
+			return "Yellow";
 			break;
 		case 3:
-			return "orange";
+			return "Orange";
 			break;
 		case 4:
-			return "red";
+			return "Red";
 			break;
 		default:
-			return "gray";
+			return "Gray";
 			break;
 	}
 }
@@ -730,10 +818,13 @@ function onDeviceReady()
 		"featureselected": function(_event) {
 			popupOverPhoto = true;
 			map.addPopup(_event.feature.popup);
+			createLocationPopup(_event.feature);
 		},
 		"featureunselected": function(_event) {
 			map.removePopup(_event.feature.popup);
-			popupOverPhoto = false;
+			destroyLocationPopup(_event.feature);
+				setTimeout(function() {
+					popupOverPhoto = false; }, 500);
 		}
 	});
 
