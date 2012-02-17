@@ -84,6 +84,8 @@ var restrictedExtent = maxExtent.clone();
 var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
 var photoguid;
+var cameraORvideoPopup;
+var clickedLonLat;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 	pointRadius : 15,
@@ -307,7 +309,8 @@ var compassSuccess = function(heading) {
 		
 		map.events.rotationAngle = -1 * mapRotation;
 	}else {
-		navSymbolizer.rotation = mapRotation;
+		//navSymbolizer.rotation = mapRotation;
+		navSymbolizer.rotation = heading;
 		navigationLayer.redraw();
 	}
 };
@@ -352,24 +355,41 @@ function googleSQL(sql, type, success, error) {
  see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
  for more details -jm */
 
-function imageUploadSuccess(response) {
-	console.log('image upload success');
+function mediaUploadSuccess(response) {
+	console.log('media upload success');
 	//console.log(response.response);
 }
 
-function imageUploadFailure(response) {
-	console.log('image upload error');
+function mediaUploadFailure(response) {
+	console.log('media upload error');
 	//console.log(response.response);
+}
+
+function mimeTypeFromExt(filepath) {
+	var extensionIndex = filepath.lastIndexOf(".");
+	var extension = filepath.substr(extensionIndex+1).toLowerCase();
+	var mime = null;
+
+	if (extension == "mov")
+		mime = "video/quicktime";
+	else if (extension == "wav")
+		mime = "audio/wav";
+	else if (extension == "jpg" || extension == "jpeg")
+		mime = "image/jpeg";
+
+	return mime;
 }
 
 function uploadFileToS3(filepath) {
+	var mimeType = mimeTypeFromExt(filepath);
+
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
-			{"bucket": "mobileresponse"},
-			["starts-with", "$key", "user/kzusy/"],
-			{"acl": "public-read" },
-			["starts-with", "$Content-Type", "image/"],
+			{"bucket":			"mobileresponse"},
+			["starts-with",	"$key", "user/kzusy/"],
+			{"acl":				"public-read" },
+			{"Content-Type":	mimeType}
 		]
 	};
 
@@ -386,18 +406,18 @@ function uploadFileToS3(filepath) {
 		acl:					"private",
 		signature:			signature,
 		acl:					"public-read",
-		"Content-Type":	"image/jpeg"
+		"Content-Type":	mimeType
 	};
 
 	var options = new FileUploadOptions();
-	options.mimeType = "image/jpeg";
+	options.mimeType = mimeType;
 	options.fileKey = "file";
 	options.fileName = filepath.substr(filepath.lastIndexOf('/')+1);
 	options.params = params;
 
 	var ft = new FileTransfer();
 	var url = 'http://mobileresponse.s3.amazonaws.com';
-	ft.upload(filepath, url, imageUploadSuccess, imageUploadFailure, options);
+	ft.upload(filepath, url, mediaUploadSuccess, mediaUploadFailure, options);
 }
 
 /*
@@ -651,6 +671,85 @@ function getStatusColor(_status) {
 	}
 }
 
+var popupOverPhoto = false;
+
+function getAudio(lonlat) {
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
+	
+	if (isSimulator) {
+		// TODO: Allow user to choose file?
+	}
+	else {
+		navigator.device.capture.captureAudio(function (mediaFiles) {
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
+		});
+	}
+}
+
+function getPicture(lonlat) {
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
+
+	navigator.camera.getPicture(function (imageURI) {
+		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+		
+		// TODO: This sometimes flashes the map
+		updateQueueSize();
+		showQueueTab();
+	},
+	function () { }, {
+		quality : 100,
+		destinationType : Camera.DestinationType.FILE_URI,
+		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
+		allowEdit : false
+	});
+}
+
+function getVideo(lonlat) {
+	var isSimulator = (device.name.indexOf('Simulator') != -1);
+
+	if (isSimulator) {
+		navigator.camera.getPicture(function (imageURI) {
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
+		},
+		function () { }, {
+			quality : 100,
+			destinationType : Camera.DestinationType.FILE_URI,
+			sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+			MediaType: Camera.MediaType.ALLMEDIA,
+			allowEdit : false
+		});
+	}
+	else {
+		navigator.device.capture.captureVideo(function (mediaFiles) {
+			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+			
+			// TODO: This sometimes flashes the map
+			updateQueueSize();
+			showQueueTab();
+		});
+	}
+}
+
+function togglePhotoVideoDialog(){
+	cameraORvideoPopup.toggle();
+	
+	if (cameraORvideoPopup.is(':visible')) {
+		cameraORvideoPopup.position({
+			my:	'center',
+			at:	'center',
+			of:	$('#map')
+		});
+	}
+}
+
 function getStatusIcon(_status) {
 	return "Buildings/" + getStatusColor(_status) + ".png";
 }
@@ -660,13 +759,29 @@ function getStatusIcon(_status) {
  						onDeviceReady
  		==============================================
  */
- 
-var popupOverPhoto = false;
+
+function searchForAddress(address){
+	$.get("https://maps.googleapis.com/maps/api/geocode/json", {'address': address, 'sensor': false, }, function(results){
+	  if(results.status == "OK")
+	  {
+		  var lat = results.results[0].geometry.location.lat;
+		  var lon = results.results[0].geometry.location.lng;
+	  
+		  var lonlat = new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator);
+		  
+		  map.setCenter(lonlat, 17);
+	  }
+	});
+}
+
 var selectControl;
+
 function onDeviceReady()
 {
 	console.log("ready");
 	photoguid = device.uuid;
+	cameraORvideoPopup = $("#cameraORvideoPopup");
+	
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -695,7 +810,6 @@ function onDeviceReady()
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
-	console.log("booga booga");
 	// Set up NativeControls
 	nativeControls = window.plugins.nativeControls;
 	setupTabBar();
@@ -781,27 +895,18 @@ function onDeviceReady()
 			},
 			this.handlerOptions );
 		},
-		trigger : function (e) {
-			if(popupOverPhoto == false) {
-				var lonlat = map.getLonLatFromViewPortPx(e.xy);
-				lonlat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-
-				var isSimulator = (device.name.indexOf('Simulator') != -1);
-
-				navigator.camera.getPicture(function (imageURI) {
-					insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-						
-					// TODO: This sometimes flashes the map
-					updateQueueSize();
-					onClick_QueueTab();
-				},
-				function () { }, {
-					quality : 100,
-					destinationType : Camera.DestinationType.FILE_URI,
-					sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
-					allowEdit : false
-				});
-			}
+		trigger : function (e) 
+		{
+			if(!cameraORvideoPopup.is(":visible"))
+			{
+				if(!popupOverPhoto)
+				{
+					var lonlat = map.getLonLatFromViewPortPx(e.xy);
+					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+					togglePhotoVideoDialog();
+				}
+			}else
+				togglePhotoVideoDialog();
 		}
 	});
 	
@@ -844,6 +949,8 @@ function onDeviceReady()
 	});
 					  
 	$('#queue-dialog').on('pageshow', function() {
+		cameraORvideoPopup.hide();
+		
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		selectTabBarItem('Queue');
@@ -881,8 +988,28 @@ function clearQueueDialog() {
 function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
-	$clone.find('img').attr('src', locRow.photo);
 	
+	var type = mimeTypeFromExt(locRow.media);
+	type = type.substr(0, type.indexOf('/'));
+
+	if (type == "image") {
+		$clone.find('img').attr('src', locRow.media);
+	}
+	else if (type == "audio") {
+		$clone.find('img').attr('src', 'css/images/glyphish/66-microphone.png');
+		$clone.find('img').addClass('ui-li-icon');
+	}
+	else if (type == "video") {
+		// TODO: maybe we should get a thumbnail and put the play button in the middle?
+		$clone.find('img').attr('src', 'css/images/glyphish/45-movie-1.png');
+		$clone.find('img').addClass('ui-li-icon');
+	}
+	else {
+		// Should be impossible to get here
+		console.log('unsupported media type in addToQueueDialog');
+		return;
+	}
+
 	if (locRow.name) {
 		$clone.find('h3').text(locRow.name);
 	}
@@ -935,17 +1062,18 @@ $(document).ready(function () {
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
+		// If we were the last item in the queue, close the dialog
+		if (itemsInQueue === 1) {
+			$('#queue-dialog').dialog('close');
+		}
+
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
 		$(this).hide();
 		$('.queue-list-item').filter('[rowid="' + id + '"]').remove();
 
-		//An item was removed, update the queue size.
+		// An item was removed, update the queue size.
 		updateQueueSize();
-
-		if (itemsInQueue === 0) {
-			$('#queue-dialog').dialog('close');
-		}
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
@@ -1042,6 +1170,11 @@ $(document).ready(function () {
 		map.events.rotationAngle = 0;
 	});
 	
+	$('#addressSearchDiv .ui-listview-filter').submit(function(){
+		var address = $('#addressSearchDiv .ui-input-text').val();
+		searchForAddress(address);
+	});
+	
 	$('#plus').click(function(){
 		map.zoomIn();
 	});
@@ -1050,14 +1183,34 @@ $(document).ready(function () {
 		map.zoomOut();
 	});
 				  
+	$('#audioButton').click(function(){
+		getAudio(clickedLonLat);
+		clickedLonLat = null;
+	});
+
+	$('#cameraButton').click(function(){
+		getPicture(clickedLonLat);
+		clickedLonLat = null;
+	});
+	
+	$('#videoButton').click(function(){
+		getVideo(clickedLonLat);
+		clickedLonLat = null;
+	});
+		
+	$('#cancelButton').click(function(){
+		togglePhotoVideoDialog();
+		clickedLonLat = null;
+	});
+
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
 			screenLocked = false;
-			$("#screenLock .ui-icon").css("background", "url('css/images/unlock.png') 50% 50% no-repeat");
+			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/unlock.png) !important");
 			navSymbolizer.externalGraphic = "css/images/blue-circle.png";
 		 }else{
 			screenLocked = true;
-			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
+			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/glyphish/54-lock.png) !important");
 			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
 		 }
 								 
@@ -1071,7 +1224,7 @@ function submitToServer() {
 			var sql = '';
 			for (var i = 0; i < rows.length; ++i) {
 				var row = rows.item(i);
-				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,PhotoURL) VALUES (';
+				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,MediaURL) VALUES (';
 				sql += squote(row.location) + ',';
 				//--------------------------------------------------
 				//  DO NOT TOUCH! It may look wrong       +-Here
@@ -1081,7 +1234,7 @@ function submitToServer() {
 				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.photo.substr(row.photo.lastIndexOf('/')+1);
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.media.substr(row.media.lastIndexOf('/')+1);
 										
 												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
@@ -1090,13 +1243,9 @@ function submitToServer() {
 					sql += ';';
 				}
 												
-				uploadFileToS3(row.photo);
+				uploadFileToS3(row.media);
 			}
 
-	// TODO: Whoever wrote this, are we using it, or should it be deleted?
-	//		if(isInternetConnection)
-	//			statusSaveStrategy.save();
-												
 			googleSQL(sql, 'POST', function(data) {
 				var rows = $.trim(data).split('\n');
 				var rowid = rows.shift();
@@ -1111,7 +1260,7 @@ function submitToServer() {
 					updateQueueSize();
 					
 					//Hack to refesh the map icons, problem OpenLayers?
-						map.zoomOut(); map.zoomIn();
+					map.zoomOut(); map.zoomIn();
 				}
 			});
 		});
@@ -1126,14 +1275,14 @@ function submitToServer() {
     Calling this function will do everything for you, it reads the SQL database and then updates the size as well as the badges.
  */
 function updateQueueSize() {
-    //We are updating the queue count, so first
-    // lets remove the current queue times from the counters.
-    appNotifications -= itemsInQueue;
-    itemsInQueue = 0;
+	//We are updating the queue count, so first
+	// lets remove the current queue times from the counters.
+	appNotifications -= itemsInQueue;
+	itemsInQueue = 0;
 	clearStatusPoints();
-    
-    //Now we are ready to start, lets get the QueueSize
-    sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
+
+	//Now we are ready to start, lets get the QueueSize
+	sqlDb.transaction(getQueueSize, getQueueSizeErrorBC, getQueueSizeSuccessCB);
 }
 
 function getQueueSize(_tx) {
@@ -1198,7 +1347,7 @@ var tabBarItems = { tabs: [
       {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'          			, 'onSelect': onClick_MoreTab}]
+      {'name': 'More' , 'image': 'tabButton:More'							, 'onSelect': onClick_MoreTab}]
 };
 
 /*
@@ -1335,11 +1484,15 @@ function onClick_MapTab() {
 	$.mobile.changePage('#map-page', 'pop');
 }
 
+function showQueueTab() {
+	selectTabBarItem('Queue');
+	selectedTabBarItem = 'Queue';
+	$.mobile.changePage('#queue-dialog', 'pop');
+}
+
 function onClick_QueueTab() {
-	if (itemsInQueue != 0) {
-		selectTabBarItem('Queue');
-		selectedTabBarItem = 'Queue';
-		$.mobile.changePage('#queue-dialog', 'pop');
+	if (itemsInQueue > 0) {
+		showQueueTab();
 	}
 	else {
 		nativeControls.selectTabBarItem(selectedTabBarItem);
