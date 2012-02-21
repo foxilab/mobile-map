@@ -856,7 +856,7 @@ function onDeviceReady()
 	// do your thing!
 	var windowHeight = $(window).height();
 	var windowWidth = $(window).width();
-	
+
 	if(windowHeight > windowWidth)
 		docHeight = windowHeight;
 	else
@@ -1107,7 +1107,7 @@ $(document).ready(function () {
 //		$('head meta[name=viewport]').remove();
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
 		
-		var src = popup.prevPage.find('.building-popup img').attr('src');
+		var src = popup.prevPage.find('.building-popup img').filter(':visible').attr('src');
 		var $img = $(this).find('img');
 		$img.attr('max-width', $(window).width());
 		$img.attr('src', src);
