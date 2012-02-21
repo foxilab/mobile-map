@@ -82,6 +82,20 @@
 				-moz-border-radius: 10px;
 				border-radius: 10px;
 			}
+			
+			#locationPopup{
+				display:none;
+				position:relative;
+				z-index:1000;
+				top:20%;
+				margin:auto;
+				background-color:#505050;
+				width:300px;
+				border:5px solid black;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}
 			/*.ui-dialog .ui-footer { 
 				height: 1232px !important;
 			}*/
@@ -122,6 +136,23 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
+					
+					<div id="locationPopup" style="text-align:left; display: none;">
+						<div id="locationName" style="color:white; font-size:18px; margin-top:5px; margin-left:5px;">Location</div><br>
+						
+						<table id="locationPopupTable" style="margin-top:-20px; margin-left:10px;">
+							<tr><!-- Row 1 -->
+								<td>
+									<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
+								</td>
+								<td>
+									<div id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</div>
+									<div id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</div>
+								</td>
+							<tr><!-- /Row 1 -->
+						</table>
+					</div>
+					
 				</div>
 			</div>
 			<div data-role='footer'>
@@ -220,5 +251,5 @@
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
 </html>

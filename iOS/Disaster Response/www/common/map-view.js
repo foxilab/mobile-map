@@ -57,25 +57,28 @@ var isAutoPush = false;
 var centered = false;
 var locatedSuccess = true;
 
-// Resolution per level
-// 01 ....   78271.51695 
-// 02 ....   39135.758475 
-// 03 ....   19567.8792375 
-// 04 ....   9783.93961875 
-// 05 ....   4891.969809375 
-// 06 ....   2445.9849046875 
-// 07 ....   1222.99245234375 
-// 08 ....   611.496226171875 
-// 09 ....   305.7481103859375 
-// 10 ....   152.87405654296876 
-// 11 ....   76.43702827148438 
-// 12 ....   38.21851413574219 
-// 13 ....   19.109257067871095 
-// 14 ....   9.554628533935547 
-// 15 ....   4.777314266967774 
-// 16 ....   2.388657133483887 
-// 17 ....   1.1943285667419434 
-// 18 ....   0.5971642833709717 
+// ============================
+//    Resolution per level
+// ============================
+//  01 .... 78271.51695 
+//  02 .... 39135.758475 
+//  03 .... 19567.8792375 
+//  04 .... 9783.93961875 
+//  05 .... 4891.969809375 
+//  06 .... 2445.9849046875 
+//  07 .... 1222.99245234375 
+//  08 .... 611.496226171875 
+//  09 .... 305.7481103859375 
+//  10 .... 152.87405654296876 
+//  11 .... 76.43702827148438 
+//  12 .... 38.21851413574219 
+//  13 .... 19.109257067871095 
+//  14 .... 9.554628533935547 
+//  15 .... 4.777314266967774 
+//  16 .... 2.388657133483887 
+//  17 .... 1.1943285667419434 
+//  18 .... 0.5971642833709717
+// ============================
 
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
@@ -85,6 +88,7 @@ var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
 var photoguid;
 var cameraORvideoPopup;
+var LocationPopup;
 var clickedLonLat;
 
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
@@ -102,13 +106,6 @@ var statusSymbolizer = new OpenLayers.Symbolizer.Point({
     rotation: 0
 });
 
-var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 15,
-		externalGraphic : "${image}",
-		fillOpacity: 1,
-		rotation: 0
-});
-
 var navStyle = new OpenLayers.StyleMap({
 	"default" : new OpenLayers.Style(null, {
 		rules : [ new OpenLayers.Rule({
@@ -123,13 +120,6 @@ var statusStyle = new OpenLayers.StyleMap({
                     symbolizer : statusSymbolizer
                })]
     })
-});
-
-var fusionStyle = new OpenLayers.StyleMap({
-		"default" : new OpenLayers.Style(null, {
-			rules : [ new OpenLayers.Rule({
-						symbolizer : fusionSymbolizer})]
-		})
 });
 
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
@@ -159,14 +149,6 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     visibility: false
 });
 
-var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
-		styleMap: fusionStyle,
-		displayProjection: WGS84,
-		projection: WGS84_google_mercator,
-		maxResolution: iconMaxResolution,
-		minResolution: "auto"
-});
-
 var touchNavOptions = {
 	dragPanOptions: {
 		interval: 0, //non-zero kills performance on some mobile phones
@@ -189,6 +171,38 @@ var options = {
 	controls: [
 		   rotatingTouchNav
 	]
+};
+
+//Fusion Layer Variables (Building Icons) 
+var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
+		pointRadius : 15,
+		externalGraphic : "${image}",
+		fillOpacity: 1,
+		rotation: 0
+});
+													   
+var fusionStyle = new OpenLayers.StyleMap({
+		"default" : new OpenLayers.Style(null, {
+			rules : [ new OpenLayers.Rule({
+				symbolizer : fusionSymbolizer})]
+			})
+});
+
+var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
+		styleMap: fusionStyle,
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: iconMaxResolution,
+		minResolution: "auto"
+});
+
+//Heatmap Variables
+var heatmapGradient = {
+	0.05: "rgb(128,128,128)", 
+	0.25: "rgb(0,255,0)", 
+	0.50: "rgb(255,255,0)",
+	0.90: "rgb(255,165,0)", 
+	1.00: "rgb(255,0,0)"
 };
 
 /*var gimmyHeading = 315;
@@ -425,7 +439,6 @@ function uploadFileToS3(filepath) {
 		 			HeatMap and Icons
  		==============================================
  */
-
 function onMapMoveEnd(_event) {
 	//The map bounds has changed...get the bounds and convert it
 	var bounds = map.getExtent();
@@ -435,76 +448,138 @@ function onMapMoveEnd(_event) {
 	//Generate the SQL
 	var sql = "SELECT * FROM " + FusionTableId.locations() + 
 		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
-		"LATLNG("+rightTop.lat+","+rightTop.lon+")))";
+		"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
 			
 	//With the bounds and SQL, query the Fusion Table for the features.
 	googleSQL(sql, 'GET', fusionSQLSuccess);
 }
 
-function createPopUp(_feature) {
-	//console.log("I have Popup in the attic."); 
-	//	What? The mere fact that you call making love "Popup" tells me you're not ready.
-	var popupName = "blankPopup";
-	var popupLon, popupLat;
-	var htmlContent = "";
-	var popupImageDefault = "../common/Buildings/Placeholder.jpg";
-	
-	if(_feature.attributes.locations.length <= 1) {
-		popupName = _feature.attributes.locations[0].name;
-		status = _feature.attributes.locations[0].status;
-		date = _feature.attributes.locations[0].date;
-		image = _feature.attributes.locations[0].image;
-		popupLon = _feature.attributes.locations[0].lon;
-		popupLat = _feature.attributes.locations[0].lat;
-	
-		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: ";
-		htmlContent += getStatusColor(parseInt(status));
-		htmlContent += ";'>";
-		
-		htmlContent += "<div><img src='";
-		if(isInternetConnection == true && image != "placeholder")
-			htmlContent += image;
-		else
-			htmlContent += popupImageDefault;
-	
-		htmlContent += "' height='64' width='64' align='left;'/></div>";
-		htmlContent += "<b>Name:</b> "+popupName+"<br>";
-		htmlContent += "<b>Date:</b> "+date+"<br>";
-		
-		htmlContent += "</div>";
-	}
-	else {
-		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
-		htmlContent += "I have tons of stuff.";
-		
-		popupLon = _feature.attributes.locations[0].lon;
-		popupLat = _feature.attributes.locations[0].lat;
-	}
-		
-	//Now that our content is all ready, return the popup!
-	var popup = new OpenLayers.Popup(popupName,
-		new OpenLayers.LonLat(popupLon,popupLat).transform(map.displayProjection, map.projection),
-		new OpenLayers.Size(300,200),
-		htmlContent,
-		true,
-		popupOnCloseCallback);
-		
-	//popup.setBackgroundColor("");
-			
-	return popup;
-}
+/*
+ 		==============================================
+							PopUps
+ 		==============================================
+ */
 
-function popupOnCloseCallback(_event) {
-	selectControl.unselectAll();
-}
-
-var LocationPopup;
+var popupFeature;
 function createLocationPopup(_feature) {
+	LocationPopup.toggle();
 	
+	if (LocationPopup.is(':visible')) {
+		LocationPopup.position({
+			my:	'center',
+			at:	'center',
+			of:	$('#map')
+		});
+		
+		//Variables for local use/quick access/shorter code
+		var featureSize = _feature.attributes.locations.length;
+		popupFeature = _feature.attributes.locations[0];
+			var locName 	= popupFeature.name;
+			var locMedia 	= popupFeature.media;
+			var locStatus	= popupFeature.status;
+			var locDate 	= popupFeature.date;
+			var locLat 		= popupFeature.lat;
+			var locLon 		= popupFeature.lon;
+			var precision	= 5;
+		
+		//Check to see the media type
+		var fileType = mimeTypeFromExt(locMedia);
+		
+		//If there is internet, use data from online
+		if(isInternetConnection == true) {
+			if(fileType == "video/quicktime") {
+				document.getElementById("locationImage").src = "Popup/Video.png";
+				document.getElementById("locationImage").alt = "Video of " + locName + ".";
+			}
+				else if(fileType == "audio/wav") {
+					document.getElementById("locationImage").src = "Popup/Audio.png";
+					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ".";
+				}
+				else if(fileType ==  "image/jpeg") {
+					document.getElementById("locationImage").src = locMedia;
+					document.getElementById("locationImage").alt = "Image taken of " + locName + ".";
+				}
+			else {
+				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
+				document.getElementById("locationImage").alt = "This file type is not supported.";
+			}
+		}
+		//Otherwise use defaults
+		else {
+			if(fileType == "video/quicktime") {
+				document.getElementById("locationImage").src = "Popup/Video_Offline.png";
+				document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+			}
+				else if(fileType == "audio/wav") {
+					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
+					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
+				}
+				else if(fileType ==  "image/jpeg") {
+					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
+					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
+				}
+			else {
+				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
+				document.getElementById("locationImage").alt = "This file type is not supported.";
+			}
+		}
+		
+		//Set the rest of the data here:
+		// If the feature has more then 1 status, add the number to the end of the name.
+		if(featureSize <= 1)
+			document.getElementById("locationName").innerHTML = locName;
+		else
+			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
+			
+		document.getElementById("locationName").style.color = getStatusColor(locStatus);
+		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
+		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
+	}
 }
 
 function destroyLocationPopup(_feature) {
+	LocationPopup.hide();
+	popupFeature = null;
 	
+	//Clear out the div's
+	document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
+	document.getElementById("locationImage").alt = "Nothing set for this location.";
+}
+
+function locationPopup_onImageClick() {
+	//We have popupFeature, this variable holds the current feature
+	// now we can pull data and display 
+	//Variables for local use/quick access/shorter code
+		var locName 	= popupFeature.name;
+		var locMedia 	= popupFeature.media;
+		var locStatus	= popupFeature.status;
+		var locDate 	= popupFeature.date;
+		var locLan 		= popupFeature.lan;
+		var locLon 		= popupFeature.lon;
+	
+	//If this image is clicked, we need to do one of 3 things: If the image is a...
+	//  1) Image 2) Audio 3) Video file, open it for the user.
+	
+	//Check to see the media type
+	var fileType = mimeTypeFromExt(locMedia);
+	
+	//Now that we know what type we have, open a new window for the user to view
+	if(fileType == "video/quicktime") {
+		//launch the video
+		navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Video');
+	}
+		else if(fileType == "audio/wav") {
+			//lauch the audio
+			navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Audio');
+		}
+		else if(fileType ==  "image/jpeg") {
+			//lauch the image
+			navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Image');
+		}
+	else {
+		//Sould be impossible to get here...so congratulations?!
+		navigator.notification.alert('Media type not supported.', function(){}, 'Error', 'Okay');
+	}
 }
 
 //Given a row from the fusionSQL call, create a location object
@@ -527,7 +602,7 @@ function getDataFromFusionRow(_row) {
 			
 		var status = parseInt(locationDataSplit[(positon+=1)]);
 		var date = locationDataSplit[(positon+=1)];
-		var image = locationDataSplit[(positon+=1)];
+		var media = locationDataSplit[(positon+=1)];
 	//}
 	
 	//Build a location
@@ -538,7 +613,7 @@ function getDataFromFusionRow(_row) {
 			lon: lon,
 			status: status,
 			date: date,
-			image: image
+			media: media
 	}];
 	
 	return location;
@@ -555,9 +630,10 @@ function fusionSQLSuccess(data) {
 	var length = rows.length;
 	transformedTestData.max = (length-1);
 	
-	var locationArray = [[]];
+	var locationArray = [];
+	locationArray.length = 0;
 	var exists = false;
-	
+		
 	//With the data, we want to split it up and get it into a format we can use
 	//	start at 1, rows[0] is our column titles.
 	for(var i = 1; i < length; i++) {
@@ -598,19 +674,16 @@ function fusionSQLSuccess(data) {
 				//Create a point and add it to the fusionLayer
 				// pass in all the location statuses
 				var locationFeature = new OpenLayers.Feature.Vector(point, {image: icon, locations: locationArray[locA]});
-				locationFeature.popup = createPopUp(locationFeature);
 				fusionLayer.addFeatures([locationFeature]);
-				break; //Ladies please, one point per location!
 			}//end if
 			else {
-				//Heatmap - We need to go deeper with the heatmaps
 				heatMapData.push({
 					lonlat: new OpenLayers.LonLat(locationArray[locA][loc].lon, 
 						locationArray[locA][loc].lat),
 					count: (parseInt(locationArray[locA][loc].status)*50)
 				});
-				break;
 			}//end else
+			break; //Ladies please, one point per location!
 		}//end for loc
 	}//end for locA
 	
@@ -619,14 +692,6 @@ function fusionSQLSuccess(data) {
 	heatmapLayer.setDataSet(transformedTestData);
 	fusionLayer.redraw();
 }
-
-var heatmapGradient = {
-		0.05: "rgb(128,128,128)", 
-		0.25: "rgb(0,255,0)", 
-		0.50: "rgb(255,255,0)",
-		0.90: "rgb(255,165,0)", 
-		1.00: "rgb(255,0,0)"
-};
 
 //This function just readys the heatmap layer
 function initHeatmap() {
@@ -649,26 +714,6 @@ function initHeatmap() {
 	
     transformedTestData.data = nudata;
 	heatmapLayer.setDataSet(transformedTestData);
-}
-
-function getStatusColor(_status) {
-	switch(_status) {
-		case 1:
-			return "Green";
-			break;
-		case 2:
-			return "Yellow";
-			break;
-		case 3:
-			return "Orange";
-			break;
-		case 4:
-			return "Red";
-			break;
-		default:
-			return "Gray";
-			break;
-	}
 }
 
 var popupOverPhoto = false;
@@ -750,15 +795,29 @@ function togglePhotoVideoDialog(){
 	}
 }
 
+function getStatusColor(_status) {
+	switch(_status) {
+		case 1:
+			return "Green";
+			break;
+		case 2:
+			return "Yellow";
+			break;
+		case 3:
+			return "Orange";
+			break;
+		case 4:
+			return "Red";
+			break;
+		default:
+			return "Black";
+			break;
+	}
+}
+
 function getStatusIcon(_status) {
 	return "Buildings/" + getStatusColor(_status) + ".png";
 }
-
-/*
- 		==============================================
- 						onDeviceReady
- 		==============================================
- */
 
 function searchForAddress(address){
 	$.get("https://maps.googleapis.com/maps/api/geocode/json", {'address': address, 'sensor': false, }, function(results){
@@ -776,11 +835,16 @@ function searchForAddress(address){
 
 var selectControl;
 
-function onDeviceReady()
+/*
+		 ==============================================
+ 						 onDeviceReady
+ 		 ==============================================
+ */function onDeviceReady()
 {
 	console.log("ready");
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
+	LocationPopup = $("#locationPopup");
 	
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
@@ -922,11 +986,9 @@ function onDeviceReady()
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
 			popupOverPhoto = true;
-			map.addPopup(_event.feature.popup);
 			createLocationPopup(_event.feature);
 		},
 		"featureunselected": function(_event) {
-			map.removePopup(_event.feature.popup);
 			destroyLocationPopup(_event.feature);
 				setTimeout(function() {
 					popupOverPhoto = false; }, 500);
@@ -947,10 +1009,14 @@ function onDeviceReady()
 	$('#map-page').on('pageshow', function() {
 		selectTabBarItem('Map');
 	});
+	
+	$('#map-page').on('pagehide', function() {
+		selectControl.unselectAll(); //Removes the LocationPopup
+		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+		clickedLonLat = null;		  
+	});
 					  
 	$('#queue-dialog').on('pageshow', function() {
-		cameraORvideoPopup.hide();
-		
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		selectTabBarItem('Queue');
@@ -1347,7 +1413,7 @@ var tabBarItems = { tabs: [
       {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'							, 'onSelect': onClick_MoreTab}]
+      {'name': 'More' , 'image': 'tabButton:More'					, 'onSelect': onClick_MoreTab}]
 };
 
 /*
