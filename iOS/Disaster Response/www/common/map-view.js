@@ -466,23 +466,22 @@ function createPopUp(_feature) {
 		htmlContent += ";'>";
 		htmlContent += "<b>Name:</b> "+popupName+"<br>";
 		htmlContent += "<b>Date:</b> "+date+"<br>";
-		
+
 		var imgsrc;
 		if(isInternetConnection == true && image != "placeholder")
 			imgsrc = image;
 		else
 			imgsrc = popupImageDefault;
-		
-		htmlContent += "<div><a href='" + imgsrc + "'><img src='" + imgsrc;
-		htmlContent += "' height='80' width='80' align='left;'/></a></div>";
+
+		htmlContent += "<div class='building-popup'><a href='#image-viewer' rel='external'><img src='" + imgsrc;
+		htmlContent += "' style='height:80px'/></a></div>";
 		htmlContent += "</div>";
-		$(htmlContent).find('a').lightBox();
 	}
 	else {
 		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
 		htmlContent += "I have tons of stuff.";
 		htmlContent += "</div>";
-		
+
 		popupLon = _feature.attributes.locations[0].lon;
 		popupLat = _feature.attributes.locations[0].lat;
 	}
@@ -811,7 +810,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	//window.addEventListener("orientationchange", onOrientationChange,  true);
+//	window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -840,8 +839,8 @@ function onDeviceReady()
         //setupNavBar();
     
 	// do your thing!
-    var windowHeight = $(window).height();
-    var windowWidth = $(window).width();
+	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
 	var docHeight = 0;
 	
 	if(windowHeight > windowWidth)
@@ -1097,6 +1096,32 @@ $(document).ready(function () {
 	var $queue_item;
 
 	// TODO: Why do some of these only work with live() and not on() ?
+	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
+		//TODO: not sure how to enable zooming when in image-viewer, this works, but has some bad side-effects - see pagehide
+//		$('head meta[name=viewport]').remove();
+//		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
+		
+		var src = popup.prevPage.find('.building-popup img').attr('src');
+		var $img = $(this).find('img');
+		$img.attr('max-width', $(window).width());
+		$img.attr('src', src);
+		$img.load(function() {
+			$(this).position({
+				my:	'center',
+				at:	'center',
+				of:	$(this).parent()
+			});
+		});
+	});
+	$('#image-viewer').live('pagehide', function() {
+		// TODO: no way to reset zoom level, so if user zooms in on image, then goes back to the map, the map-page is zoomed in
+//		$('head meta[name=viewport]').remove();
+//		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />');
+	});
+	$('#image-viewer').live('click', function() {
+		$.mobile.changePage('#map-page');
+	});
+	
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
 	});
@@ -1601,7 +1626,22 @@ function onClick_DebugTab() {
 
     When the application is put into the background via the home button, phone call, app switch, etc. it is paused. Any Objective-C code or PhoneGap code (like alert()) will not run. This callback will allow us to pause anything we need to to avoid time based errors.
  
- */
+*/
+/*
+function resizeImageViewer() {
+	var $imgviewer = $('#image-viewer');
+	if ($imgviewer.is(':visible')) {
+		console.log('resized');
+		var $img = $imgviewer.find('img');
+		$img.attr('max-width', $(window).width());
+		$img.position({
+			my:	'center',
+			at:	'center',
+			of:	$imgviewer
+		});
+	}
+}
+*/
 function onAppPause() {
     console.log('Listener: App has been paused.');
     isAppPaused = true;
@@ -1675,31 +1715,31 @@ function onAppOffline() {
  */
 var orDirtyToggle = false;
 function onOrientationChange(_error) {    
-    //Prevent the function from running multiple times.
-    orDirtyToggle = !orDirtyToggle;
-    if(orDirtyToggle) {
-        switch(window.orientation) {
-            case -90:   //Landscape with the screen turned to the left.
-                onOrientationLandscape(window.orientation);
-                break;
-            
-            case 0:     //Default view
-                onOrientationPortrait(window.orientation);
-                break;
-  
-            case 90:    //Landscape with the screen turned to the right.
-                onOrientationLandscape(window.orientation);
-                break;
-            
-            case 180:   //Upside down.
-                onOrientationPortrait(window.orientation);
-                break;
-            
-            default: 
-                navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
-                break;
-        }
-    }
+	//Prevent the function from running multiple times.
+	orDirtyToggle = !orDirtyToggle;
+	if (orDirtyToggle) {
+		switch (window.orientation) {
+			case -90:   //Landscape with the screen turned to the left.
+				onOrientationLandscape(window.orientation);
+				break;
+
+			case 0:     //Default view
+				onOrientationPortrait(window.orientation);
+				break;
+
+			case 90:    //Landscape with the screen turned to the right.
+				onOrientationLandscape(window.orientation);
+				break;
+
+			case 180:   //Upside down.
+				onOrientationPortrait(window.orientation);
+				break;
+
+			default: 
+				navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
+				break;
+		}
+	}
 }
 
 /*
