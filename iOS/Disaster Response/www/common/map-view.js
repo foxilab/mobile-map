@@ -793,7 +793,22 @@ function searchForAddress(address){
 	});
 }
 
+/*function hideMapToolDivs(){
+	$('#northIndicator').hide();
+	$('#navigation').hide();
+	$('#addressSearchDiv').hide();
+	$('#screenLock').hide();
+}
+
+function showMapToolDivs(){
+	$('#northIndicator').show();
+	$('#navigation').show();
+	$('#addressSearchDiv').show();
+	$('#screenLock').show();
+}*/
+
 var selectControl;
+var docHeight = 0;
 
 function onDeviceReady()
 {
@@ -840,7 +855,6 @@ function onDeviceReady()
 	// do your thing!
     var windowHeight = $(window).height();
     var windowWidth = $(window).width();
-	var docHeight = 0;
 	
 	if(windowHeight > windowWidth)
 		docHeight = windowHeight;
@@ -864,23 +878,7 @@ function onDeviceReady()
 	
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
-	var mapLayerOSM = new OpenLayers.Layer.OSM();
-	
-	var queueDialog = $("#queue-dialog");
-	var locationsDialog = $("#location-dialog");
-	var statusDialog = $("#status-dialog");
-	var userDialog = $("#user-dialog");
-	var moreDialog = $("#more-dialog");
-	
-	queueDialog.css("min-height", docHeight );
-	locationsDialog.height(docHeight);
-	statusDialog.height(docHeight);
-	userDialog.height(docHeight);
-	moreDialog.height(docHeight);
-	
-	console.log("docHeight: " + docHeight);
-	console.log("queueDialog: " + queueDialog.height());
-	
+	var mapLayerOSM = new OpenLayers.Layer.OSM();	
 	
 	//Initalize the Fusion Table layer.
 	//initializeFusionLayer_Icons();
@@ -970,11 +968,19 @@ function onDeviceReady()
 	map.addControl(click);
 	click.activate();
 
+	/*$('#map-page').live('pagebeforeshow', function(){
+		showMapToolDivs();
+	});*/
+	
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').on('pageshow', function() {
 		selectTabBarItem('Map');
 	});
-					  
+	
+	/*$('#map-page').live('pagebeforehide', function(){
+		hideMapToolDivs();
+	});*/
+	
 	$('#queue-dialog').on('pageshow', function() {
 		cameraORvideoPopup.hide();
 		
@@ -1652,10 +1658,6 @@ function onAppOnline() {
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
 	submitQueuedItems();
-						   if(reloadScript)
-							$.getScript("http://lmnuser4:8080/target/target-script-min.js#whammy");
-						   else
-						   reloadScript = true;
 }
 
 /*
