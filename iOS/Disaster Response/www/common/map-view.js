@@ -527,7 +527,7 @@ function createLocationPopup(_feature) {
 				document.getElementById("locationImage").alt = "This file type is not supported.";
 			}
 		}
-			
+
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
@@ -539,57 +539,6 @@ function createLocationPopup(_feature) {
 		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
 		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
 	}
-}
-
-function createPopUp(_feature) {
-	//console.log("I have Popup in the attic."); 
-	//	What? The mere fact that you call making love "Popup" tells me you're not ready.
-	var popupName = "blankPopup";
-	var popupLon, popupLat;
-	var htmlContent = "";
-	var popupImageDefault = "../common/Buildings/Placeholder.jpg";
-	
-	if (_feature.attributes.locations.length <= 1) {
-		popupName = _feature.attributes.locations[0].name;
-		status = _feature.attributes.locations[0].status;
-		date = _feature.attributes.locations[0].date;
-		image = _feature.attributes.locations[0].image;
-		popupLon = _feature.attributes.locations[0].lon;
-		popupLat = _feature.attributes.locations[0].lat;
-		
-		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: ";
-		htmlContent += getStatusColor(parseInt(status));
-		htmlContent += ";'>";
-		htmlContent += "<b>Name:</b> "+popupName+"<br>";
-		htmlContent += "<b>Date:</b> "+date+"<br>";
-		
-		var imgsrc;
-		if(isInternetConnection == true && image != "placeholder")
-			imgsrc = image;
-		else
-			imgsrc = popupImageDefault;
-		
-		htmlContent += "<div class='building-popup'><a href='#image-viewer' rel='external'><img src='" + imgsrc;
-		htmlContent += "' style='height:80px'/></a></div>";
-		htmlContent += "</div>";
-	}
-	else {
-		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
-		htmlContent += "I have tons of stuff.";
-		htmlContent += "</div>";
-		
-		popupLon = _feature.attributes.locations[0].lon;
-		popupLat = _feature.attributes.locations[0].lat;
-	}
-	
-	//Now that our content is all ready, return the popup!
-	var popup = new OpenLayers.Popup(popupName,
-									 new OpenLayers.LonLat(popupLon,popupLat).transform(map.displayProjection, map.projection),
-									 new OpenLayers.Size(300,200),
-									 htmlContent,
-									 true,
-									 popupOnCloseCallback);
-	return popup;
 }
 
 function destroyLocationPopup(_feature) {
@@ -612,8 +561,8 @@ function locationPopup_onImageClick() {
 		var locLan 		= popupFeature.lan;
 		var locLon 		= popupFeature.lon;
 	
-	//If this image is clicked, we need to do one of 3 things: If the image is a...
-	//  1) Image 2) Audio 3) Video file, open it for the user.
+	//If this image is clicked, we need to do one of 2 things: If the image is a...
+	//  1) Image 2) Video file, open it for the user.
 	
 	//Check to see the media type
 	var fileType = mimeTypeFromExt(locMedia);
@@ -623,14 +572,9 @@ function locationPopup_onImageClick() {
 		//launch the video
 		navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Video');
 	}
-		else if(fileType == "audio/wav") {
-			//lauch the audio
-			navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Audio');
-		}
-		else if(fileType ==  "image/jpeg") {
-			//lauch the image
-			navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Image');
-		}
+	else if(fileType ==  "image/jpeg") {
+		$.mobile.changePage('#image-viewer');
+	}
 	else {
 		//Sould be impossible to get here...so congratulations?!
 		navigator.notification.alert('Media type not supported.', function(){}, 'Error', 'Okay');
@@ -1223,7 +1167,7 @@ $(document).ready(function () {
 //		$('head meta[name=viewport]').remove();
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
 		
-		var src = popup.prevPage.find('.building-popup img').filter(':visible').attr('src');
+		var src = popup.prevPage.find('#locationImage').attr('src');
 		var $img = $(this).find('img');
 		$img.attr('max-width', $(window).width());
 		$img.attr('src', src);
