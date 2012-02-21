@@ -374,9 +374,13 @@ function mimeTypeFromExt(filepath) {
 		mime = "video/quicktime";
 	else if (extension == "wav")
 		mime = "audio/wav";
+	else if (extension == "mp3")
+		mime = "audio/mpeg";
 	else if (extension == "jpg" || extension == "jpeg")
 		mime = "image/jpeg";
-
+	else if (extension == "png")
+		mime = "image/png";
+		
 	return mime;
 }
 
@@ -756,6 +760,11 @@ function getStatusIcon(_status) {
 	return "Buildings/" + getStatusColor(_status) + ".png";
 }
 
+function hideAddressSearchList(){
+	if($('#addressSearchDiv .ui-listview-filter').is(':focus'))
+		$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
+}
+
 /*
  		==============================================
  						onDeviceReady
@@ -769,9 +778,19 @@ function searchForAddress(address){
 		  var lat = results.results[0].geometry.location.lat;
 		  var lon = results.results[0].geometry.location.lng;
 	  
+		  console.log("from google: " + lon + ", " + lat);
 		  var lonlat = new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator);
 		  
 		  map.setCenter(lonlat, 17);
+		  
+		  var formattedAddress = results.results[0].formatted_address;
+		  
+		  if(!formattedAddress)
+			formattedAddress = address;
+		  
+		  console.log("being inserted: " + lonlat.lon + ", " + lonlat.lat);
+		  insertToAddressSearchTable(sqlDb, lonlat.lon, lonlat.lat, formattedAddress);
+		  addToAddressList(lonlat.lon, lonlat.lat, formattedAddress);
 	  }
 	});
 }
@@ -805,6 +824,8 @@ function onDeviceReady()
 			sqlDb = window.openDatabase('mobdisapp', '0.1', 'MobDisAppDB', 3145728);
 			createStatusRefTable(sqlDb);
 			createQueueTable(sqlDb);
+			createAddressSearchTable(sqlDb);
+			forAllAddresses(sqlDb, addToAddressList);
 		}
 	}
 	catch (e) {
@@ -909,6 +930,12 @@ function onDeviceReady()
 				}
 			}else
 				togglePhotoVideoDialog();
+												
+			var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+			if(visibleListItems.length > 0){
+				visibleListItems.addClass('ui-screen-hidden hid-myself');
+				$('#addressSearchDiv .ui-input-text').blur();
+			}
 		}
 	});
 	
@@ -1023,6 +1050,27 @@ function addToQueueDialog(locRow) {
 	$clone.attr('rowid', locRow.id);
 	$('#queue-dialog ul').append($clone);
 	$clone.trigger('create').show();
+}
+
+function addToAddressList(){
+	var location;
+	var address;
+	var _class;
+	
+	if(arguments.length == 1)
+	{
+		location = arguments[0].coordinates;
+		address = arguments[0].address;
+		_class = "address-list-item ui-screen-hidden hid-myself";
+	}else{
+		location = arguments[1] + "," + arguments[0];
+		address = arguments[2];
+		_class = "address-list-item";
+	}
+	
+	var newListElement = "<li class='" + _class + "' location='" + location + "'><a href='#'>" + address + "</a></li>";
+	$('#old-places-list').append(newListElement);
+	$('#old-places-list').listview('refresh');
 }
 
 function hideQueueItemDelete(e) {
@@ -1158,6 +1206,12 @@ $(document).ready(function () {
 		submitToServer();
 	});
 
+	$('#northIndicator').click(function(){
+		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+		if(visibleListItems.length > 0)
+		   visibleListItems.addClass('ui-screen-hidden hid-myself');
+	});
+				  
 	$("#northIndicator").on("taphold", function(){
 		if(!screenLocked){
 			screenLocked = true;
@@ -1177,6 +1231,24 @@ $(document).ready(function () {
 		searchForAddress(address);
 	});
 	
+	$('.address-list-item').live('click', function(){
+		var coordinates = $(this).attr('location');
+		var commaIndex = coordinates.indexOf(",");
+		var lat = coordinates.substring(0, commaIndex);
+		var lon = coordinates.substr(commaIndex+1);
+		
+								 console.log(lon + "," + lat);
+		map.setCenter(new OpenLayers.LonLat(lon, lat), 17);							
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
+			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+	});
+		
+	/*$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
+			$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
+	});*/
+				  
 	$('#plus').click(function(){
 		map.zoomIn();
 	});
