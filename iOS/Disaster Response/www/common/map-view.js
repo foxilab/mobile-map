@@ -388,9 +388,13 @@ function mimeTypeFromExt(filepath) {
 		mime = "video/quicktime";
 	else if (extension == "wav")
 		mime = "audio/wav";
+	else if (extension == "mp3")
+		mime = "audio/mpeg";
 	else if (extension == "jpg" || extension == "jpeg")
 		mime = "image/jpeg";
-
+	else if (extension == "png")
+		mime = "image/png";
+		
 	return mime;
 }
 
@@ -523,7 +527,7 @@ function createLocationPopup(_feature) {
 				document.getElementById("locationImage").alt = "This file type is not supported.";
 			}
 		}
-		
+			
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
@@ -535,6 +539,57 @@ function createLocationPopup(_feature) {
 		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
 		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
 	}
+}
+
+function createPopUp(_feature) {
+	//console.log("I have Popup in the attic."); 
+	//	What? The mere fact that you call making love "Popup" tells me you're not ready.
+	var popupName = "blankPopup";
+	var popupLon, popupLat;
+	var htmlContent = "";
+	var popupImageDefault = "../common/Buildings/Placeholder.jpg";
+	
+	if (_feature.attributes.locations.length <= 1) {
+		popupName = _feature.attributes.locations[0].name;
+		status = _feature.attributes.locations[0].status;
+		date = _feature.attributes.locations[0].date;
+		image = _feature.attributes.locations[0].image;
+		popupLon = _feature.attributes.locations[0].lon;
+		popupLat = _feature.attributes.locations[0].lat;
+		
+		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: ";
+		htmlContent += getStatusColor(parseInt(status));
+		htmlContent += ";'>";
+		htmlContent += "<b>Name:</b> "+popupName+"<br>";
+		htmlContent += "<b>Date:</b> "+date+"<br>";
+		
+		var imgsrc;
+		if(isInternetConnection == true && image != "placeholder")
+			imgsrc = image;
+		else
+			imgsrc = popupImageDefault;
+		
+		htmlContent += "<div class='building-popup'><a href='#image-viewer' rel='external'><img src='" + imgsrc;
+		htmlContent += "' style='height:80px'/></a></div>";
+		htmlContent += "</div>";
+	}
+	else {
+		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
+		htmlContent += "I have tons of stuff.";
+		htmlContent += "</div>";
+		
+		popupLon = _feature.attributes.locations[0].lon;
+		popupLat = _feature.attributes.locations[0].lat;
+	}
+	
+	//Now that our content is all ready, return the popup!
+	var popup = new OpenLayers.Popup(popupName,
+									 new OpenLayers.LonLat(popupLon,popupLat).transform(map.displayProjection, map.projection),
+									 new OpenLayers.Size(300,200),
+									 htmlContent,
+									 true,
+									 popupOnCloseCallback);
+	return popup;
 }
 
 function destroyLocationPopup(_feature) {
@@ -819,6 +874,11 @@ function getStatusIcon(_status) {
 	return "Buildings/" + getStatusColor(_status) + ".png";
 }
 
+function hideAddressSearchList(){
+	if($('#addressSearchDiv .ui-listview-filter').is(':focus'))
+		$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
+}
+
 function searchForAddress(address){
 	$.get("https://maps.googleapis.com/maps/api/geocode/json", {'address': address, 'sensor': false, }, function(results){
 	  if(results.status == "OK")
@@ -826,14 +886,39 @@ function searchForAddress(address){
 		  var lat = results.results[0].geometry.location.lat;
 		  var lon = results.results[0].geometry.location.lng;
 	  
+		  console.log("from google: " + lon + ", " + lat);
 		  var lonlat = new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator);
 		  
 		  map.setCenter(lonlat, 17);
+		  
+		  var formattedAddress = results.results[0].formatted_address;
+		  
+		  if(!formattedAddress)
+			formattedAddress = address;
+		  
+		  console.log("being inserted: " + lonlat.lon + ", " + lonlat.lat);
+		  insertToAddressSearchTable(sqlDb, lonlat.lon, lonlat.lat, formattedAddress);
+		  addToAddressList(lonlat.lon, lonlat.lat, formattedAddress);
 	  }
 	});
 }
 
+/*function hideMapToolDivs(){
+	$('#northIndicator').hide();
+	$('#navigation').hide();
+	$('#addressSearchDiv').hide();
+	$('#screenLock').hide();
+}
+
+function showMapToolDivs(){
+	$('#northIndicator').show();
+	$('#navigation').show();
+	$('#addressSearchDiv').show();
+	$('#screenLock').show();
+}*/
+
 var selectControl;
+var docHeight = 0;
 
 /*
 		 ==============================================
@@ -854,7 +939,7 @@ var selectControl;
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	//window.addEventListener("orientationchange", onOrientationChange,  true);
+//	window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -867,6 +952,8 @@ var selectControl;
 			sqlDb = window.openDatabase('mobdisapp', '0.1', 'MobDisAppDB', 3145728);
 			createStatusRefTable(sqlDb);
 			createQueueTable(sqlDb);
+			createAddressSearchTable(sqlDb);
+			forAllAddresses(sqlDb, addToAddressList);
 		}
 	}
 	catch (e) {
@@ -881,9 +968,8 @@ var selectControl;
         //setupNavBar();
     
 	// do your thing!
-    var windowHeight = $(window).height();
-    var windowWidth = $(window).width();
-	var docHeight = 0;
+	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
 	
 	if(windowHeight > windowWidth)
 		docHeight = windowHeight;
@@ -907,23 +993,7 @@ var selectControl;
 	
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
-	var mapLayerOSM = new OpenLayers.Layer.OSM();
-	
-	var queueDialog = $("#queue-dialog");
-	var locationsDialog = $("#location-dialog");
-	var statusDialog = $("#status-dialog");
-	var userDialog = $("#user-dialog");
-	var moreDialog = $("#more-dialog");
-	
-	queueDialog.css("min-height", docHeight );
-	locationsDialog.height(docHeight);
-	statusDialog.height(docHeight);
-	userDialog.height(docHeight);
-	moreDialog.height(docHeight);
-	
-	console.log("docHeight: " + docHeight);
-	console.log("queueDialog: " + queueDialog.height());
-	
+	var mapLayerOSM = new OpenLayers.Layer.OSM();	
 	
 	//Initalize the Fusion Table layer.
 	//initializeFusionLayer_Icons();
@@ -971,6 +1041,12 @@ var selectControl;
 				}
 			}else
 				togglePhotoVideoDialog();
+												
+			var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+			if(visibleListItems.length > 0){
+				visibleListItems.addClass('ui-screen-hidden hid-myself');
+				$('#addressSearchDiv .ui-input-text').blur();
+			}
 		}
 	});
 	
@@ -1005,6 +1081,10 @@ var selectControl;
 	map.addControl(click);
 	click.activate();
 
+	/*$('#map-page').live('pagebeforeshow', function(){
+		showMapToolDivs();
+	});*/
+	
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').on('pageshow', function() {
 		selectTabBarItem('Map');
@@ -1016,6 +1096,10 @@ var selectControl;
 		clickedLonLat = null;		  
 	});
 					  
+	/*$('#map-page').live('pagebeforehide', function(){
+		hideMapToolDivs();
+	});*/
+	
 	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
@@ -1089,6 +1173,27 @@ function addToQueueDialog(locRow) {
 	$clone.trigger('create').show();
 }
 
+function addToAddressList(){
+	var location;
+	var address;
+	var _class;
+	
+	if(arguments.length == 1)
+	{
+		location = arguments[0].coordinates;
+		address = arguments[0].address;
+		_class = "address-list-item ui-screen-hidden hid-myself";
+	}else{
+		location = arguments[1] + "," + arguments[0];
+		address = arguments[2];
+		_class = "address-list-item";
+	}
+	
+	var newListElement = "<li class='" + _class + "' location='" + location + "'><a href='#'>" + address + "</a></li>";
+	$('#old-places-list').append(newListElement);
+	$('#old-places-list').listview('refresh');
+}
+
 function hideQueueItemDelete(e) {
 	$('#queue-item-delete').hide();
 }
@@ -1113,6 +1218,32 @@ $(document).ready(function () {
 	var $queue_item;
 
 	// TODO: Why do some of these only work with live() and not on() ?
+	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
+		//TODO: not sure how to enable zooming when in image-viewer, this works, but has some bad side-effects - see pagehide
+//		$('head meta[name=viewport]').remove();
+//		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
+		
+		var src = popup.prevPage.find('.building-popup img').attr('src');
+		var $img = $(this).find('img');
+		$img.attr('max-width', $(window).width());
+		$img.attr('src', src);
+		$img.load(function() {
+			$(this).position({
+				my:	'center',
+				at:	'center',
+				of:	$(this).parent()
+			});
+		});
+	});
+	$('#image-viewer').live('pagehide', function() {
+		// TODO: no way to reset zoom level, so if user zooms in on image, then goes back to the map, the map-page is zoomed in
+//		$('head meta[name=viewport]').remove();
+//		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />');
+	});
+	$('#image-viewer').live('click', function() {
+		$.mobile.changePage('#map-page');
+	});
+	
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
 	});
@@ -1222,6 +1353,12 @@ $(document).ready(function () {
 		submitToServer();
 	});
 
+	$('#northIndicator').click(function(){
+		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+		if(visibleListItems.length > 0)
+		   visibleListItems.addClass('ui-screen-hidden hid-myself');
+	});
+				  
 	$("#northIndicator").on("taphold", function(){
 		if(!screenLocked){
 			screenLocked = true;
@@ -1241,6 +1378,24 @@ $(document).ready(function () {
 		searchForAddress(address);
 	});
 	
+	$('.address-list-item').live('click', function(){
+		var coordinates = $(this).attr('location');
+		var commaIndex = coordinates.indexOf(",");
+		var lat = coordinates.substring(0, commaIndex);
+		var lon = coordinates.substr(commaIndex+1);
+		
+								 console.log(lon + "," + lat);
+		map.setCenter(new OpenLayers.LonLat(lon, lat), 17);							
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
+			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+	});
+		
+	/*$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
+			$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
+	});*/
+				  
 	$('#plus').click(function(){
 		map.zoomIn();
 	});
@@ -1593,7 +1748,22 @@ function onClick_DebugTab() {
 
     When the application is put into the background via the home button, phone call, app switch, etc. it is paused. Any Objective-C code or PhoneGap code (like alert()) will not run. This callback will allow us to pause anything we need to to avoid time based errors.
  
- */
+*/
+/*
+function resizeImageViewer() {
+	var $imgviewer = $('#image-viewer');
+	if ($imgviewer.is(':visible')) {
+		console.log('resized');
+		var $img = $imgviewer.find('img');
+		$img.attr('max-width', $(window).width());
+		$img.position({
+			my:	'center',
+			at:	'center',
+			of:	$imgviewer
+		});
+	}
+}
+*/
 function onAppPause() {
     console.log('Listener: App has been paused.');
     isAppPaused = true;
@@ -1646,10 +1816,6 @@ function onAppOnline() {
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
 	submitQueuedItems();
-						   if(reloadScript)
-							$.getScript("http://lmnuser4:8080/target/target-script-min.js#whammy");
-						   else
-						   reloadScript = true;
 }
 
 /*
@@ -1667,31 +1833,31 @@ function onAppOffline() {
  */
 var orDirtyToggle = false;
 function onOrientationChange(_error) {    
-    //Prevent the function from running multiple times.
-    orDirtyToggle = !orDirtyToggle;
-    if(orDirtyToggle) {
-        switch(window.orientation) {
-            case -90:   //Landscape with the screen turned to the left.
-                onOrientationLandscape(window.orientation);
-                break;
-            
-            case 0:     //Default view
-                onOrientationPortrait(window.orientation);
-                break;
-  
-            case 90:    //Landscape with the screen turned to the right.
-                onOrientationLandscape(window.orientation);
-                break;
-            
-            case 180:   //Upside down.
-                onOrientationPortrait(window.orientation);
-                break;
-            
-            default: 
-                navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
-                break;
-        }
-    }
+	//Prevent the function from running multiple times.
+	orDirtyToggle = !orDirtyToggle;
+	if (orDirtyToggle) {
+		switch (window.orientation) {
+			case -90:   //Landscape with the screen turned to the left.
+				onOrientationLandscape(window.orientation);
+				break;
+
+			case 0:     //Default view
+				onOrientationPortrait(window.orientation);
+				break;
+
+			case 90:    //Landscape with the screen turned to the right.
+				onOrientationLandscape(window.orientation);
+				break;
+
+			case 180:   //Upside down.
+				onOrientationPortrait(window.orientation);
+				break;
+
+			default: 
+				navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
+				break;
+		}
+	}
 }
 
 /*

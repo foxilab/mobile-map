@@ -69,18 +69,12 @@
 				width:40%;
 			}
 
-			#cameraORvideoPopup{
+			#cameraORvideoPopup {
 				display:none;
 				position:relative;
 				z-index:1000;
-				top:20%;
 				margin:auto;
-				background-color:#505050;
 				width:300px;
-				border:5px solid black;
-				-webkit-border-radius: 10px;
-				-moz-border-radius: 10px;
-				border-radius: 10px;
 			}
 			
 			#locationPopup{
@@ -96,9 +90,11 @@
 				-moz-border-radius: 10px;
 				border-radius: 10px;
 			}
-			/*.ui-dialog .ui-footer { 
-				height: 1232px !important;
-			}*/
+
+			.ui-page {
+				height: 100% !important;
+			}
+			
 	</style>
 		<!-- iPad/iPhone specific css below, add after your main css >
 		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
@@ -125,10 +121,10 @@
 						<a href="#" data-role="button" data-icon="glyphish-lock" id="screenlockbutton" data-iconpos="notext"></a>
 					</div>
 					<div id="addressSearchDiv">
-						<ul id='old-places-list' data-role="listview" data-filter="true" data-filter-placeholder="Search for address..." data-inset="true">
+						<ul id='old-places-list' data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Search for address..." data-inset="true">
 						</ul>
 					</div>
-					<div id="cameraORvideoPopup" style="text-align:center;">
+					<div id="cameraORvideoPopup" class="ui-body ui-body-a ui-corner-all ui-shadow" style="text-align:center;">
 						<span style="color:white; font-size:20px; margin-top:10px;">Select capture method</span>
 						<div data-role="controlgroup" style="padding: 20px;">
 							<a href="#" data-role="button" data-icon="glyphish-microphone" id="audioButton">Audio</a>
@@ -227,6 +223,10 @@
 				<a href="http://glyphish.com">http://glyphish.com</a>
 			</div>
 		</div>
+
+		<div data-role='page' id='image-viewer' style='width:100%; height:100%; background-color: black !important'>
+			<img style='width: 100%; height: auto' />
+		</div>
 	</body>
 
 	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false" defer="defer"></script>
@@ -239,12 +239,12 @@
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
 	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
-	
+
 	<!-- Plugins -->
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/NativeControls.js"></script>
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/Badge.js"></script>
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/ChildBrowser.js"></script>
-    
+   
 	<script type="text/javascript" charset="utf-8" src="heatmap.js"></script>
 	<script type="text/javascript" charset="utf-8" src="heatmap-openlayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
