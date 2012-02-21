@@ -448,8 +448,8 @@ function createPopUp(_feature) {
 	var popupLon, popupLat;
 	var htmlContent = "";
 	var popupImageDefault = "../common/Buildings/Placeholder.jpg";
-	
-	if(_feature.attributes.locations.length <= 1) {
+
+	if (_feature.attributes.locations.length <= 1) {
 		popupName = _feature.attributes.locations[0].name;
 		status = _feature.attributes.locations[0].status;
 		date = _feature.attributes.locations[0].date;
@@ -460,27 +460,29 @@ function createPopUp(_feature) {
 		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: ";
 		htmlContent += getStatusColor(parseInt(status));
 		htmlContent += ";'>";
-		
-		htmlContent += "<div><img src='";
-		if(isInternetConnection == true && image != "placeholder")
-			htmlContent += image;
-		else
-			htmlContent += popupImageDefault;
-	
-		htmlContent += "' height='64' width='64' align='left;'/></div>";
 		htmlContent += "<b>Name:</b> "+popupName+"<br>";
 		htmlContent += "<b>Date:</b> "+date+"<br>";
 		
+		var imgsrc;
+		if(isInternetConnection == true && image != "placeholder")
+			imgsrc = image;
+		else
+			imgsrc = popupImageDefault;
+		
+		htmlContent += "<div><a href='" + imgsrc + "'><img src='" + imgsrc;
+		htmlContent += "' height='80' width='80' align='left;'/></a></div>";
 		htmlContent += "</div>";
+		$(htmlContent).find('a').lightBox();
 	}
 	else {
 		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
 		htmlContent += "I have tons of stuff.";
+		htmlContent += "</div>";
 		
 		popupLon = _feature.attributes.locations[0].lon;
 		popupLat = _feature.attributes.locations[0].lat;
 	}
-		
+
 	//Now that our content is all ready, return the popup!
 	var popup = new OpenLayers.Popup(popupName,
 		new OpenLayers.LonLat(popupLon,popupLat).transform(map.displayProjection, map.projection),
@@ -603,7 +605,7 @@ function fusionSQLSuccess(data) {
 				break; //Ladies please, one point per location!
 			}//end if
 			else {
-				//Heatmap - We need to go deeper with the heatmaps
+				//Heatmap - We need to go deeper with the heatmaps - BRAAAAAAP
 				heatMapData.push({
 					lonlat: new OpenLayers.LonLat(locationArray[locA][loc].lon, 
 						locationArray[locA][loc].lat),
