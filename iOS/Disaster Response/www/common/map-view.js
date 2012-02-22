@@ -487,47 +487,65 @@ function createLocationPopup(_feature) {
 			var precision	= 5;
 		
 		//Check to see the media type
-		var fileType = mimeTypeFromExt(locMedia);
+		var mime = mimeTypeFromExt(locMedia);
 		
-		//If there is internet, use data from online
-		if(isInternetConnection == true) {
-			if(fileType == "video/quicktime") {
-				document.getElementById("locationImage").src = "Popup/Video.png";
-				document.getElementById("locationImage").alt = "Video of " + locName + ".";
+		if (mime) {
+			var fileType = mime.substr(0, mime.indexOf('/'));
+		
+			//If there is internet, use data from online
+			if(isInternetConnection == true) {
+				if(fileType == "video") {
+					console.log('video');
+					$('#locationImage').hide();
+					$('#embedded-audio').hide();
+
+					var $video = $('#embedded-video').find('video');
+					$video.attr('src', locMedia);
+					$('#embedded-video').show();
+
+					console.log('made it!');
+				}
+				else if(fileType == "audio") {
+					console.log('audio');
+					$('#locationImage').hide();
+					$('#embedded-video').hide();
+					
+					// TODO: set the audio src
+					$('#embedded-audio').show();
+
+	//				document.getElementById("locationImage").src = "Popup/Audio.png";
+	//				document.getElementById("locationImage").alt = "Audio recorded at " + locName + ".";
+				}
+				else if(fileType ==  "image") {
+					console.log('image');
+					$('#embedded-audio').hide();
+					$('#embedded-video').hide();
+					
+					var $img = $('#locationImage').show();
+					$img.attr('src', locMedia);
+					$img.attr('alt', "Image taken of " + locName + ".");
+				}
 			}
-				else if(fileType == "audio/wav") {
-					document.getElementById("locationImage").src = "Popup/Audio.png";
-					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ".";
-				}
-				else if(fileType ==  "image/jpeg") {
-					document.getElementById("locationImage").src = locMedia;
-					document.getElementById("locationImage").alt = "Image taken of " + locName + ".";
-				}
+			//Otherwise use defaults
 			else {
-				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
-				document.getElementById("locationImage").alt = "This file type is not supported.";
-			}
-		}
-		//Otherwise use defaults
-		else {
-			if(fileType == "video/quicktime") {
-				document.getElementById("locationImage").src = "Popup/Video_Offline.png";
-				document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
-			}
-				else if(fileType == "audio/wav") {
+				if(fileType == "video") {
+					document.getElementById("locationImage").src = "Popup/Video_Offline.png";
+					document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+				}
+				else if(fileType == "audio") {
 					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
 					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
 				}
-				else if(fileType ==  "image/jpeg") {
+				else if(fileType ==  "image") {
 					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
 					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
 				}
-			else {
-				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
-				document.getElementById("locationImage").alt = "This file type is not supported.";
 			}
 		}
-
+		else {
+			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
+			document.getElementById("locationImage").alt = "This file type is not supported.";
+		}
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)

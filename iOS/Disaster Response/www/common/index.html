@@ -9,7 +9,10 @@
 		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
 		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
 		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
+		<link rel="stylesheet" href="css/video-js.min.css" type="text/css"/>
 		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+
+		<script type="text/javascript" charset="utf-8" src="video.min.js"></script>
 
 		<style type="text/css">
 			#zoomPanel{
@@ -140,6 +143,18 @@
 							<tr><!-- Row 1 -->
 								<td>
 									<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
+									<video id="embedded-video" style='display: none' class="video-js vjs-default-skin" controls preload="auto" width="200" height="164" data-setup="{}">
+									</video>
+									<div id='embedded-audio' style='display:none'>
+										<div data-role="navbar" data-iconpos="top">
+											<ul>
+												<li><a href="#" data-icon="arrow-l">Rewind</a></li>
+												<li><a href="#" data-icon="arrow-r">Play</a></li>
+												<li><a href="#" data-icon="grid">Pause</a></li>
+												<li><a href="#" data-icon="delete">Stop</a></li>
+											</ul>
+										</div>
+									</div>									
 								</td>
 								<td>
 									<div id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</div>
@@ -251,5 +266,5 @@
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>
