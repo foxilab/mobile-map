@@ -87,7 +87,8 @@
 				top:20%;
 				margin:auto;
 				background-color:#505050;
-				width:300px;
+				min-width:300px;
+				float:left;
 				border:5px solid black;
 				-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
@@ -137,33 +138,20 @@
 					</div>
 					
 					<div id="locationPopup" style="text-align:left; display: none;">
-						<div id="locationName" style="color:white; font-size:18px; margin-top:5px; margin-left:5px;">Location</div><br>
-						
-						<table id="locationPopupTable" style="margin-top:-20px; margin-left:10px;">
-							<tr><!-- Row 1 -->
-								<td>
-									<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
-									<video id="embedded-video" style='display: none' class="video-js vjs-default-skin" controls preload="auto" width="200" height="164" data-setup="{}">
-									</video>
-									<div id='embedded-audio' style='display:none'>
-										<div data-role="navbar" data-iconpos="top">
-											<ul>
-												<li><a href="#" data-icon="arrow-l">Rewind</a></li>
-												<li><a href="#" data-icon="arrow-r">Play</a></li>
-												<li><a href="#" data-icon="grid">Pause</a></li>
-												<li><a href="#" data-icon="delete">Stop</a></li>
-											</ul>
-										</div>
-									</div>									
-								</td>
-								<td>
-									<div id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</div>
-									<div id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</div>
-								</td>
-							<tr><!-- /Row 1 -->
-						</table>
+						<div style='clear:both'></div>
+						<span id="locationName" style="color:white; font-size:18px; margin-top:5px; margin-left:5px;">Location</span>
+						<span id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</span>
+						<span id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</span>
+						<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
+						<div id='embedded-video' style='margin:4px'>
+							<video class="video-js vjs-default-skin" controls preload="auto" width="200" height="164" data-setup="{}">
+							</video>
+						</div>
+						<div id='embedded-audio' style='margin:4px'>
+							<audio preload='auto'>
+							</audio>
+						</div>
 					</div>
-					
 				</div>
 			</div>
 			<div data-role='footer'>
@@ -254,6 +242,7 @@
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
 	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="audio.min.js"></script>
 
 	<!-- Plugins -->
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/NativeControls.js"></script>

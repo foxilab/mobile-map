@@ -469,12 +469,6 @@ function createLocationPopup(_feature) {
 	LocationPopup.toggle();
 	
 	if (LocationPopup.is(':visible')) {
-		LocationPopup.position({
-			my:	'center',
-			at:	'center',
-			of:	$('#map')
-		});
-		
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
 		popupFeature = _feature.attributes.locations[0];
@@ -495,39 +489,37 @@ function createLocationPopup(_feature) {
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
 				if(fileType == "video") {
-					console.log('video');
 					$('#locationImage').hide();
 					$('#embedded-audio').hide();
 
-					var $video = $('#embedded-video').find('video');
+					var $div = $('#embedded-video');
+					var $video = $div.find('video');
 					$video.attr('src', locMedia);
-					$('#embedded-video').show();
-
-					console.log('made it!');
+					$div.show();
 				}
 				else if(fileType == "audio") {
-					console.log('audio');
 					$('#locationImage').hide();
 					$('#embedded-video').hide();
 					
-					// TODO: set the audio src
-					$('#embedded-audio').show();
-
-	//				document.getElementById("locationImage").src = "Popup/Audio.png";
-	//				document.getElementById("locationImage").alt = "Audio recorded at " + locName + ".";
+					var $div = $('#embedded-audio');
+					var $audio = $div.find('audio');
+					$audio.attr('src', locMedia);
+					$div.show();
 				}
 				else if(fileType ==  "image") {
-					console.log('image');
 					$('#embedded-audio').hide();
 					$('#embedded-video').hide();
 					
-					var $img = $('#locationImage').show();
+					var $img = $('#locationImage');
 					$img.attr('src', locMedia);
-					$img.attr('alt', "Image taken of " + locName + ".");
+					$img.attr('alt', "Image taken of " + locName + ".").show();
 				}
 			}
 			//Otherwise use defaults
 			else {
+				$('#embedded-audio').hide();
+				$('#embedded-video').hide();
+			
 				if(fileType == "video") {
 					document.getElementById("locationImage").src = "Popup/Video_Offline.png";
 					document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
@@ -540,11 +532,16 @@ function createLocationPopup(_feature) {
 					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
 					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
 				}
+				$('#locationImage').show();
 			}
 		}
 		else {
+			$('#embedded-audio').hide();
+			$('#embedded-video').hide();
+					
 			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 			document.getElementById("locationImage").alt = "This file type is not supported.";
+			$('#locationImage').show();
 		}
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
@@ -557,6 +554,12 @@ function createLocationPopup(_feature) {
 		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
 		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
 	}
+	LocationPopup.trigger('updatelayout');
+	LocationPopup.position({
+		my:	'center',
+		at:	'center',
+		of:	$('#map')
+	});
 }
 
 function destroyLocationPopup(_feature) {
@@ -889,6 +892,11 @@ var docHeight = 0;
  */function onDeviceReady()
 {
 	console.log("ready");
+
+	audiojs.events.ready(function() {
+		var as = audiojs.createAll();
+	});
+
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
