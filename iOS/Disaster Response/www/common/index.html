@@ -136,18 +136,17 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
-					
-					<div id="locationPopup" style="text-align:left; display: none;">
+					<div id="locationPopup" style="text-align:left; display: none; padding: 6px;">
 						<div style='clear:both'></div>
-						<span id="locationName" style="color:white; font-size:18px; margin-top:5px; margin-left:5px;">Location</span>
-						<span id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</span>
-						<span id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</span>
+						<div id="locationName" style="color:white; font-size:18px;">Location</div>
+						<time id="locationDate" class="timeago" style="color:white; font-size:14px;"></time>
+						<div id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</div>
 						<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
-						<div id='embedded-video' style='margin:4px'>
-							<video class="video-js vjs-default-skin" controls preload="auto" width="200" height="164" data-setup="{}">
+						<div id='embedded-video'>
+							<video class="video-js vjs-default-skin" controls preload="auto" width="300" height="264" data-setup="{}">
 							</video>
 						</div>
-						<div id='embedded-audio' style='margin:4px'>
+						<div id='embedded-audio'>
 							<audio preload='auto'>
 							</audio>
 						</div>
@@ -240,6 +239,8 @@
 	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.dateFormat-1.0.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.timeago.js"></script>
 	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="audio.min.js"></script>

@@ -551,8 +551,8 @@ function createLocationPopup(_feature) {
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
 			
 		document.getElementById("locationName").style.color = getStatusColor(locStatus);
-		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
-		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
+		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
+		$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
 	LocationPopup.trigger('updatelayout');
 	LocationPopup.position({
@@ -900,7 +900,7 @@ var docHeight = 0;
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
-	
+
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
