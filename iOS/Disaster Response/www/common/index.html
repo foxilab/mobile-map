@@ -76,9 +76,25 @@
 				margin:auto;
 				width:300px;
 			}
+			
+			#locationPopup{
+				display:none;
+				position:relative;
+				z-index:1000;
+				top:20%;
+				margin:auto;
+				background-color:#505050;
+				width:300px;
+				border:5px solid black;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}
+
 			.ui-page {
 				height: 100% !important;
 			}
+			
 	</style>
 		<!-- iPad/iPhone specific css below, add after your main css >
 		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
@@ -116,6 +132,23 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
+					
+					<div id="locationPopup" style="text-align:left; display: none;">
+						<div id="locationName" style="color:white; font-size:18px; margin-top:5px; margin-left:5px;">Location</div><br>
+						
+						<table id="locationPopupTable" style="margin-top:-20px; margin-left:10px;">
+							<tr><!-- Row 1 -->
+								<td>
+									<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
+								</td>
+								<td>
+									<div id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</div>
+									<div id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</div>
+								</td>
+							<tr><!-- /Row 1 -->
+						</table>
+					</div>
+					
 				</div>
 			</div>
 			<div data-role='footer'>
@@ -190,6 +223,10 @@
 				<a href="http://glyphish.com">http://glyphish.com</a>
 			</div>
 		</div>
+
+		<div data-role='page' id='image-viewer' style='width:100%; height:100%; background-color: black !important'>
+			<img style='width: 100%; height: auto' />
+		</div>
 	</body>
 
 	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false" defer="defer"></script>
@@ -202,17 +239,17 @@
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
 	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
-	
+
 	<!-- Plugins -->
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/NativeControls.js"></script>
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/Badge.js"></script>
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/ChildBrowser.js"></script>
-    
+   
 	<script type="text/javascript" charset="utf-8" src="heatmap.js"></script>
 	<script type="text/javascript" charset="utf-8" src="heatmap-openlayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-	<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>
-	<!-- <script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>-->
+	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
+	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
 </html>
