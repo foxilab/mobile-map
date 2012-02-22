@@ -1708,7 +1708,6 @@ function onOrientationChange(_error) {
 function onOrientationLandscape(_orientation) {
     console.log('Listener: App has changed orientation to Landscape ' + _orientation + '.');
     isLandscape = true;
-    alert("landscape babyyyy");
 }
 
 /*
