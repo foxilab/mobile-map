@@ -466,9 +466,7 @@ function onMapMoveEnd(_event) {
 
 var popupFeature;
 function createLocationPopup(_feature) {
-	LocationPopup.toggle();
-	
-	if (LocationPopup.is(':visible')) {
+	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
 		popupFeature = _feature.attributes.locations[0];
@@ -482,7 +480,7 @@ function createLocationPopup(_feature) {
 		
 		//Check to see the media type
 		var mime = mimeTypeFromExt(locMedia);
-		
+
 		if (mime) {
 			var fileType = mime.substr(0, mime.indexOf('/'));
 		
@@ -549,11 +547,13 @@ function createLocationPopup(_feature) {
 			document.getElementById("locationName").innerHTML = locName;
 		else
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
-			
-		document.getElementById("locationName").style.color = getStatusColor(locStatus);
+
+		LocationPopup.attr('border', '5px solid ' + getStatusColor(locStatus));
+		//document.getElementById("locationName").style.color = getStatusColor(locStatus);
 		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
-		$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
+		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
+	LocationPopup.toggle();
 	LocationPopup.trigger('updatelayout');
 	LocationPopup.position({
 		my:	'center',
@@ -1426,14 +1426,13 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.media.substr(row.media.lastIndexOf('/')+1);
-										
 												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
-				
+
 				if (rows.length > 1) {
 					sql += ';';
 				}
-												
+
 				uploadFileToS3(row.media);
 			}
 

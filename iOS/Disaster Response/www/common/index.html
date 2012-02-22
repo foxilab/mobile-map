@@ -88,6 +88,7 @@
 				margin:auto;
 				background-color:#505050;
 				min-width:300px;
+				max-width:75%;
 				float:left;
 				border:5px solid black;
 				-webkit-border-radius: 10px;
@@ -136,12 +137,13 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
-					<div id="locationPopup" style="text-align:left; display: none; padding: 6px;">
+					<div id="locationPopup" style="text-align:left; display: none; padding: 4px;">
 						<div style='clear:both'></div>
-						<div id="locationName" style="color:white; font-size:18px;">Location</div>
-						<time id="locationDate" class="timeago" style="color:white; font-size:14px;"></time>
-						<div id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</div>
-						<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
+						<div id="locationName" style="float: left; color:white; font-size:18px; margin-top: 2px"></div>
+						<span style="float: left; color:white; font-size:18px;">&nbsp;-&nbsp;</span>
+						<time id="locationDate" class="timeago" style="float: left; color:white; font-size:18px; margin-bottom:4px;"></time>
+						<div style='clear:both'></div>
+						<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." style="width: 300px; height: auto" onClick="locationPopup_onImageClick()" align="middle"/>
 						<div id='embedded-video'>
 							<video class="video-js vjs-default-skin" controls preload="auto" width="300" height="264" data-setup="{}">
 							</video>
