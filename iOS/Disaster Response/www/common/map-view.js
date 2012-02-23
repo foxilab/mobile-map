@@ -901,6 +901,33 @@ var docHeight = 0;
 	audiojs.events.ready(function() {
 		var as = audiojs.createAll();
 	});
+	
+	var imageflow = new ImageFlow();
+	imageflow.init({
+		ImageFlowID: 'coverflow',
+		reflections: false,
+		reflectionP: 0.0,
+		slider: true,
+		captions: true,
+		opacity: true,
+		aspectRatio: 1.618, // TODO: probably need to change based on current orientation
+		onClick: function() {
+			var $img = $('#image-viewer').find('img');
+			$img.attr('max-width', $(window).width());
+			$img.attr('src', this.url);
+			$img.load(function() {
+				$(this).position({
+					my:	'center',
+					at:	'center',
+					of:	$(this).parent()
+				});
+			});
+		
+			$.mobile.changePage('#image-viewer');
+		}
+	});
+
+	$.mobile.changePage('#coverflow-page');
 
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
@@ -1197,18 +1224,20 @@ $(document).ready(function () {
 		//TODO: not sure how to enable zooming when in image-viewer, this works, but has some bad side-effects - see pagehide
 //		$('head meta[name=viewport]').remove();
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
-		
-		var src = popup.prevPage.find('#locationImage').attr('src');
-		var $img = $(this).find('img');
-		$img.attr('max-width', $(window).width());
-		$img.attr('src', src);
-		$img.load(function() {
-			$(this).position({
-				my:	'center',
-				at:	'center',
-				of:	$(this).parent()
+
+		if ($(popup.prevPage).attr('id') == 'map-page') {
+			var src = popup.prevPage.find('#locationImage').attr('src');
+			var $img = $(this).find('img');
+			$img.attr('max-width', $(window).width());
+			$img.attr('src', src);
+			$img.load(function() {
+				$(this).position({
+					my:	'center',
+					at:	'center',
+					of:	$(this).parent()
+				});
 			});
-		});
+		}
 	});
 	$('#image-viewer').live('pagehide', function() {
 		// TODO: no way to reset zoom level, so if user zooms in on image, then goes back to the map, the map-page is zoomed in
@@ -1216,7 +1245,8 @@ $(document).ready(function () {
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />');
 	});
 	$('#image-viewer').live('click', function() {
-		$.mobile.changePage('#map-page');
+//		$.mobile.changePage('#map-page');
+		history.back();
 	});
 	
 	$('.queue-list-item').live('click', function(e) {
