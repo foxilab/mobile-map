@@ -152,6 +152,7 @@
 							<audio preload='auto'>
 							</audio>
 						</div>
+						<a href="#" data-role="button" id="moreButton">More</a>
 					</div>
 				</div>
 			</div>
@@ -202,6 +203,27 @@
 				</div>
 			</div>
 		</div>
+		
+		<!-- Multiple Statuses Dialog -->
+		<div data-role='dialog' id='multiStatus-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Location Statuses</h1>
+			</div>
+			<div data-role='content'>
+				<ul data-role='listview'>
+					<li id='multiStatus-list-item-archetype' class='multiStatus-list-item' style='display: none' data-role='fieldcontain'>
+						<a href='#' data-rel='dialog' data-transition='slidedown'>
+							<img/>
+							<h3>Press to Choose Location</h3>
+							<p>Press arrow to set status</p>
+						</a>
+					</li>
+				</ul>
+			</div>
+			<div data-role='footer'>
+			</div>
+		</div>
+		<!-- End Multiple Statuses Dialog -->
 
 		<div data-role='dialog' id='location-dialog' data-theme='a'>
 			<div data-role='header'>
@@ -292,4 +314,5 @@
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
 	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+
 </html>
