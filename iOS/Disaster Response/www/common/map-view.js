@@ -485,6 +485,11 @@ function createLocationPopup(_feature) {
 			var locLat 		= popupFeature.lat;
 			var locLon 		= popupFeature.lon;
 			var precision	= 5;
+			
+		var $locationImage = $("#locationImage");
+		var $locationName = $("#locationName");
+		var $locationDate = $("#locationDate");
+		var $locationLonlat = $("#locationLonlat");
 		
 		//Check to see the media type
 		var fileType = mimeTypeFromExt(locMedia);
@@ -492,104 +497,53 @@ function createLocationPopup(_feature) {
 		//If there is internet, use data from online
 		if(isInternetConnection == true) {
 			if(fileType == "video/quicktime") {
-				document.getElementById("locationImage").src = "Popup/Video.png";
-				document.getElementById("locationImage").alt = "Video of " + locName + ".";
+				$locationImage.attr('src',"Popup/Video.png");
+				$locationImage.attr('alt',"Video of " + locName + ".");
 			}
 				else if(fileType == "audio/wav") {
-					document.getElementById("locationImage").src = "Popup/Audio.png";
-					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ".";
+					$locationImage.attr('src',"Popup/Audio.png");
+					$locationImage.attr('alt',"Audio recorded at " + locName + ".");
 				}
 				else if(fileType ==  "image/jpeg") {
-					document.getElementById("locationImage").src = locMedia;
-					document.getElementById("locationImage").alt = "Image taken of " + locName + ".";
+					$locationImage.attr('src',locMedia);
+					$locationImage.attr('alt',"Image taken of " + locName + ".");
 				}
 			else {
-				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
-				document.getElementById("locationImage").alt = "This file type is not supported.";
+				$locationImage.attr('src',"Popup/FileNotSupported.png");
+				$locationImage.attr('alt',"This file type is not supported.");
 			}
 		}
 		//Otherwise use defaults
 		else {
 			if(fileType == "video/quicktime") {
-				document.getElementById("locationImage").src = "Popup/Video_Offline.png";
-				document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+				$locationImage.attr('src',"Popup/Video_Offline.png");
+				$locationImage.attr('alt',"Video of " + locName + ", currently unavailable.");
 			}
 				else if(fileType == "audio/wav") {
-					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
-					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
+					$locationImage.attr('src',"Popup/Audio_Offline.png");
+					$locationImage.attr('alt',"Audio recorded at " + locName + ", currently unavailable.");
 				}
 				else if(fileType ==  "image/jpeg") {
-					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
-					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
+					$locationImage.attr('src',"Popup/Image_Offline.png");
+					$locationImage.attr('alt',"Image taken of " + locName + ", currently unavailable.");
 				}
 			else {
-				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
-				document.getElementById("locationImage").alt = "This file type is not supported.";
+				$locationImage.attr('src',"Popup/FileNotSupported.png");
+				$locationImage.attr('alt',"This file type is not supported.");
 			}
 		}
 			
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
-			document.getElementById("locationName").innerHTML = locName;
+			$locationName.attr('innerHTML',locName);
 		else
-			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
+			$locationName.attr('innerHTML',locName + " (" + featureSize + ")");
 			
 		document.getElementById("locationName").style.color = getStatusColor(locStatus);
 		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
 		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
 	}
-}
-
-function createPopUp(_feature) {
-	//console.log("I have Popup in the attic."); 
-	//	What? The mere fact that you call making love "Popup" tells me you're not ready.
-	var popupName = "blankPopup";
-	var popupLon, popupLat;
-	var htmlContent = "";
-	var popupImageDefault = "../common/Buildings/Placeholder.jpg";
-	
-	if (_feature.attributes.locations.length <= 1) {
-		popupName = _feature.attributes.locations[0].name;
-		status = _feature.attributes.locations[0].status;
-		date = _feature.attributes.locations[0].date;
-		image = _feature.attributes.locations[0].image;
-		popupLon = _feature.attributes.locations[0].lon;
-		popupLat = _feature.attributes.locations[0].lat;
-		
-		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: ";
-		htmlContent += getStatusColor(parseInt(status));
-		htmlContent += ";'>";
-		htmlContent += "<b>Name:</b> "+popupName+"<br>";
-		htmlContent += "<b>Date:</b> "+date+"<br>";
-		
-		var imgsrc;
-		if(isInternetConnection == true && image != "placeholder")
-			imgsrc = image;
-		else
-			imgsrc = popupImageDefault;
-		
-		htmlContent += "<div class='building-popup'><a href='#image-viewer' rel='external'><img src='" + imgsrc;
-		htmlContent += "' style='height:80px'/></a></div>";
-		htmlContent += "</div>";
-	}
-	else {
-		htmlContent += "<div class='popupWindow' style='font-family: sans-serif; color: Black;'>";
-		htmlContent += "I have tons of stuff.";
-		htmlContent += "</div>";
-		
-		popupLon = _feature.attributes.locations[0].lon;
-		popupLat = _feature.attributes.locations[0].lat;
-	}
-	
-	//Now that our content is all ready, return the popup!
-	var popup = new OpenLayers.Popup(popupName,
-									 new OpenLayers.LonLat(popupLon,popupLat).transform(map.displayProjection, map.projection),
-									 new OpenLayers.Size(300,200),
-									 htmlContent,
-									 true,
-									 popupOnCloseCallback);
-	return popup;
 }
 
 function destroyLocationPopup(_feature) {
