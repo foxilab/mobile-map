@@ -465,23 +465,30 @@ function onMapMoveEnd(_event) {
  */
 
 var popupFeature;
+var popupFeatureMain;
 function createLocationPopup(_feature) {
 	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
-		popupFeature = _feature.attributes.locations[0];
-			var locName 	= popupFeature.name;
-			var locMedia 	= popupFeature.media;
-			var locStatus	= popupFeature.status;
-			var locDate 	= popupFeature.date;
-			var locLat 		= popupFeature.lat;
-			var locLon 		= popupFeature.lon;
+		popupFeature = _feature.attributes.locations;
+		popupFeatureMain = popupFeature[0];
+			var locName 	= popupFeatureMain.name;
+			var locMedia 	= popupFeatureMain.media;
+			var locStatus	= popupFeatureMain.status;
+			var locDate 	= popupFeatureMain.date;
+			var locLat 		= popupFeatureMain.lat;
+			var locLon 		= popupFeatureMain.lon;
 			var precision	= 5;
 			
-		var $locationImage = $("#locationImage");
-		var $locationName = $("#locationName");
-		var $locationDate = $("#locationDate");
-		var $locationLonlat = $("#locationLonlat");
+		var $locationImage = $('#locationImage');
+		var $locationName = $('#locationName');
+		var $locationDate = $('#locationDate');
+		var $locationLonlat = $('#locationLonlat');
+		
+		if(featureSize <= 1)
+			$('#moreButton').hide();
+		else
+			$('#moreButton').show();
 		
 		//Check to see the media type
 		var mime = mimeTypeFromExt(locMedia);
@@ -492,7 +499,7 @@ function createLocationPopup(_feature) {
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
 				if(fileType == "video") {
-					$('#locationImage').hide();
+					$locationImage.hide();
 					$('#embedded-audio').hide();
 
 					var $div = $('#embedded-video');
@@ -501,7 +508,7 @@ function createLocationPopup(_feature) {
 					$div.show();
 				}
 				else if(fileType == "audio") {
-					$('#locationImage').hide();
+					$locationImage.hide();
 					$('#embedded-video').hide();
 					
 					var $div = $('#embedded-audio');
@@ -513,9 +520,8 @@ function createLocationPopup(_feature) {
 					$('#embedded-audio').hide();
 					$('#embedded-video').hide();
 					
-					var $img = $('#locationImage');
-					$img.attr('src', locMedia);
-					$img.attr('alt', "Image taken of " + locName + ".").show();
+					$locationImage.attr('src', locMedia);
+					$locationImage.attr('alt', "Image taken of " + locName + ".").show();
 				}
 			}
 			//Otherwise use defaults
@@ -524,18 +530,18 @@ function createLocationPopup(_feature) {
 				$('#embedded-video').hide();
 			
 				if(fileType == "video") {
-					document.getElementById("locationImage").src = "Popup/Video_Offline.png";
-					document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+					$locationImage.attr('src', "Popup/Video_Offline.png");
+					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.");
 				}
 				else if(fileType == "audio") {
-					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
-					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
+					$locationImage.attr('src', "Popup/Audio_Offline.png");
+					$locationImage.attr('alt', "Audio recorded at "+locName+", currently unavailable.");
 				}
 				else if(fileType ==  "image") {
-					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
-					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
+					$locationImage.attr('src', "Popup/Image_Offline.png");
+					$locationImage.attr('alt', "Image taken of "+locName+", currently unavailable.");
 				}
-				$('#locationImage').show();
+				$locationImage.show();
 			}
 		}
 		else {
@@ -544,17 +550,16 @@ function createLocationPopup(_feature) {
 					
 			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 			document.getElementById("locationImage").alt = "This file type is not supported.";
-			$('#locationImage').show();
+			$locationImage.show();
 		}
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
-			$locationName.attr('innerHTML',locName);
+			document.getElementById("locationName").innerHTML = locName;
 		else
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
 
-		LocationPopup.attr('border', '5px solid ' + getStatusColor(locStatus));
-		//document.getElementById("locationName").style.color = getStatusColor(locStatus);
+		LocationPopup.css('border', '2px solid ' + getStatusColor(locStatus));
 		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
 		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
@@ -570,22 +575,71 @@ function createLocationPopup(_feature) {
 function destroyLocationPopup(_feature) {
 	LocationPopup.hide();
 	popupFeature = null;
+	popupFeatureMain = null;
 	
 	//Clear out the div's
 	document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 	document.getElementById("locationImage").alt = "Nothing set for this location.";
 }
 
+function showStatusesDialog() {
+
+	for(var i = 0; i < popupFeature.length; i++) {
+		//clone the archetype
+		var $clone = $('#multiStatus-list-item-archetype').clone();	
+		$clone.removeAttr('id');
+	
+		var type = mimeTypeFromExt(popupFeature[i].media);
+		type = type.substr(0, type.indexOf('/'));
+	
+		if (type == "image") {
+			$clone.find('img').attr('src', popupFeature[i].media);
+		}
+			else if (type == "audio") {
+				$clone.find('img').attr('src', 'css/images/glyphish/66-microphone.png');
+				$clone.find('img').addClass('ui-li-icon');
+			}
+			else if (type == "video") {
+				// TODO: maybe we should get a thumbnail and put the play button in the middle?
+				$clone.find('img').attr('src', 'css/images/glyphish/45-movie-1.png');
+				$clone.find('img').addClass('ui-li-icon');
+			}
+		else {
+			// Should be impossible to get here
+			console.log('unsupported media type in addToQueueDialog');
+			return;
+		}
+	
+		if (popupFeature[i].name) {
+			$clone.find('h3').text(popupFeature[i].name);
+		}
+	
+		if (popupFeature[i].status >= 1) {
+			$clone.find('p').text(popupFeature[i].date + " - " + StatusRef.fromId(popupFeature[i].status).toString());
+		}
+	
+		$('#multiStatus-dialog ul').append($clone);
+		$clone.trigger('create').show();
+	}
+	
+	
+	$.mobile.changePage('#multiStatus-dialog', 'pop');
+}
+
+function hideStatusesDialog() {
+	$('#multiStatus-dialog li').not('#multiStatus-list-item-archetype').remove();
+}
+
 function locationPopup_onImageClick() {
 	//We have popupFeature, this variable holds the current feature
 	// now we can pull data and display 
 	//Variables for local use/quick access/shorter code
-		var locName 	= popupFeature.name;
-		var locMedia 	= popupFeature.media;
-		var locStatus	= popupFeature.status;
-		var locDate 	= popupFeature.date;
-		var locLan 		= popupFeature.lan;
-		var locLon 		= popupFeature.lon;
+		var locName 	= popupFeatureMain.name;
+		var locMedia 	= popupFeatureMain.media;
+		var locStatus	= popupFeatureMain.status;
+		var locDate 	= popupFeatureMain.date;
+		var locLan 		= popupFeatureMain.lan;
+		var locLon 		= popupFeatureMain.lon;
 	
 	//If this image is clicked, we need to do one of 2 things: If the image is a...
 	//  1) Image 2) Video file, open it for the user.
@@ -631,7 +685,7 @@ function getDataFromFusionRow(_row) {
 	//}
 	
 	//Build a location
-	var location = [{
+	var location = {
 			name: name,
 			position: nameBugFixSplit[1],
 			lat: lat,
@@ -639,7 +693,7 @@ function getDataFromFusionRow(_row) {
 			status: status,
 			date: date,
 			media: media
-	}];
+	};
 	
 	return location;
 }
@@ -663,12 +717,13 @@ function fusionSQLSuccess(data) {
 	//	start at 1, rows[0] is our column titles.
 	for(var i = 1; i < length; i++) {
 		var location = getDataFromFusionRow(rows[i]);
+			exists = false;
 		
 		//Now that we have our location, loop through and find out if it already exists.
 		for(var locA = 0; locA < locationArray.length; locA++) {
 			for(var loc = 0; loc < locationArray[locA].length; loc++) {
 				//If the positions are the same, these are the same place
-				if(locationArray[locA][loc].position == location[0].position) {
+				if(locationArray[locA][loc].position == location.position) {
 					//So add the location to this spot in the locationArray
 					locationArray[locA].push(location);
 					exists = true;
@@ -678,9 +733,9 @@ function fusionSQLSuccess(data) {
 		}
 		
 		//Does it exist?
-		if(exists == false)
-			locationArray.push(location);
-		exists = false;
+		if(exists == false) {
+			locationArray.push([location]);
+		}
 	}
 	
 	//Yeah! Now that we have all of our data sorted, lets get it showing!
@@ -970,11 +1025,7 @@ var docHeight = 0;
 	map.events.mapSideLength = mapHeight;
 	var mapLayerOSM = new OpenLayers.Layer.OSM();	
 	
-	//Initalize the Fusion Table layer.
-	//initializeFusionLayer_Icons();
-	//initializeFusionLayer_HeatMap();
 	//Set up the HeatMap
-	
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
 	
@@ -1080,6 +1131,14 @@ var docHeight = 0;
 		// rather than doing it every time.
 		selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
+	});
+	
+	$('#multiStatus-dialog').on('pageshow', function() {
+
+	});
+						  
+	$('#multiStatus-dialog').on('pagehide', function() {
+		hideStatusesDialog();
 	});
 	
 	//Clear the queue when the user is done with the page,
@@ -1397,6 +1456,10 @@ $(document).ready(function () {
 	$('#cancelButton').click(function(){
 		togglePhotoVideoDialog();
 		clickedLonLat = null;
+	});
+	
+	$('#moreButton').click(function() {
+		showStatusesDialog();					   
 	});
 
 	$('#screenlockbutton').click(function(){
