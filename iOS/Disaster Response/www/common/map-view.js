@@ -312,7 +312,7 @@ var compassSuccess = function(heading) {
 	//Rotate arrow
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
-	
+	console.log("compass success");
 	var heading = heading.magneticHeading;
 	var mapRotation = 360 - heading;
 	
@@ -327,6 +327,7 @@ var compassSuccess = function(heading) {
 		navSymbolizer.rotation = heading;
 		navigationLayer.redraw();
 	}
+	console.log("compass success end");
 };
 
 var compassError = function(error) {
@@ -883,7 +884,7 @@ var docHeight = 0;
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-//	window.addEventListener("orientationchange", onOrientationChange,  true);
+	window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -906,9 +907,9 @@ var docHeight = 0;
 	}
     
 	// Set up NativeControls
-	nativeControls = window.plugins.nativeControls;
-	setupTabBar();
-	selectTabBarItem('Map');
+	//nativeControls = window.plugins.nativeControls;
+	//setupTabBar();
+	//selectTabBarItem('Map');
         //setupNavBar();
     
 	// do your thing!
@@ -920,11 +921,12 @@ var docHeight = 0;
 	else
 		docHeight = windowWidth;
 	
-	var footerHeight = $("#footer").height();
-	var mapHeight = docHeight - footerHeight - 50;
+	var footerHeight = $("#map-footer").height();
+	var mapHeight = docHeight - footerHeight - 20;
 	
 	var mapContainer = $("#mapContainer");
 	mapContainer.height(mapHeight +"px");
+	
 	var mapDiv = $("#map");
 	mapHeight = mapHeight*1.7;
 	mapDiv.height(mapHeight+"px");
@@ -1031,7 +1033,7 @@ var docHeight = 0;
 	
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').on('pageshow', function() {
-		selectTabBarItem('Map');
+	//	selectTabBarItem('Map');
 	});
 	
 	$('#map-page').on('pagehide', function() {
@@ -1047,7 +1049,7 @@ var docHeight = 0;
 	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
-		selectTabBarItem('Queue');
+		//selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
 	
@@ -1059,11 +1061,11 @@ var docHeight = 0;
 	});
 	
 	$('#user-dialog').on('pageshow', function() {
-		selectTabBarItem('User');
+	//	selectTabBarItem('User');
 	});
 	
 	$('#more-dialog').on('pageshow', function() {
-		selectTabBarItem('More');
+	//	selectTabBarItem('More');
 	});
 	
 	$('#status-dialog').on('pagehide', function() {
@@ -1076,7 +1078,7 @@ var docHeight = 0;
 }
 
 function clearQueueDialog() {
-	$('#queue-dialog li').not('#queue-list-item-archetype').remove();
+	$('#queue-list li').not('#queue-list-item-archetype').remove();
 }
 
 function addToQueueDialog(locRow) {
@@ -1113,7 +1115,7 @@ function addToQueueDialog(locRow) {
 	}
 
 	$clone.attr('rowid', locRow.id);
-	$('#queue-dialog ul').append($clone);
+	$('#queue-list').append($clone);
 	$clone.trigger('create').show();
 }
 
@@ -1204,9 +1206,9 @@ $(document).ready(function () {
 
 	$('#queue-item-delete').live('click', function(e) {
 		// If we were the last item in the queue, close the dialog
-		if (itemsInQueue === 1) {
+		/*if (itemsInQueue === 1) {
 			$('#queue-dialog').dialog('close');
-		}
+		}*/
 
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
@@ -1469,7 +1471,7 @@ function getQueueSize(_tx) {
 function getQueueSizeSuccessCB() {
 	//Now itemsInQueue is at the current count, update everything
 	appNotifications += itemsInQueue;
-	updateTabItemBadge('Queue', itemsInQueue);
+	//updateTabItemBadge('Queue', itemsInQueue);
 	updateAppBadge(appNotifications);
 }
 
@@ -1507,18 +1509,18 @@ function clearStatusPoints() {
  
     This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
  */
-var tabBarItems = { tabs: [
+/*var tabBarItems = { tabs: [
       {'name': 'Map'  , 'image': '/www/common/TabImages/Map.png'  	, 'onSelect': onClick_MapTab},
       {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
       {'name': 'More' , 'image': 'tabButton:More'					, 'onSelect': onClick_MoreTab}]
-};
+};*/
 
 /*
     This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
  */
-function setupTabBar() {
+/*function setupTabBar() {
     nativeControls.createTabBar();
         var _length = tabBarItems.tabs.length;
         for (var i = 0; i < _length; i++) {
@@ -1527,21 +1529,21 @@ function setupTabBar() {
     nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
     selectTabBarItem('Map');
     showTabBar();
-}
+}*/
 
 /*
     Called by setupTabBar, this function creates the TabBarItems with the given params from our array.
  */
-function setUpButton(_tabItem) {
+/*function setUpButton(_tabItem) {
     var options = new Object();
         options.onSelect = _tabItem.onSelect;
     nativeControls.createTabBarItem(_tabItem.name, _tabItem.name, _tabItem.image, options);
-}
+}*/
 
 /*
     This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
  */
-function setupNavBar() {
+/*function setupNavBar() {
 	nativeControls.createNavBar();
 	nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
 	nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
@@ -1572,7 +1574,7 @@ function hideTabItemBadge(_tabName) {
     nativeControls.updateTabBarItem(_tabName, null);
 }
 
-function updateAppBadge(_amount) {
+*/function updateAppBadge(_amount) {
     if(_amount >= 1) {
         //console.log('App: Badge added with the value ' + _amount + '.');
         window.plugins.badge.set(_amount);
@@ -1584,7 +1586,7 @@ function updateAppBadge(_amount) {
 function hideAppBadge() {
     //console.log('App: Badge removed from App.');
     window.plugins.badge.clear();
-}
+}/*
 
 function showTabBar() {
     var options = new Object();
@@ -1618,7 +1620,7 @@ function showRightNavButton() {
 
 function hideRightNavButton() {
     nativeControls.hideRightNavButton();
-}
+}*/
 
 /*
         ==============================================
@@ -1626,7 +1628,7 @@ function hideRightNavButton() {
         ==============================================
  */
 
-function onClick_LeftNavBarButton() {
+/*function onClick_LeftNavBarButton() {
     //console.log('onClick: LeftNavBarButton');
     navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
@@ -1634,27 +1636,27 @@ function onClick_LeftNavBarButton() {
 function onClick_RightNavBarButton() {
     //console.log('onClick: RightNavBarButton');
     navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
-}
+}*/
 
 /*
         ==============================================
              NativeControls Tab onClick Functions
         ==============================================
  */
-var selectedTabBarItem = 'Map';
+/*var selectedTabBarItem = 'Map';
 function onClick_MapTab() {
 	//console.log('onClick: MapTab');
 	selectTabBarItem('Map');
 	selectedTabBarItem = 'Map';
 	$.mobile.changePage('#map-page', 'pop');
 }
-
+*/
 function showQueueTab() {
-	selectTabBarItem('Queue');
-	selectedTabBarItem = 'Queue';
+	//selectTabBarItem('Queue');
+	//selectedTabBarItem = 'Queue';
 	$.mobile.changePage('#queue-dialog', 'pop');
 }
-
+/*
 function onClick_QueueTab() {
 	if (itemsInQueue > 0) {
 		showQueueTab();
@@ -1683,7 +1685,7 @@ function onClick_DebugTab() {
 	selectTabBarItem('Debug');
 	selectedTabBarItem = 'Debug';
 	window.open ('Debug.html','_self',false);
-}
+}*/
 
 /*
         ==============================================
@@ -1776,10 +1778,11 @@ function onAppOffline() {
     #QUIRK: Triggered twice on 1 rotation.
  */
 var orDirtyToggle = false;
-function onOrientationChange(_error) {    
+function onOrientationChange(_error) {  
 	//Prevent the function from running multiple times.
-	orDirtyToggle = !orDirtyToggle;
-	if (orDirtyToggle) {
+	/*orDirtyToggle = !orDirtyToggle;
+						  
+	if (orDirtyToggle) {*/
 		switch (window.orientation) {
 			case -90:   //Landscape with the screen turned to the left.
 				onOrientationLandscape(window.orientation);
@@ -1798,10 +1801,55 @@ function onOrientationChange(_error) {
 				break;
 
 			default: 
-				navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
+				console.log('Orientation issue: ' + window.orientation);
 				break;
 		}
+	//}
+}
+
+function resizeMapContainer(orientation){
+  // var mapContainer = $('#mapContainer');
+   var windowHeight = $(window).height();
+   var windowWidth = $(window).width();
+						   var maxSize = 0;
+						   var minSize = 0;
+		var mapContainer = $("#mapContainer");
+		var mapDiv = $("#map");
+						   var contentDiv = $("#map-content");
+						   
+	if(windowHeight > windowWidth)
+	{
+		maxSize = windowHeight;
+		minSize = windowWidth;
+	}else{
+		maxSize = windowWidth;
+		minSize = windowHeight;
 	}
+	
+						   var footerHeight = $("#map-footer").height();
+						   var mapHeight;
+						   var mapWidth;
+	if((orientation == -90) || (orientation == 90)) //landscape
+	{
+						   mapHeight = minSize - footerHeight - 20;
+						   mapWidth = maxSize;
+						   
+	}else{
+						   mapHeight = maxSize - footerHeight - 20;
+						   mapWidth = minSize;
+	}
+   
+						  // mapContainer.height(mapHeight);
+						  // mapContainer.width(mapWidth);
+						   contentDiv.height(mapHeight);
+						   contentDiv.width(mapWidth);
+						   $("#map-footer").width(mapWidth);
+   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+   mapDiv.css('top', mapTopPosition);
+   mapDiv.css('left', mapLeftPosition);
+						  //s $("#footer
+						   //showTabBar();
 }
 
 /*
@@ -1810,6 +1858,8 @@ function onOrientationChange(_error) {
 function onOrientationLandscape(_orientation) {
     console.log('Listener: App has changed orientation to Landscape ' + _orientation + '.');
     isLandscape = true;
+						   
+	resizeMapContainer(_orientation);
 }
 
 /*
@@ -1818,6 +1868,8 @@ function onOrientationLandscape(_orientation) {
 function onOrientationPortrait(_orientation) {
     console.log('Listener: App has changed orientation to Portrait ' + _orientation + '.');
     isLandscape = false;
+						   
+	resizeMapContainer(_orientation);
 }
 
 /*
