@@ -312,7 +312,7 @@ var compassSuccess = function(heading) {
 	//Rotate arrow
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
-	
+	console.log("compass success");
 	var heading = heading.magneticHeading;
 	var mapRotation = 360 - heading;
 	
@@ -327,6 +327,7 @@ var compassSuccess = function(heading) {
 		navSymbolizer.rotation = heading;
 		navigationLayer.redraw();
 	}
+	console.log("compass success end");
 };
 
 var compassError = function(error) {
@@ -465,23 +466,30 @@ function onMapMoveEnd(_event) {
  */
 
 var popupFeature;
+var popupFeatureMain;
 function createLocationPopup(_feature) {
 	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
-		popupFeature = _feature.attributes.locations[0];
-			var locName 	= popupFeature.name;
-			var locMedia 	= popupFeature.media;
-			var locStatus	= popupFeature.status;
-			var locDate 	= popupFeature.date;
-			var locLat 		= popupFeature.lat;
-			var locLon 		= popupFeature.lon;
+		popupFeature = _feature.attributes.locations;
+		popupFeatureMain = popupFeature[0];
+			var locName 	= popupFeatureMain.name;
+			var locMedia 	= popupFeatureMain.media;
+			var locStatus	= popupFeatureMain.status;
+			var locDate 	= popupFeatureMain.date;
+			var locLat 		= popupFeatureMain.lat;
+			var locLon 		= popupFeatureMain.lon;
 			var precision	= 5;
 			
-		var $locationImage = $("#locationImage");
-		var $locationName = $("#locationName");
-		var $locationDate = $("#locationDate");
-		var $locationLonlat = $("#locationLonlat");
+		var $locationImage = $('#locationImage');
+		var $locationName = $('#locationName');
+		var $locationDate = $('#locationDate');
+		var $locationLonlat = $('#locationLonlat');
+		
+		if(featureSize <= 1)
+			$('#moreButton').hide();
+		else
+			$('#moreButton').show();
 		
 		//Check to see the media type
 		var mime = mimeTypeFromExt(locMedia);
@@ -492,7 +500,7 @@ function createLocationPopup(_feature) {
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
 				if(fileType == "video") {
-					$('#locationImage').hide();
+					$locationImage.hide();
 					$('#embedded-audio').hide();
 
 					var $div = $('#embedded-video');
@@ -501,7 +509,7 @@ function createLocationPopup(_feature) {
 					$div.show();
 				}
 				else if(fileType == "audio") {
-					$('#locationImage').hide();
+					$locationImage.hide();
 					$('#embedded-video').hide();
 					
 					var $div = $('#embedded-audio');
@@ -513,9 +521,8 @@ function createLocationPopup(_feature) {
 					$('#embedded-audio').hide();
 					$('#embedded-video').hide();
 					
-					var $img = $('#locationImage');
-					$img.attr('src', locMedia);
-					$img.attr('alt', "Image taken of " + locName + ".").show();
+					$locationImage.attr('src', locMedia);
+					$locationImage.attr('alt', "Image taken of " + locName + ".").show();
 				}
 			}
 			//Otherwise use defaults
@@ -524,18 +531,18 @@ function createLocationPopup(_feature) {
 				$('#embedded-video').hide();
 			
 				if(fileType == "video") {
-					document.getElementById("locationImage").src = "Popup/Video_Offline.png";
-					document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+					$locationImage.attr('src', "Popup/Video_Offline.png");
+					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.");
 				}
 				else if(fileType == "audio") {
-					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
-					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
+					$locationImage.attr('src', "Popup/Audio_Offline.png");
+					$locationImage.attr('alt', "Audio recorded at "+locName+", currently unavailable.");
 				}
 				else if(fileType ==  "image") {
-					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
-					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
+					$locationImage.attr('src', "Popup/Image_Offline.png");
+					$locationImage.attr('alt', "Image taken of "+locName+", currently unavailable.");
 				}
-				$('#locationImage').show();
+				$locationImage.show();
 			}
 		}
 		else {
@@ -544,17 +551,16 @@ function createLocationPopup(_feature) {
 					
 			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 			document.getElementById("locationImage").alt = "This file type is not supported.";
-			$('#locationImage').show();
+			$locationImage.show();
 		}
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
-			$locationName.attr('innerHTML',locName);
+			document.getElementById("locationName").innerHTML = locName;
 		else
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
 
-		LocationPopup.attr('border', '5px solid ' + getStatusColor(locStatus));
-		//document.getElementById("locationName").style.color = getStatusColor(locStatus);
+		LocationPopup.css('border', '2px solid ' + getStatusColor(locStatus));
 		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
 		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
@@ -570,22 +576,71 @@ function createLocationPopup(_feature) {
 function destroyLocationPopup(_feature) {
 	LocationPopup.hide();
 	popupFeature = null;
+	popupFeatureMain = null;
 	
 	//Clear out the div's
 	document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 	document.getElementById("locationImage").alt = "Nothing set for this location.";
 }
 
+function showStatusesDialog() {
+
+	for(var i = 0; i < popupFeature.length; i++) {
+		//clone the archetype
+		var $clone = $('#multiStatus-list-item-archetype').clone();	
+		$clone.removeAttr('id');
+	
+		var type = mimeTypeFromExt(popupFeature[i].media);
+		type = type.substr(0, type.indexOf('/'));
+	
+		if (type == "image") {
+			$clone.find('img').attr('src', popupFeature[i].media);
+		}
+			else if (type == "audio") {
+				$clone.find('img').attr('src', 'css/images/glyphish/66-microphone.png');
+				$clone.find('img').addClass('ui-li-icon');
+			}
+			else if (type == "video") {
+				// TODO: maybe we should get a thumbnail and put the play button in the middle?
+				$clone.find('img').attr('src', 'css/images/glyphish/45-movie-1.png');
+				$clone.find('img').addClass('ui-li-icon');
+			}
+		else {
+			// Should be impossible to get here
+			console.log('unsupported media type in addToQueueDialog');
+			return;
+		}
+	
+		if (popupFeature[i].name) {
+			$clone.find('h3').text(popupFeature[i].name);
+		}
+	
+		if (popupFeature[i].status >= 1) {
+			$clone.find('p').text(popupFeature[i].date + " - " + StatusRef.fromId(popupFeature[i].status).toString());
+		}
+	
+		$('#multiStatus-dialog ul').append($clone);
+		$clone.trigger('create').show();
+	}
+	
+	
+	$.mobile.changePage('#multiStatus-dialog', 'pop');
+}
+
+function hideStatusesDialog() {
+	$('#multiStatus-dialog li').not('#multiStatus-list-item-archetype').remove();
+}
+
 function locationPopup_onImageClick() {
 	//We have popupFeature, this variable holds the current feature
 	// now we can pull data and display 
 	//Variables for local use/quick access/shorter code
-		var locName 	= popupFeature.name;
-		var locMedia 	= popupFeature.media;
-		var locStatus	= popupFeature.status;
-		var locDate 	= popupFeature.date;
-		var locLan 		= popupFeature.lan;
-		var locLon 		= popupFeature.lon;
+		var locName 	= popupFeatureMain.name;
+		var locMedia 	= popupFeatureMain.media;
+		var locStatus	= popupFeatureMain.status;
+		var locDate 	= popupFeatureMain.date;
+		var locLan 		= popupFeatureMain.lan;
+		var locLon 		= popupFeatureMain.lon;
 	
 	//If this image is clicked, we need to do one of 2 things: If the image is a...
 	//  1) Image 2) Video file, open it for the user.
@@ -631,7 +686,7 @@ function getDataFromFusionRow(_row) {
 	//}
 	
 	//Build a location
-	var location = [{
+	var location = {
 			name: name,
 			position: nameBugFixSplit[1],
 			lat: lat,
@@ -639,7 +694,7 @@ function getDataFromFusionRow(_row) {
 			status: status,
 			date: date,
 			media: media
-	}];
+	};
 	
 	return location;
 }
@@ -663,12 +718,13 @@ function fusionSQLSuccess(data) {
 	//	start at 1, rows[0] is our column titles.
 	for(var i = 1; i < length; i++) {
 		var location = getDataFromFusionRow(rows[i]);
+			exists = false;
 		
 		//Now that we have our location, loop through and find out if it already exists.
 		for(var locA = 0; locA < locationArray.length; locA++) {
 			for(var loc = 0; loc < locationArray[locA].length; loc++) {
 				//If the positions are the same, these are the same place
-				if(locationArray[locA][loc].position == location[0].position) {
+				if(locationArray[locA][loc].position == location.position) {
 					//So add the location to this spot in the locationArray
 					locationArray[locA].push(location);
 					exists = true;
@@ -678,9 +734,9 @@ function fusionSQLSuccess(data) {
 		}
 		
 		//Does it exist?
-		if(exists == false)
-			locationArray.push(location);
-		exists = false;
+		if(exists == false) {
+			locationArray.push([location]);
+		}
 	}
 	
 	//Yeah! Now that we have all of our data sorted, lets get it showing!
@@ -941,7 +997,7 @@ var docHeight = 0;
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-//	window.addEventListener("orientationchange", onOrientationChange,  true);
+	window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -964,9 +1020,9 @@ var docHeight = 0;
 	}
     
 	// Set up NativeControls
-	nativeControls = window.plugins.nativeControls;
-	setupTabBar();
-	selectTabBarItem('Map');
+	//nativeControls = window.plugins.nativeControls;
+	//setupTabBar();
+	//selectTabBarItem('Map');
         //setupNavBar();
     
 	// do your thing!
@@ -978,11 +1034,12 @@ var docHeight = 0;
 	else
 		docHeight = windowWidth;
 	
-	var footerHeight = $("#footer").height();
-	var mapHeight = docHeight - footerHeight - 50;
+	var footerHeight = $("#map-footer").height();
+	var mapHeight = docHeight - footerHeight - 20;
 	
 	var mapContainer = $("#mapContainer");
 	mapContainer.height(mapHeight +"px");
+	
 	var mapDiv = $("#map");
 	mapHeight = mapHeight*1.7;
 	mapDiv.height(mapHeight+"px");
@@ -997,11 +1054,7 @@ var docHeight = 0;
 	map.events.mapSideLength = mapHeight;
 	var mapLayerOSM = new OpenLayers.Layer.OSM();	
 	
-	//Initalize the Fusion Table layer.
-	//initializeFusionLayer_Icons();
-	//initializeFusionLayer_HeatMap();
 	//Set up the HeatMap
-	
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
 	
@@ -1089,7 +1142,7 @@ var docHeight = 0;
 	
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').on('pageshow', function() {
-		selectTabBarItem('Map');
+	//	selectTabBarItem('Map');
 	});
 	
 	$('#map-page').on('pagehide', function() {
@@ -1105,8 +1158,16 @@ var docHeight = 0;
 	$('#queue-dialog').on('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
-		selectTabBarItem('Queue');
+		//selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
+	});
+	
+	$('#multiStatus-dialog').on('pageshow', function() {
+
+	});
+						  
+	$('#multiStatus-dialog').on('pagehide', function() {
+		hideStatusesDialog();
 	});
 	
 	//Clear the queue when the user is done with the page,
@@ -1117,11 +1178,11 @@ var docHeight = 0;
 	});
 	
 	$('#user-dialog').on('pageshow', function() {
-		selectTabBarItem('User');
+	//	selectTabBarItem('User');
 	});
 	
 	$('#more-dialog').on('pageshow', function() {
-		selectTabBarItem('More');
+	//	selectTabBarItem('More');
 	});
 	
 	$('#status-dialog').on('pagehide', function() {
@@ -1134,7 +1195,7 @@ var docHeight = 0;
 }
 
 function clearQueueDialog() {
-	$('#queue-dialog li').not('#queue-list-item-archetype').remove();
+	$('#queue-list li').not('#queue-list-item-archetype').remove();
 }
 
 function addToQueueDialog(locRow) {
@@ -1171,7 +1232,7 @@ function addToQueueDialog(locRow) {
 	}
 
 	$clone.attr('rowid', locRow.id);
-	$('#queue-dialog ul').append($clone);
+	$('#queue-list').append($clone);
 	$clone.trigger('create').show();
 }
 
@@ -1265,9 +1326,9 @@ $(document).ready(function () {
 
 	$('#queue-item-delete').live('click', function(e) {
 		// If we were the last item in the queue, close the dialog
-		if (itemsInQueue === 1) {
+		/*if (itemsInQueue === 1) {
 			$('#queue-dialog').dialog('close');
-		}
+		}*/
 
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
@@ -1428,6 +1489,10 @@ $(document).ready(function () {
 		togglePhotoVideoDialog();
 		clickedLonLat = null;
 	});
+	
+	$('#moreButton').click(function() {
+		showStatusesDialog();					   
+	});
 
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
@@ -1529,7 +1594,7 @@ function getQueueSize(_tx) {
 function getQueueSizeSuccessCB() {
 	//Now itemsInQueue is at the current count, update everything
 	appNotifications += itemsInQueue;
-	updateTabItemBadge('Queue', itemsInQueue);
+	//updateTabItemBadge('Queue', itemsInQueue);
 	updateAppBadge(appNotifications);
 }
 
@@ -1567,18 +1632,18 @@ function clearStatusPoints() {
  
     This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
  */
-var tabBarItems = { tabs: [
+/*var tabBarItems = { tabs: [
       {'name': 'Map'  , 'image': '/www/common/TabImages/Map.png'  	, 'onSelect': onClick_MapTab},
       {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
       {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
       {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
       {'name': 'More' , 'image': 'tabButton:More'					, 'onSelect': onClick_MoreTab}]
-};
+};*/
 
 /*
     This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
  */
-function setupTabBar() {
+/*function setupTabBar() {
     nativeControls.createTabBar();
         var _length = tabBarItems.tabs.length;
         for (var i = 0; i < _length; i++) {
@@ -1587,21 +1652,21 @@ function setupTabBar() {
     nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
     selectTabBarItem('Map');
     showTabBar();
-}
+}*/
 
 /*
     Called by setupTabBar, this function creates the TabBarItems with the given params from our array.
  */
-function setUpButton(_tabItem) {
+/*function setUpButton(_tabItem) {
     var options = new Object();
         options.onSelect = _tabItem.onSelect;
     nativeControls.createTabBarItem(_tabItem.name, _tabItem.name, _tabItem.image, options);
-}
+}*/
 
 /*
     This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
  */
-function setupNavBar() {
+/*function setupNavBar() {
 	nativeControls.createNavBar();
 	nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
 	nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
@@ -1632,7 +1697,7 @@ function hideTabItemBadge(_tabName) {
     nativeControls.updateTabBarItem(_tabName, null);
 }
 
-function updateAppBadge(_amount) {
+*/function updateAppBadge(_amount) {
     if(_amount >= 1) {
         //console.log('App: Badge added with the value ' + _amount + '.');
         window.plugins.badge.set(_amount);
@@ -1644,7 +1709,7 @@ function updateAppBadge(_amount) {
 function hideAppBadge() {
     //console.log('App: Badge removed from App.');
     window.plugins.badge.clear();
-}
+}/*
 
 function showTabBar() {
     var options = new Object();
@@ -1678,7 +1743,7 @@ function showRightNavButton() {
 
 function hideRightNavButton() {
     nativeControls.hideRightNavButton();
-}
+}*/
 
 /*
         ==============================================
@@ -1686,7 +1751,7 @@ function hideRightNavButton() {
         ==============================================
  */
 
-function onClick_LeftNavBarButton() {
+/*function onClick_LeftNavBarButton() {
     //console.log('onClick: LeftNavBarButton');
     navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
 }
@@ -1694,27 +1759,27 @@ function onClick_LeftNavBarButton() {
 function onClick_RightNavBarButton() {
     //console.log('onClick: RightNavBarButton');
     navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
-}
+}*/
 
 /*
         ==============================================
              NativeControls Tab onClick Functions
         ==============================================
  */
-var selectedTabBarItem = 'Map';
+/*var selectedTabBarItem = 'Map';
 function onClick_MapTab() {
 	//console.log('onClick: MapTab');
 	selectTabBarItem('Map');
 	selectedTabBarItem = 'Map';
 	$.mobile.changePage('#map-page', 'pop');
 }
-
+*/
 function showQueueTab() {
-	selectTabBarItem('Queue');
-	selectedTabBarItem = 'Queue';
+	//selectTabBarItem('Queue');
+	//selectedTabBarItem = 'Queue';
 	$.mobile.changePage('#queue-dialog', 'pop');
 }
-
+/*
 function onClick_QueueTab() {
 	if (itemsInQueue > 0) {
 		showQueueTab();
@@ -1743,7 +1808,7 @@ function onClick_DebugTab() {
 	selectTabBarItem('Debug');
 	selectedTabBarItem = 'Debug';
 	window.open ('Debug.html','_self',false);
-}
+}*/
 
 /*
         ==============================================
@@ -1836,10 +1901,11 @@ function onAppOffline() {
     #QUIRK: Triggered twice on 1 rotation.
  */
 var orDirtyToggle = false;
-function onOrientationChange(_error) {    
+function onOrientationChange(_error) {  
 	//Prevent the function from running multiple times.
-	orDirtyToggle = !orDirtyToggle;
-	if (orDirtyToggle) {
+	/*orDirtyToggle = !orDirtyToggle;
+						  
+	if (orDirtyToggle) {*/
 		switch (window.orientation) {
 			case -90:   //Landscape with the screen turned to the left.
 				onOrientationLandscape(window.orientation);
@@ -1858,10 +1924,55 @@ function onOrientationChange(_error) {
 				break;
 
 			default: 
-				navigator.notification.alert('Orientation issue.', function(){},'Error','Okay');
+				console.log('Orientation issue: ' + window.orientation);
 				break;
 		}
+	//}
+}
+
+function resizeMapContainer(orientation){
+  // var mapContainer = $('#mapContainer');
+   var windowHeight = $(window).height();
+   var windowWidth = $(window).width();
+						   var maxSize = 0;
+						   var minSize = 0;
+		var mapContainer = $("#mapContainer");
+		var mapDiv = $("#map");
+						   var contentDiv = $("#map-content");
+						   
+	if(windowHeight > windowWidth)
+	{
+		maxSize = windowHeight;
+		minSize = windowWidth;
+	}else{
+		maxSize = windowWidth;
+		minSize = windowHeight;
 	}
+	
+						   var footerHeight = $("#map-footer").height();
+						   var mapHeight;
+						   var mapWidth;
+	if((orientation == -90) || (orientation == 90)) //landscape
+	{
+						   mapHeight = minSize - footerHeight - 20;
+						   mapWidth = maxSize;
+						   
+	}else{
+						   mapHeight = maxSize - footerHeight - 20;
+						   mapWidth = minSize;
+	}
+   
+						  // mapContainer.height(mapHeight);
+						  // mapContainer.width(mapWidth);
+						   contentDiv.height(mapHeight);
+						   contentDiv.width(mapWidth);
+						   $("#map-footer").width(mapWidth);
+   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+   mapDiv.css('top', mapTopPosition);
+   mapDiv.css('left', mapLeftPosition);
+						  //s $("#footer
+						   //showTabBar();
 }
 
 /*
@@ -1870,6 +1981,8 @@ function onOrientationChange(_error) {
 function onOrientationLandscape(_orientation) {
     console.log('Listener: App has changed orientation to Landscape ' + _orientation + '.');
     isLandscape = true;
+						   
+	resizeMapContainer(_orientation);
 }
 
 /*
@@ -1878,6 +1991,8 @@ function onOrientationLandscape(_orientation) {
 function onOrientationPortrait(_orientation) {
     console.log('Listener: App has changed orientation to Portrait ' + _orientation + '.');
     isLandscape = false;
+						   
+	resizeMapContainer(_orientation);
 }
 
 /*

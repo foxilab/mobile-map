@@ -112,7 +112,7 @@
 
 	<body onload="onBodyLoad()">
 		<div data-role="page" id='map-page' data-theme='a'> 
-			<div data-role="content" id="content" style="padding: 0px !important;"> 
+			<div data-role="content" id="map-content" style="padding: 0px !important;"> 
 				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;background-color:white;">
 					<div id="map" style="position:absolute;"></div>
 					<!--<div id="zoomPanel"></div>-->
@@ -153,11 +153,12 @@
 							<audio preload='auto'>
 							</audio>
 						</div>
+						<a href="#" data-role="button" id="moreButton">More</a>
 					</div>
 				</div>
 			</div>
-			<div data-role='footer'>
-				<div data-role="navbar" data-iconpos="top">
+			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home" class="ui-btn-active">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
@@ -169,13 +170,13 @@
 			</div>
 		</div>
 
-		<div data-role='dialog' id='queue-dialog' data-theme='a'>
-			<div data-role='header'>
+		<div data-role='page' id='queue-dialog' data-theme='a'>
+			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
 				<h1>Locations</h1>
 				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='c' style='float: right'>Submit</a>
 			</div>
-			<div data-role='content'>
-				<ul data-role='listview'>
+			<div data-role='content' style="width:80%;margin:auto;padding:0px;">
+				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
 					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
 						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown'>
 							<img/>
@@ -186,12 +187,44 @@
 					</li>
 				</ul>
 			</div>
-			<div data-role='footer'>
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='c' style='float: right'>Submit</a>
+			<div data-role='footer' style="width:80%;margin:auto">
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='c' style='float: right;margin-right:20px;'>Submit</a>
 				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
 			</div>
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
+			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter" style="bottom:0px;">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid" class="ui-btn-active">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">User</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+						<li><a href="Debug.html" data-icon="search">Debug</a></li>
+					</ul>
+				</div>
+			</div>
 		</div>
+		
+		<!-- Multiple Statuses Dialog -->
+		<div data-role='dialog' id='multiStatus-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Location Statuses</h1>
+			</div>
+			<div data-role='content'>
+				<ul data-role='listview'>
+					<li id='multiStatus-list-item-archetype' class='multiStatus-list-item' style='display: none' data-role='fieldcontain'>
+						<a href='#' data-rel='dialog' data-transition='slidedown'>
+							<img/>
+							<h3>Press to Choose Location</h3>
+							<p>Press arrow to set status</p>
+						</a>
+					</li>
+				</ul>
+			</div>
+			<div data-role='footer'>
+			</div>
+		</div>
+		<!-- End Multiple Statuses Dialog -->
 
 		<div data-role='dialog' id='location-dialog' data-theme='a'>
 			<div data-role='header'>
@@ -213,19 +246,41 @@
 			</div>
 		</div>
 
-		<div data-role='dialog' id='user-dialog' data-theme='a'>
+		<div data-role='page' id='user-dialog' data-theme='a'>
 			<div data-role='content'>
 				<h3>User</h3>
 				<p>User data and variables go here.</p>
 			</div>
+			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear" class="ui-btn-active">User</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+						<li><a href="Debug.html" data-icon="search">Debug</a></li>
+					</ul>
+				</div>
+			</div>
 		</div>
 
-		<div data-role='dialog' id='more-dialog' data-theme='a'>
+		<div data-role='page' id='more-dialog' data-theme='a'>
 			<div data-role='content'>
 				<h3>More</h3>
 				<p>App settings and options go here.</p>
 				<h3>Some icons by Glyphish</h3>
 				<a href="http://glyphish.com">http://glyphish.com</a>
+			</div>
+			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">User</a></li>
+						<li><a href="#more-dialog" data-icon="info" class="ui-btn-active">More</a></li>
+						<li><a href="Debug.html" data-icon="search">Debug</a></li>
+					</ul>
+				</div>
 			</div>
 		</div>
 
@@ -280,5 +335,6 @@
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+
 </html>
