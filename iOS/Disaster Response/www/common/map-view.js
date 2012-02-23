@@ -467,15 +467,7 @@ function onMapMoveEnd(_event) {
 
 var popupFeature;
 function createLocationPopup(_feature) {
-	LocationPopup.toggle();
-	
-	if (LocationPopup.is(':visible')) {
-		LocationPopup.position({
-			my:	'center',
-			at:	'center',
-			of:	$('#map')
-		});
-		
+	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
 		popupFeature = _feature.attributes.locations[0];
@@ -486,60 +478,94 @@ function createLocationPopup(_feature) {
 			var locLat 		= popupFeature.lat;
 			var locLon 		= popupFeature.lon;
 			var precision	= 5;
+			
+		var $locationImage = $("#locationImage");
+		var $locationName = $("#locationName");
+		var $locationDate = $("#locationDate");
+		var $locationLonlat = $("#locationLonlat");
 		
 		//Check to see the media type
-		var fileType = mimeTypeFromExt(locMedia);
+		var mime = mimeTypeFromExt(locMedia);
+
+		if (mime) {
+			var fileType = mime.substr(0, mime.indexOf('/'));
 		
-		//If there is internet, use data from online
-		if(isInternetConnection == true) {
-			if(fileType == "video/quicktime") {
-				document.getElementById("locationImage").src = "Popup/Video.png";
-				document.getElementById("locationImage").alt = "Video of " + locName + ".";
+			//If there is internet, use data from online
+			if(isInternetConnection == true) {
+				if(fileType == "video") {
+					$('#locationImage').hide();
+					$('#embedded-audio').hide();
+
+					var $div = $('#embedded-video');
+					var $video = $div.find('video');
+					$video.attr('src', locMedia);
+					$div.show();
+				}
+				else if(fileType == "audio") {
+					$('#locationImage').hide();
+					$('#embedded-video').hide();
+					
+					var $div = $('#embedded-audio');
+					var $audio = $div.find('audio');
+					$audio.attr('src', locMedia);
+					$div.show();
+				}
+				else if(fileType ==  "image") {
+					$('#embedded-audio').hide();
+					$('#embedded-video').hide();
+					
+					var $img = $('#locationImage');
+					$img.attr('src', locMedia);
+					$img.attr('alt', "Image taken of " + locName + ".").show();
+				}
 			}
-				else if(fileType == "audio/wav") {
-					document.getElementById("locationImage").src = "Popup/Audio.png";
-					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ".";
-				}
-				else if(fileType ==  "image/jpeg") {
-					document.getElementById("locationImage").src = locMedia;
-					document.getElementById("locationImage").alt = "Image taken of " + locName + ".";
-				}
+			//Otherwise use defaults
 			else {
-				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
-				document.getElementById("locationImage").alt = "This file type is not supported.";
-			}
-		}
-		//Otherwise use defaults
-		else {
-			if(fileType == "video/quicktime") {
-				document.getElementById("locationImage").src = "Popup/Video_Offline.png";
-				document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
-			}
-				else if(fileType == "audio/wav") {
+				$('#embedded-audio').hide();
+				$('#embedded-video').hide();
+			
+				if(fileType == "video") {
+					document.getElementById("locationImage").src = "Popup/Video_Offline.png";
+					document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+				}
+				else if(fileType == "audio") {
 					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
 					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
 				}
-				else if(fileType ==  "image/jpeg") {
+				else if(fileType ==  "image") {
 					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
 					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
 				}
-			else {
-				document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
-				document.getElementById("locationImage").alt = "This file type is not supported.";
+				$('#locationImage').show();
 			}
 		}
-
+		else {
+			$('#embedded-audio').hide();
+			$('#embedded-video').hide();
+					
+			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
+			document.getElementById("locationImage").alt = "This file type is not supported.";
+			$('#locationImage').show();
+		}
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
-			document.getElementById("locationName").innerHTML = locName;
+			$locationName.attr('innerHTML',locName);
 		else
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
-			
-		document.getElementById("locationName").style.color = getStatusColor(locStatus);
-		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
-		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
+
+		LocationPopup.attr('border', '5px solid ' + getStatusColor(locStatus));
+		//document.getElementById("locationName").style.color = getStatusColor(locStatus);
+		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
+		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
+	LocationPopup.toggle();
+	LocationPopup.trigger('updatelayout');
+	LocationPopup.position({
+		my:	'center',
+		at:	'center',
+		of:	$('#map')
+	});
 }
 
 function destroyLocationPopup(_feature) {
@@ -872,10 +898,15 @@ var docHeight = 0;
  */function onDeviceReady()
 {
 	console.log("ready");
+
+	audiojs.events.ready(function() {
+		var as = audiojs.createAll();
+	});
+
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
-	
+
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -1402,14 +1433,13 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.media.substr(row.media.lastIndexOf('/')+1);
-										
 												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
-				
+
 				if (rows.length > 1) {
 					sql += ';';
 				}
-												
+
 				uploadFileToS3(row.media);
 			}
 

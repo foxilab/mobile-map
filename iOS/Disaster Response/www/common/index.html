@@ -9,7 +9,10 @@
 		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
 		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
 		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
+		<link rel="stylesheet" href="css/video-js.min.css" type="text/css"/>
 		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+
+		<script type="text/javascript" charset="utf-8" src="video.min.js"></script>
 
 		<style type="text/css">
 			#zoomPanel{
@@ -84,7 +87,9 @@
 				top:20%;
 				margin:auto;
 				background-color:#505050;
-				width:300px;
+				min-width:300px;
+				max-width:75%;
+				float:left;
 				border:5px solid black;
 				-webkit-border-radius: 10px;
 				-moz-border-radius: 10px;
@@ -132,23 +137,22 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
-					
-					<div id="locationPopup" style="text-align:left; display: none;">
-						<div id="locationName" style="color:white; font-size:18px; margin-top:5px; margin-left:5px;">Location</div><br>
-						
-						<table id="locationPopupTable" style="margin-top:-20px; margin-left:10px;">
-							<tr><!-- Row 1 -->
-								<td>
-									<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." height="64" width="64" onClick="locationPopup_onImageClick()" align="left"/>
-								</td>
-								<td>
-									<div id="locationDate" style="color:white; font-size:14px;">12/12/12 12:12:12</div>
-									<div id="locationLonlat" style="color:white; font-size:14px;">00.00,00.00</div>
-								</td>
-							<tr><!-- /Row 1 -->
-						</table>
+					<div id="locationPopup" style="text-align:left; display: none; padding: 4px;">
+						<div style='clear:both'></div>
+						<div id="locationName" style="float: left; color:white; font-size:18px; margin-top: 2px"></div>
+						<span style="float: left; color:white; font-size:18px;">&nbsp;-&nbsp;</span>
+						<time id="locationDate" class="timeago" style="float: left; color:white; font-size:18px; margin-bottom:4px;"></time>
+						<div style='clear:both'></div>
+						<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." style="width: 300px; height: auto" onClick="locationPopup_onImageClick()" align="middle"/>
+						<div id='embedded-video'>
+							<video class="video-js vjs-default-skin" controls preload="auto" width="300" height="264" data-setup="{}">
+							</video>
+						</div>
+						<div id='embedded-audio'>
+							<audio preload='auto'>
+							</audio>
+						</div>
 					</div>
-					
 				</div>
 			</div>
 			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
@@ -270,8 +274,11 @@
 	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.dateFormat-1.0.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.timeago.js"></script>
 	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="audio.min.js"></script>
 
 	<!-- Plugins -->
 	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/NativeControls.js"></script>
