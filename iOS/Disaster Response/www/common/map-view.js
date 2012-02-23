@@ -466,15 +466,7 @@ function onMapMoveEnd(_event) {
 
 var popupFeature;
 function createLocationPopup(_feature) {
-	LocationPopup.toggle();
-	
-	if (LocationPopup.is(':visible')) {
-		LocationPopup.position({
-			my:	'center',
-			at:	'center',
-			of:	$('#map')
-		});
-		
+	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
 		popupFeature = _feature.attributes.locations[0];
@@ -492,58 +484,87 @@ function createLocationPopup(_feature) {
 		var $locationLonlat = $("#locationLonlat");
 		
 		//Check to see the media type
-		var fileType = mimeTypeFromExt(locMedia);
+		var mime = mimeTypeFromExt(locMedia);
+
+		if (mime) {
+			var fileType = mime.substr(0, mime.indexOf('/'));
 		
-		//If there is internet, use data from online
-		if(isInternetConnection == true) {
-			if(fileType == "video/quicktime") {
-				$locationImage.attr('src',"Popup/Video.png");
-				$locationImage.attr('alt',"Video of " + locName + ".");
+			//If there is internet, use data from online
+			if(isInternetConnection == true) {
+				if(fileType == "video") {
+					$('#locationImage').hide();
+					$('#embedded-audio').hide();
+
+					var $div = $('#embedded-video');
+					var $video = $div.find('video');
+					$video.attr('src', locMedia);
+					$div.show();
+				}
+				else if(fileType == "audio") {
+					$('#locationImage').hide();
+					$('#embedded-video').hide();
+					
+					var $div = $('#embedded-audio');
+					var $audio = $div.find('audio');
+					$audio.attr('src', locMedia);
+					$div.show();
+				}
+				else if(fileType ==  "image") {
+					$('#embedded-audio').hide();
+					$('#embedded-video').hide();
+					
+					var $img = $('#locationImage');
+					$img.attr('src', locMedia);
+					$img.attr('alt', "Image taken of " + locName + ".").show();
+				}
 			}
-				else if(fileType == "audio/wav") {
-					$locationImage.attr('src',"Popup/Audio.png");
-					$locationImage.attr('alt',"Audio recorded at " + locName + ".");
-				}
-				else if(fileType ==  "image/jpeg") {
-					$locationImage.attr('src',locMedia);
-					$locationImage.attr('alt',"Image taken of " + locName + ".");
-				}
+			//Otherwise use defaults
 			else {
-				$locationImage.attr('src',"Popup/FileNotSupported.png");
-				$locationImage.attr('alt',"This file type is not supported.");
-			}
-		}
-		//Otherwise use defaults
-		else {
-			if(fileType == "video/quicktime") {
-				$locationImage.attr('src',"Popup/Video_Offline.png");
-				$locationImage.attr('alt',"Video of " + locName + ", currently unavailable.");
-			}
-				else if(fileType == "audio/wav") {
-					$locationImage.attr('src',"Popup/Audio_Offline.png");
-					$locationImage.attr('alt',"Audio recorded at " + locName + ", currently unavailable.");
-				}
-				else if(fileType ==  "image/jpeg") {
-					$locationImage.attr('src',"Popup/Image_Offline.png");
-					$locationImage.attr('alt',"Image taken of " + locName + ", currently unavailable.");
-				}
-			else {
-				$locationImage.attr('src',"Popup/FileNotSupported.png");
-				$locationImage.attr('alt',"This file type is not supported.");
-			}
-		}
+				$('#embedded-audio').hide();
+				$('#embedded-video').hide();
 			
+				if(fileType == "video") {
+					document.getElementById("locationImage").src = "Popup/Video_Offline.png";
+					document.getElementById("locationImage").alt = "Video of " + locName + ", currently unavailable.";
+				}
+				else if(fileType == "audio") {
+					document.getElementById("locationImage").src = "Popup/Audio_Offline.png";
+					document.getElementById("locationImage").alt = "Audio recorded at " + locName + ", currently unavailable.";
+				}
+				else if(fileType ==  "image") {
+					document.getElementById("locationImage").src = "Popup/Image_Offline.png";
+					document.getElementById("locationImage").alt = "Image taken of " + locName + ", currently unavailable.";
+				}
+				$('#locationImage').show();
+			}
+		}
+		else {
+			$('#embedded-audio').hide();
+			$('#embedded-video').hide();
+					
+			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
+			document.getElementById("locationImage").alt = "This file type is not supported.";
+			$('#locationImage').show();
+		}
 		//Set the rest of the data here:
 		// If the feature has more then 1 status, add the number to the end of the name.
 		if(featureSize <= 1)
 			$locationName.attr('innerHTML',locName);
 		else
-			$locationName.attr('innerHTML',locName + " (" + featureSize + ")");
-			
-		document.getElementById("locationName").style.color = getStatusColor(locStatus);
-		document.getElementById("locationDate").innerHTML = "Date: " + locDate;
-		document.getElementById("locationLonlat").innerHTML = "Location: <br>" + " - Lat: " +locLat.toFixed(precision) + "<br> - Lon: " + locLon.toFixed(precision);
+			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
+
+		LocationPopup.attr('border', '5px solid ' + getStatusColor(locStatus));
+		//document.getElementById("locationName").style.color = getStatusColor(locStatus);
+		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
+		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
+	LocationPopup.toggle();
+	LocationPopup.trigger('updatelayout');
+	LocationPopup.position({
+		my:	'center',
+		at:	'center',
+		of:	$('#map')
+	});
 }
 
 function destroyLocationPopup(_feature) {
@@ -566,8 +587,8 @@ function locationPopup_onImageClick() {
 		var locLan 		= popupFeature.lan;
 		var locLon 		= popupFeature.lon;
 	
-	//If this image is clicked, we need to do one of 3 things: If the image is a...
-	//  1) Image 2) Audio 3) Video file, open it for the user.
+	//If this image is clicked, we need to do one of 2 things: If the image is a...
+	//  1) Image 2) Video file, open it for the user.
 	
 	//Check to see the media type
 	var fileType = mimeTypeFromExt(locMedia);
@@ -577,14 +598,9 @@ function locationPopup_onImageClick() {
 		//launch the video
 		navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Video');
 	}
-		else if(fileType == "audio/wav") {
-			//lauch the audio
-			navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Audio');
-		}
-		else if(fileType ==  "image/jpeg") {
-			//lauch the image
-			navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Image');
-		}
+	else if(fileType ==  "image/jpeg") {
+		$.mobile.changePage('#image-viewer');
+	}
 	else {
 		//Sould be impossible to get here...so congratulations?!
 		navigator.notification.alert('Media type not supported.', function(){}, 'Error', 'Okay');
@@ -881,10 +897,15 @@ var docHeight = 0;
  */function onDeviceReady()
 {
 	console.log("ready");
+
+	audiojs.events.ready(function() {
+		var as = audiojs.createAll();
+	});
+
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
-	
+
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -924,7 +945,7 @@ var docHeight = 0;
 	// do your thing!
 	var windowHeight = $(window).height();
 	var windowWidth = $(window).width();
-	
+
 	if(windowHeight > windowWidth)
 		docHeight = windowHeight;
 	else
@@ -1177,7 +1198,7 @@ $(document).ready(function () {
 //		$('head meta[name=viewport]').remove();
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
 		
-		var src = popup.prevPage.find('.building-popup img').attr('src');
+		var src = popup.prevPage.find('#locationImage').attr('src');
 		var $img = $(this).find('img');
 		$img.attr('max-width', $(window).width());
 		$img.attr('src', src);
@@ -1410,14 +1431,13 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.media.substr(row.media.lastIndexOf('/')+1);
-										
 												console.log("amazonURL: " + amazonURL);
 				sql += squote(amazonURL) + ')';
-				
+
 				if (rows.length > 1) {
 					sql += ';';
 				}
-												
+
 				uploadFileToS3(row.media);
 			}
 

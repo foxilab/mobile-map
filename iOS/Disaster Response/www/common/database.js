@@ -73,7 +73,7 @@ function createQueueTable(db) {
 	0		100.1, 38.4		Wal-Mart		/file/URI	ISO8601 string		1
 	*/
 	var create = function (tx) {
-		tx.executeSql('CREATE TABLE IF NOT EXISTS locationqueue (id INTEGER PRIMARY KEY, location TEXT NOT NULL, name TEXT, media TEXT NOT NULL, date TEXT NOT NULL, status INTEGER, FOREIGN KEY(status) REFERENCES statusref(id))');
+		tx.executeSql('CREATE TABLE IF NOT EXISTS locationqueue (id INTEGER PRIMARY KEY, location TEXT NOT NULL, name TEXT, media TEXT NOT NULL, date DATETIME NOT NULL, status INTEGER, FOREIGN KEY(status) REFERENCES statusref(id))');
 	};
 
 	db.transaction(create, errorSql);
