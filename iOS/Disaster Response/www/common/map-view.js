@@ -950,7 +950,8 @@ var docHeight = 0;
 		 ==============================================
  						 onDeviceReady
  		 ==============================================
- */function onDeviceReady()
+*/
+function onDeviceReady()
 {
 	console.log("ready");
 
@@ -1491,7 +1492,9 @@ $(document).ready(function () {
 	});
 	
 	$('#moreButton').click(function() {
-		showStatusesDialog();					   
+		// TODO: populate coverflow and try it out with just images for now
+		// we'll do video later, then figure out audio.
+//		showStatusesDialog();					   
 	});
 
 	$('#screenlockbutton').click(function(){
