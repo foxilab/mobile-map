@@ -451,7 +451,7 @@ function onMapMoveEnd(_event) {
 	var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
 	
 	//Generate the SQL
-	var sql = "SELECT * FROM " + FusionTableId.locations() + 
+	var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
 		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
 		"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
 			
@@ -561,7 +561,7 @@ function createLocationPopup(_feature) {
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
 
 		LocationPopup.css('border', '2px solid ' + getStatusColor(locStatus));
-		$('#locationDate').attr('datetime', locDate).text($.format.date(locDate, "MMMM dd, yyyy hh:mm:ss a")).timeago();
+		$('#locationDate').attr('datetime', locDate).text($.timeago($.format.date(locDate, "yyyy-MM-dd hh:mm:ss a")));
 		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
 	LocationPopup.toggle();
@@ -685,6 +685,12 @@ function getDataFromFusionRow(_row) {
 		var media = locationDataSplit[(positon+=1)];
 	//}
 	
+	//#BUGFIX 44
+	// The date is left in UTC for the main server, but it converted to the users local time
+	// when pulled. This code formats it and converts it to the correct format.
+	var dateFormated = $.format.date(date, "ddd, dd MMM yyyy HH:mm:ss UTC");
+	var dateConverted = new Date(dateFormated);
+	
 	//Build a location
 	var location = {
 			name: name,
@@ -692,7 +698,7 @@ function getDataFromFusionRow(_row) {
 			lat: lat,
 			lon: lon,
 			status: status,
-			date: date,
+			date: dateConverted,
 			media: media
 	};
 	
