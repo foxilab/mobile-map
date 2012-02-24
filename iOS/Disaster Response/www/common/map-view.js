@@ -486,10 +486,15 @@ function createLocationPopup(_feature) {
 		var $locationDate = $('#locationDate');
 		var $locationLonlat = $('#locationLonlat');
 		
-		if(featureSize <= 1)
-			$('#moreButton').hide();
-		else
-			$('#moreButton').show();
+		//If there are not multiple status for this location
+		if(featureSize <= 1) {
+			$('#locationImageStack').hide();	//hide ALL the things
+			$locationImage.attr('class', 'locImage');
+		}
+		else {
+			$('#locationImageStack').show();	//Otherwise show ALL the things
+			$locationImage.attr('class', 'locImageMultiple');
+		}
 		
 		//Check to see the media type
 		var mime = mimeTypeFromExt(locMedia);
@@ -686,8 +691,8 @@ function getDataFromFusionRow(_row) {
 	//}
 	
 	//#BUGFIX 44
-	// The date is left in UTC for the main server, but it converted to the users local time
-	// when pulled. This code formats it and converts it to the correct format.
+	// The date is left in UTC for the main server, but it's converted to the users local time
+	// when pulled. This code formats it and converts it to the correct timezone.
 	var dateFormated = $.format.date(date, "ddd, dd MMM yyyy HH:mm:ss UTC");
 	var dateConverted = new Date(dateFormated);
 	
