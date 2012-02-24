@@ -93,9 +93,12 @@ var cameraORvideoPopup;
 var LocationPopup;
 var clickedLonLat;
 
+var positionUnlockedImage = "css/images/PositionUnlocked.png";
+var positionLockedImage = "css/images/PositionLocked.png";
+
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-	pointRadius : 15,
-    externalGraphic : "css/images/15x15_Blue_Arrow.png",
+	pointRadius : 25,
+    externalGraphic : positionUnlockedImage,
 	fillOpacity: 1,
 	rotation: 0
 });
@@ -1190,7 +1193,7 @@ function onDeviceReady()
 					  mapDiv.css('top', mapTopPosition);
 					  mapDiv.css('left', mapLeftPosition);
 					  $.mobile.fixedToolbars.show();
-		$('#map-page #map-tab-button').addClass('ui-btn-active');
+		$('#map-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#map-page').on('pagehide', function() {
@@ -1207,7 +1210,7 @@ function onDeviceReady()
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		//selectTabBarItem('Queue');
-		$('#queue-dialog #queue-tab-button').addClass('ui-btn-active');
+		$('#queue-tab-button').addClass('ui-btn-active');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
 	
@@ -1228,12 +1231,12 @@ function onDeviceReady()
 	
 	$('#user-dialog').on('pageshow', function() {
 	//	selectTabBarItem('User');
-		$('#user-dialog #user-tab-button').addClass('ui-btn-active');
+		$('#user-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#more-dialog').on('pageshow', function() {
 	//	selectTabBarItem('More');
-		$('#more-dialog #more-tab-button').addClass('ui-btn-active');
+		$('#more-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#status-dialog').on('pagehide', function() {
@@ -1363,11 +1366,57 @@ $(document).ready(function () {
 	var $queue_item;
 
 	// TODO: Why do some of these only work with live() and not on() ?
-	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
-		//TODO: not sure how to enable zooming when in image-viewer, this works, but has some bad side-effects - see pagehide
-//		$('head meta[name=viewport]').remove();
-//		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
+	$('.gallery-item').live('click', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+	
+		var type = $(this).attr('media-type');
+		var src = $(this).attr('media-src');
+		var $viewer = $('#image-viewer');
 
+		switch (type) {
+			case 'audio':
+				$viewer.find('img').hide();
+				$viewer.find('#fs-video').hide();
+				
+				var $audio = $viewer.find('#fs-audio audio');
+				break;
+
+			case 'image':
+				$viewer.find('#fs-audio').hide();
+				$viewer.find('#fs-video').hide();
+				
+				var $img = $viewer.find('img');
+				$img.attr('max-height', $(window).height());
+				$img.attr('max-width', $(window).width());
+				$img.attr('src', src);
+				$img.show();
+				$img.load(function() {
+					$(this).position({
+						my:	'top center',
+						at:	'top center',
+						of:	$(this).parent()
+					});
+				});
+				break;
+
+			case 'video':
+				$viewer.find('#fs-audio').hide();
+				$viewer.find('img').hide();
+
+				var $container = $viewer.find('#fs-video');
+				var $video = $container.find('video');
+				$video.attr('src', src);
+				$container.show();
+				break;
+		}
+
+		$.mobile.changePage($viewer);
+	});
+
+	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
+		$('#map-footer li').removeClass('ui-btn-active');
+	
 		if ($(popup.prevPage).attr('id') == 'map-page') {
 			var src = popup.prevPage.find('#locationImage').attr('src');
 			var $img = $(this).find('img');
@@ -1382,13 +1431,8 @@ $(document).ready(function () {
 			});
 		}
 	});
-	$('#image-viewer').live('pagehide', function() {
-		// TODO: no way to reset zoom level, so if user zooms in on image, then goes back to the map, the map-page is zoomed in
-//		$('head meta[name=viewport]').remove();
-//		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />');
-	});
-	$('#image-viewer').live('click', function() {
-//		$.mobile.changePage('#map-page');
+
+	$('#image-viewer img').live('click', function() {
 		history.back();
 	});
 	
@@ -1512,7 +1556,7 @@ $(document).ready(function () {
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
-			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
+			navSymbolizer.externalGraphic = positionUnlockedImage;
 			navigationLayer.redraw();
 		}
 		
@@ -1577,21 +1621,19 @@ $(document).ready(function () {
 		$gallery.empty();
 		populateGallery($gallery, popupFeature);
 		$.mobile.changePage('#gallery-page');
-		
-		// TODO: populate coverflow and try it out with just images for now
-		// we'll do video later, then figure out audio.
-//		showStatusesDialog();
 	});
 
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
 			screenLocked = false;
 			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/unlock.png) !important");
-			navSymbolizer.externalGraphic = "css/images/blue-circle.png";
+			navSymbolizer.externalGraphic = positionLockedImage;
+			navSymbolizer.pointRadius = 30;
 		 }else{
 			screenLocked = true;
 			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/glyphish/54-lock.png) !important");
-			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
+			navSymbolizer.externalGraphic = positionUnlockedImage;
+			navSymbolizer.pointRadius = 20;
 		 }
 								 
 		navigationLayer.redraw();
