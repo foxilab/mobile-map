@@ -655,7 +655,7 @@ function locationPopup_onImageClick() {
 	
 	//Check to see the media type
 	var fileType = mimeTypeFromExt(locMedia);
-	
+
 	//Now that we know what type we have, open a new window for the user to view
 	if(fileType == "video/quicktime") {
 		//launch the video
@@ -1343,11 +1343,19 @@ $(document).ready(function () {
 
 	var $queue_item;
 
+	$('.locImage').live('click', locationPopup_onImageClick);
+	$('.locImageMultiple').live('click', function() {
+		var $gallery = $('#gallery');
+		$gallery.empty();
+		populateGallery($gallery, popupFeature);
+		$.mobile.changePage('#gallery-page');
+	});
+
 	// TODO: Why do some of these only work with live() and not on() ?
 	$('.gallery-item').live('click', function(e) {
 		e.preventDefault();
 		e.stopPropagation();
-	
+
 		var type = $(this).attr('media-type');
 		var src = $(this).attr('media-src');
 		var $viewer = $('#image-viewer');
@@ -1355,14 +1363,14 @@ $(document).ready(function () {
 		switch (type) {
 			case 'audio':
 				$viewer.find('img').hide();
-				$viewer.find('#fs-video').hide();
+				$('#fs-video').hide();
 				
-				var $audio = $viewer.find('#fs-audio audio');
+				var $audio = $('#fs-audio audio');
 				break;
 
 			case 'image':
-				$viewer.find('#fs-audio').hide();
-				$viewer.find('#fs-video').hide();
+				$('#fs-audio').hide();
+				$('#fs-video').hide();
 				
 				var $img = $viewer.find('img');
 				$img.attr('max-height', $(window).height());
@@ -1379,10 +1387,10 @@ $(document).ready(function () {
 				break;
 
 			case 'video':
-				$viewer.find('#fs-audio').hide();
+				$('#fs-audio').hide();
 				$viewer.find('img').hide();
 
-				var $container = $viewer.find('#fs-video');
+				var $container = $('#fs-video');
 				var $video = $container.find('video');
 				$video.attr('src', src);
 				$container.show();
@@ -1396,10 +1404,14 @@ $(document).ready(function () {
 		$('#map-footer li').removeClass('ui-btn-active');
 	
 		if ($(popup.prevPage).attr('id') == 'map-page') {
+			$('#fs-audio').hide();
+			$('#fs-video').hide();
+		
 			var src = popup.prevPage.find('#locationImage').attr('src');
 			var $img = $(this).find('img');
 			$img.attr('max-width', $(window).width());
 			$img.attr('src', src);
+			$img.show();
 			$img.load(function() {
 				$(this).position({
 					my:	'center',
@@ -1596,13 +1608,6 @@ $(document).ready(function () {
 		clickedLonLat = null;
 	});
 	
-	$('#moreButton').click(function() {
-		var $gallery = $('#gallery');
-		$gallery.empty();
-		populateGallery($gallery, popupFeature);
-		$.mobile.changePage('#gallery-page');
-	});
-
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
 			screenLocked = false;
