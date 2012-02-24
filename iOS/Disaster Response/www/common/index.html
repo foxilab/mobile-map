@@ -111,7 +111,7 @@
 	</head>
 
 	<body onload="onBodyLoad()">
-		<div data-role="page" id='map-page' data-theme='a'> 
+		<div data-role="page" id='map-page' class="mypage" data-theme='a'> 
 			<div data-role="content" id="map-content" style="padding: 0px !important;"> 
 				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;background-color:white;">
 					<div id="map" style="position:absolute;"></div>
@@ -160,7 +160,7 @@
 			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
-						<li><a href="#map-page" data-icon="home" class="ui-btn-active">Map</a></li>
+						<li id='map-tab-button'><a href="#map-page" data-icon="home" class="ui-btn-active">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
 						<li><a href="#user-dialog" data-icon="gear">User</a></li>
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
@@ -170,12 +170,12 @@
 			</div>
 		</div>
 
-		<div data-role='page' id='queue-dialog' data-theme='a'>
+		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
 			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
 				<h1>Locations</h1>
 				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='c' style='float: right'>Submit</a>
 			</div>
-			<div data-role='content' style="width:80%;margin:auto;padding:0px;">
+			<div data-role='content' id="queue-content" style="width:80%;margin:auto;padding:0px;">
 				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
 					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
 						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown'>
@@ -192,11 +192,11 @@
 				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
 			</div>
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter" style="bottom:0px;">
+			<div data-role='footer' id="queue-footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
-						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid" class="ui-btn-active">Queue</a></li>
+						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
 						<li><a href="#user-dialog" data-icon="gear">User</a></li>
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
 						<li><a href="Debug.html" data-icon="search">Debug</a></li>
@@ -246,7 +246,7 @@
 			</div>
 		</div>
 
-		<div data-role='page' id='user-dialog' data-theme='a'>
+		<div data-role='page' id='user-dialog' class="mypage" data-theme='a'>
 			<div data-role='content'>
 				<h3>User</h3>
 				<p>User data and variables go here.</p>
@@ -256,7 +256,7 @@
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
-						<li><a href="#user-dialog" data-icon="gear" class="ui-btn-active">User</a></li>
+						<li id='user-tab-button'><a href="#user-dialog" data-icon="gear" class="ui-btn-active">User</a></li>
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
 						<li><a href="Debug.html" data-icon="search">Debug</a></li>
 					</ul>
@@ -264,7 +264,7 @@
 			</div>
 		</div>
 
-		<div data-role='page' id='more-dialog' data-theme='a'>
+		<div data-role='page' id='more-dialog' class="mypage" data-theme='a'>
 			<div data-role='content'>
 				<h3>More</h3>
 				<p>App settings and options go here.</p>
@@ -277,7 +277,7 @@
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
 						<li><a href="#user-dialog" data-icon="gear">User</a></li>
-						<li><a href="#more-dialog" data-icon="info" class="ui-btn-active">More</a></li>
+						<li id='more-tab-button'><a href="#more-dialog" data-icon="info" class="ui-btn-active">More</a></li>
 						<li><a href="Debug.html" data-icon="search">Debug</a></li>
 					</ul>
 				</div>

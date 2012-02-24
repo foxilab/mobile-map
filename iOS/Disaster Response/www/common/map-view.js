@@ -912,7 +912,6 @@ function searchForAddress(address){
 		  var lat = results.results[0].geometry.location.lat;
 		  var lon = results.results[0].geometry.location.lng;
 	  
-		  console.log("from google: " + lon + ", " + lat);
 		  var lonlat = new OpenLayers.LonLat(lon, lat).transform(WGS84, WGS84_google_mercator);
 		  
 		  map.setCenter(lonlat, 17);
@@ -922,7 +921,6 @@ function searchForAddress(address){
 		  if(!formattedAddress)
 			formattedAddress = address;
 		  
-		  console.log("being inserted: " + lonlat.lon + ", " + lonlat.lat);
 		  insertToAddressSearchTable(sqlDb, lonlat.lon, lonlat.lat, formattedAddress);
 		  addToAddressList(lonlat.lon, lonlat.lat, formattedAddress);
 	  }
@@ -945,6 +943,23 @@ function showMapToolDivs(){
 
 var selectControl;
 var docHeight = 0;
+var deviceMaxSize = 0;
+var deviceMinSize = 0;
+var mapContainer;
+var mapDiv;
+
+function setMaxAndMinSizes(sizes){
+	deviceMaxSize = sizes[0];
+	deviceMinSize = sizes[0];
+	
+	for(var i = 1; i < sizes.length; i++)
+	{
+		if(sizes[i] > deviceMaxSize)
+			deviceMaxSize = sizes[i];
+		else if(sizes[i] < deviceMinSize)
+			deviceMinSize = sizes[i];
+	}
+}
 
 /*
 		 ==============================================
@@ -989,7 +1004,25 @@ function onDeviceReady()
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
-
+	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
+	var windowMinHeight = $('#map-page').css('min-height');
+	windowMinHeight = windowMinHeight.substr(0, windowMinHeight.length-2);
+	
+	mapContainer = $("#mapContainer");
+	mapDiv = $("#map");
+	
+	/*if(windowHeight > windowWidth)
+	{
+		deviceMaxSize = windowHeight;
+		deviceMinSize = windowWidth;
+	}else{
+		deviceMaxSize = windowWidth;
+		deviceMinSize = windowHeight;
+	}*/
+	setMaxAndMinSizes([windowHeight, windowWidth, windowMinHeight]);
+	console.log("maxSize: " + deviceMaxSize);
+	console.log("minSize: "  + deviceMinSize);
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -1038,10 +1071,8 @@ function onDeviceReady()
 	var footerHeight = $("#map-footer").height();
 	var mapHeight = docHeight - footerHeight - 20;
 	
-	var mapContainer = $("#mapContainer");
 	mapContainer.height(mapHeight +"px");
 	
-	var mapDiv = $("#map");
 	mapHeight = mapHeight*1.7;
 	mapDiv.height(mapHeight+"px");
 	mapDiv.width(mapHeight+"px");
@@ -1144,6 +1175,16 @@ function onDeviceReady()
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').on('pageshow', function() {
 	//	selectTabBarItem('Map');
+					  var height = $('.queue-dialog').height();
+					  var width = $('.queue-dialog').width();
+					  $(this).height(height);
+					  $(this).width(width);
+					  var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+					  var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+					  mapDiv.css('top', mapTopPosition);
+					  mapDiv.css('left', mapLeftPosition);
+					  $.mobile.fixedToolbars.show();
+		$('#map-page #map-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#map-page').on('pagehide', function() {
@@ -1160,6 +1201,7 @@ function onDeviceReady()
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		//selectTabBarItem('Queue');
+		$('#queue-dialog #queue-tab-button').addClass('ui-btn-active');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
 	
@@ -1180,10 +1222,12 @@ function onDeviceReady()
 	
 	$('#user-dialog').on('pageshow', function() {
 	//	selectTabBarItem('User');
+		$('#user-dialog #user-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#more-dialog').on('pageshow', function() {
 	//	selectTabBarItem('More');
+		$('#more-dialog #more-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#status-dialog').on('pagehide', function() {
@@ -1327,9 +1371,10 @@ $(document).ready(function () {
 
 	$('#queue-item-delete').live('click', function(e) {
 		// If we were the last item in the queue, close the dialog
-		/*if (itemsInQueue === 1) {
-			$('#queue-dialog').dialog('close');
-		}*/
+		if (itemsInQueue === 1) {
+			//$('#queue-dialog').dialog('close');
+			$.mobile.changePage('#map-page');
+		}
 
 		var id = $(this).attr('rowid');
 		deleteLocation(sqlDb, id);
@@ -1338,6 +1383,7 @@ $(document).ready(function () {
 
 		// An item was removed, update the queue size.
 		updateQueueSize();
+		$.mobile.fixedToolbars.show();
 	});
 
 	$('#location-dialog').live('pagebeforeshow', function() {
@@ -1934,14 +1980,16 @@ function onOrientationChange(_error) {
 }
 
 function resizeMapContainer(orientation){
-  // var mapContainer = $('#mapContainer');
-   var windowHeight = $(window).height();
-   var windowWidth = $(window).width();
-						   var maxSize = 0;
-						   var minSize = 0;
-		var mapContainer = $("#mapContainer");
-		var mapDiv = $("#map");
-						   var contentDiv = $("#map-content");
+	// var mapContainer = $('#mapContainer');
+	var windowHeight = $(window).height();
+	var windowWidth = $(window).width();
+						   console.log("newWindowHeight: " + windowHeight);
+						   console.log("newWindowWidth: " + windowWidth);
+	/*var maxSize = 0;
+	var minSize = 0;
+	var mapContainer = $("#mapContainer");
+	var mapDiv = $("#map");
+	var contentDiv = $("#map-content");
 						   
 	if(windowHeight > windowWidth)
 	{
@@ -1952,28 +2000,41 @@ function resizeMapContainer(orientation){
 		minSize = windowHeight;
 	}
 	
-						   var footerHeight = $("#map-footer").height();
-						   var mapHeight;
-						   var mapWidth;
+	var footerHeight = $("#map-footer").height();
+	//var mapHeight;
+	//var mapWidth;*/
+						   //alert("deviceMinSize: " + deviceMinSize);
 	if((orientation == -90) || (orientation == 90)) //landscape
 	{
-						   mapHeight = minSize - footerHeight - 20;
-						   mapWidth = maxSize;
+		/*mapHeight = minSize - footerHeight - 20;
+		mapWidth = maxSize;*/
+	   $('.mypage').height(deviceMinSize);
+	   $('.mypage').width(deviceMaxSize);
+						   console.log("height: " + deviceMinSize);
+						   console.log("width: " + deviceMaxSize);
 						   
 	}else{
-						   mapHeight = maxSize - footerHeight - 20;
-						   mapWidth = minSize;
+		/*mapHeight = maxSize - footerHeight - 20;
+		mapWidth = minSize;*/
+	   $('.mypage').height(deviceMaxSize);
+	   $('.mypage').width(deviceMinSize);
 	}
    
-						  // mapContainer.height(mapHeight);
-						  // mapContainer.width(mapWidth);
-						   contentDiv.height(mapHeight);
-						   contentDiv.width(mapWidth);
-						   $("#map-footer").width(mapWidth);
-   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-   mapDiv.css('top', mapTopPosition);
-   mapDiv.css('left', mapLeftPosition);
+	// mapContainer.height(mapHeight);
+	// mapContainer.width(mapWidth);
+	/*contentDiv.height(mapHeight);
+	contentDiv.width(mapWidth);
+	$("#map-footer").width(mapWidth);
+	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+	mapDiv.css('top', mapTopPosition);
+	mapDiv.css('left', mapLeftPosition);*/
+						   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+						   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+						   mapDiv.css('top', mapTopPosition);
+						   mapDiv.css('left', mapLeftPosition);
+						   
+						   $.mobile.fixedToolbars.show();
 						  //s $("#footer
 						   //showTabBar();
 }
