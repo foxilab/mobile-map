@@ -91,9 +91,12 @@ var cameraORvideoPopup;
 var LocationPopup;
 var clickedLonLat;
 
+var positionUnlockedImage = "css/images/PositionUnlocked.png";
+var positionLockedImage = "css/images/PositionLocked.png";
+
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-	pointRadius : 15,
-    externalGraphic : "css/images/15x15_Blue_Arrow.png",
+	pointRadius : 25,
+    externalGraphic : positionUnlockedImage,
 	fillOpacity: 1,
 	rotation: 0
 });
@@ -1491,7 +1494,7 @@ $(document).ready(function () {
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
-			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
+			navSymbolizer.externalGraphic = positionUnlockedImage;
 			navigationLayer.redraw();
 		}
 		
@@ -1567,11 +1570,13 @@ $(document).ready(function () {
 		if(screenLocked){
 			screenLocked = false;
 			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/unlock.png) !important");
-			navSymbolizer.externalGraphic = "css/images/blue-circle.png";
+			navSymbolizer.externalGraphic = positionLockedImage;
+			navSymbolizer.pointRadius = 30;
 		 }else{
 			screenLocked = true;
 			$("#screenlockbutton .ui-icon").css("background-image", "url(css/images/glyphish/54-lock.png) !important");
-			navSymbolizer.externalGraphic = "css/images/15x15_Blue_Arrow.png";
+			navSymbolizer.externalGraphic = positionUnlockedImage;
+			navSymbolizer.pointRadius = 20;
 		 }
 								 
 		navigationLayer.redraw();
