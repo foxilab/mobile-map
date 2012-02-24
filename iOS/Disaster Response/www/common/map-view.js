@@ -976,14 +976,15 @@ function setMaxAndMinSizes(sizes){
 		 ==============================================
  						 onDeviceReady
  		 ==============================================
- */function onDeviceReady()
+*/
+function onDeviceReady()
 {
 	console.log("ready");
 
 	audiojs.events.ready(function() {
 		var as = audiojs.createAll();
 	});
-
+	
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
@@ -1296,9 +1297,40 @@ function showQueueItemDelete(e) {
 	$del.position({
 		my:	'right center',
 		at:	'right center',
-		of:	$(this),
-		offet:'0, 0'
+		of:	$(this)
 	});
+}
+
+function populateGallery(parent, items, options) {
+	if (!parent || !$.isArray(items))
+		return;
+
+	var makeGalleryItem = function (item) {
+		var type = mimeTypeFromExt(item.media);
+		type = type.substr(0, type.indexOf('/'));
+	
+		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float: left; padding: 4px; margin: 8px; width: 128px; height: 128px; border: 1px solid silver; text-align: center; line-height:128px; display: table-cell; vertical-align: middle"><span style="vertical-align: middle"></span><img src=';
+		switch (type) {
+			case 'audio':
+				div += quote('css/images/speaker.png');
+				break;
+
+			case 'image':
+				div += quote(item.media);
+				break;
+
+			case 'video':
+				div += quote('Popup/Video.png');
+				break;
+		}
+		// TODO: add the caption and date if they exist
+		div += ' style="vertical-align: middle; max-width: 128px; max-height: 128px;"></img></div>';
+		return $(div);
+	};
+
+	for (var i = 0; i < items.length; ++i) {
+		parent.append(makeGalleryItem(items[i]));
+	}
 }
 
 $(document).ready(function () {
@@ -1313,18 +1345,20 @@ $(document).ready(function () {
 		//TODO: not sure how to enable zooming when in image-viewer, this works, but has some bad side-effects - see pagehide
 //		$('head meta[name=viewport]').remove();
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes" />');
-		
-		var src = popup.prevPage.find('#locationImage').attr('src');
-		var $img = $(this).find('img');
-		$img.attr('max-width', $(window).width());
-		$img.attr('src', src);
-		$img.load(function() {
-			$(this).position({
-				my:	'center',
-				at:	'center',
-				of:	$(this).parent()
+
+		if ($(popup.prevPage).attr('id') == 'map-page') {
+			var src = popup.prevPage.find('#locationImage').attr('src');
+			var $img = $(this).find('img');
+			$img.attr('max-width', $(window).width());
+			$img.attr('src', src);
+			$img.load(function() {
+				$(this).position({
+					my:	'center',
+					at:	'center',
+					of:	$(this).parent()
+				});
 			});
-		});
+		}
 	});
 	$('#image-viewer').live('pagehide', function() {
 		// TODO: no way to reset zoom level, so if user zooms in on image, then goes back to the map, the map-page is zoomed in
@@ -1332,7 +1366,8 @@ $(document).ready(function () {
 //		$('head').prepend('<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />');
 	});
 	$('#image-viewer').live('click', function() {
-		$.mobile.changePage('#map-page');
+//		$.mobile.changePage('#map-page');
+		history.back();
 	});
 	
 	$('.queue-list-item').live('click', function(e) {
@@ -1518,7 +1553,14 @@ $(document).ready(function () {
 	});
 	
 	$('#moreButton').click(function() {
-		showStatusesDialog();					   
+		var $gallery = $('#gallery');
+		$gallery.empty();
+		populateGallery($gallery, popupFeature);
+		$.mobile.changePage('#gallery-page');
+		
+		// TODO: populate coverflow and try it out with just images for now
+		// we'll do video later, then figure out audio.
+//		showStatusesDialog();
 	});
 
 	$('#screenlockbutton').click(function(){
