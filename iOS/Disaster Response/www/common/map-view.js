@@ -1401,8 +1401,8 @@ $(document).ready(function () {
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
 	$('#queue-tab-button').live('click', function(e) {
-		if(itemsInQueue > 0)
-			$.mobile.changePage('#queue-dialog', 'pop');
+		if(itemsInQueue === 0)
+			e.stopImmediatePropagation();
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
@@ -1533,7 +1533,6 @@ $(document).ready(function () {
 		var lat = coordinates.substring(0, commaIndex);
 		var lon = coordinates.substr(commaIndex+1);
 		
-								 console.log(lon + "," + lat);
 		map.setCenter(new OpenLayers.LonLat(lon, lat), 17);							
 	});
 	
