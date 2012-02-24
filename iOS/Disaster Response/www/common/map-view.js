@@ -37,6 +37,8 @@ var FusionTableId = new function () {
 var map;
 var heatmapLayer;
 var screenLocked = true;
+var orientationHeadingOffset = 0;
+
 //var fusionLayer_Locations_Icons;
 //var fusionLayer_Locations_HeatMap;
 
@@ -312,8 +314,7 @@ var compassSuccess = function(heading) {
 	//Rotate arrow
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
-	console.log("compass success");
-	var heading = heading.magneticHeading;
+	var heading = (heading.magneticHeading + orientationHeadingOffset) % 360;
 	var mapRotation = 360 - heading;
 	
 	//Rotate map
@@ -327,7 +328,6 @@ var compassSuccess = function(heading) {
 		navSymbolizer.rotation = heading;
 		navigationLayer.redraw();
 	}
-	console.log("compass success end");
 };
 
 var compassError = function(error) {
@@ -1025,6 +1025,28 @@ function setMaxAndMinSizes(sizes){
 		navigator.notification.alert('Error opening database: ' + e);
 	}
     
+	switch (window.orientation) {
+		case -90:   //Landscape with the screen turned to the left.
+			orientationHeadingOffset = -90;
+			break;
+			
+		case 0:     //Default view
+			orientationHeadingOffset = 0;
+			break;
+			
+		case 90:    //Landscape with the screen turned to the right.
+			orientationHeadingOffset = 90;
+			break;
+			
+		case 180:   //Upside down.
+			orientationHeadingOffset = 180;
+			break;
+			
+		default: 
+			console.log('Orientation issue: ' + window.orientation);
+			break;
+	}
+	
 	// Set up NativeControls
 	//nativeControls = window.plugins.nativeControls;
 	//setupTabBar();
@@ -1062,7 +1084,7 @@ function setMaxAndMinSizes(sizes){
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
 	
-	map.events.register("moveend", map, onMapMoveEnd);
+	 map.events.register("moveend", map, onMapMoveEnd);
 	map.addLayers([mapLayerOSM, heatmapLayer, navigationLayer, statusLayer, fusionLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
@@ -1333,9 +1355,8 @@ $(document).ready(function () {
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
 	$('#queue-tab-button').live('click', function(e) {
-		if (itemsInQueue === 0) {
-			e.preventDefault();
-		}
+		if(itemsInQueue > 0)
+			$.mobile.changePage('#queue-dialog', 'pop');
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
@@ -1925,18 +1946,22 @@ function onOrientationChange(_error) {
 		switch (window.orientation) {
 			case -90:   //Landscape with the screen turned to the left.
 				onOrientationLandscape(window.orientation);
+						   orientationHeadingOffset = -90;
 				break;
 
 			case 0:     //Default view
 				onOrientationPortrait(window.orientation);
+						   orientationHeadingOffset = 0;
 				break;
 
 			case 90:    //Landscape with the screen turned to the right.
 				onOrientationLandscape(window.orientation);
+						   orientationHeadingOffset = 90;
 				break;
 
 			case 180:   //Upside down.
 				onOrientationPortrait(window.orientation);
+						   orientationHeadingOffset = 180;
 				break;
 
 			default: 
@@ -1950,60 +1975,23 @@ function resizeMapContainer(orientation){
 	// var mapContainer = $('#mapContainer');
 	var windowHeight = $(window).height();
 	var windowWidth = $(window).width();
-						   console.log("newWindowHeight: " + windowHeight);
-						   console.log("newWindowWidth: " + windowWidth);
-	/*var maxSize = 0;
-	var minSize = 0;
-	var mapContainer = $("#mapContainer");
-	var mapDiv = $("#map");
-	var contentDiv = $("#map-content");
-						   
-	if(windowHeight > windowWidth)
-	{
-		maxSize = windowHeight;
-		minSize = windowWidth;
-	}else{
-		maxSize = windowWidth;
-		minSize = windowHeight;
-	}
-	
-	var footerHeight = $("#map-footer").height();
-	//var mapHeight;
-	//var mapWidth;*/
-						   //alert("deviceMinSize: " + deviceMinSize);
+				
 	if((orientation == -90) || (orientation == 90)) //landscape
 	{
-		/*mapHeight = minSize - footerHeight - 20;
-		mapWidth = maxSize;*/
 	   $('.mypage').height(deviceMinSize);
 	   $('.mypage').width(deviceMaxSize);
-						   console.log("height: " + deviceMinSize);
-						   console.log("width: " + deviceMaxSize);
 						   
 	}else{
-		/*mapHeight = maxSize - footerHeight - 20;
-		mapWidth = minSize;*/
 	   $('.mypage').height(deviceMaxSize);
 	   $('.mypage').width(deviceMinSize);
 	}
-   
-	// mapContainer.height(mapHeight);
-	// mapContainer.width(mapWidth);
-	/*contentDiv.height(mapHeight);
-	contentDiv.width(mapWidth);
-	$("#map-footer").width(mapWidth);
-	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-	mapDiv.css('top', mapTopPosition);
-	mapDiv.css('left', mapLeftPosition);*/
-						   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-						   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-						   mapDiv.css('top', mapTopPosition);
-						   mapDiv.css('left', mapLeftPosition);
 						   
-						   $.mobile.fixedToolbars.show();
-						  //s $("#footer
-						   //showTabBar();
+   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+   mapDiv.css('top', mapTopPosition);
+   mapDiv.css('left', mapLeftPosition);
+   
+   $.mobile.fixedToolbars.show();
 }
 
 /*
