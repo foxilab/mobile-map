@@ -974,33 +974,6 @@ function onDeviceReady()
 		var as = audiojs.createAll();
 	});
 	
-	var imageflow = new ImageFlow();
-	imageflow.init({
-		ImageFlowID: 'coverflow',
-		reflections: false,
-		reflectionP: 0.0,
-		slider: true,
-		captions: true,
-		opacity: true,
-		aspectRatio: 1.618, // TODO: probably need to change based on current orientation
-		onClick: function() {
-			var $img = $('#image-viewer').find('img');
-			$img.attr('max-width', $(window).width());
-			$img.attr('src', this.url);
-			$img.load(function() {
-				$(this).position({
-					my:	'center',
-					at:	'center',
-					of:	$(this).parent()
-				});
-			});
-		
-			$.mobile.changePage('#image-viewer');
-		}
-	});
-
-	$.mobile.changePage('#coverflow-page');
-
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
@@ -1313,9 +1286,40 @@ function showQueueItemDelete(e) {
 	$del.position({
 		my:	'right center',
 		at:	'right center',
-		of:	$(this),
-		offet:'0, 0'
+		of:	$(this)
 	});
+}
+
+function populateGallery(parent, items, options) {
+	if (!parent || !$.isArray(items))
+		return;
+
+	var makeGalleryItem = function (item) {
+		var type = mimeTypeFromExt(item.media);
+		type = type.substr(0, type.indexOf('/'));
+	
+		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float: left; padding: 4px; margin: 8px; width: 128px; height: 128px; border: 1px solid silver; text-align: center; line-height:128px; display: table-cell; vertical-align: middle"><span style="vertical-align: middle"></span><img src=';
+		switch (type) {
+			case 'audio':
+				div += quote('css/images/speaker.png');
+				break;
+
+			case 'image':
+				div += quote(item.media);
+				break;
+
+			case 'video':
+				div += quote('Popup/Video.png');
+				break;
+		}
+		// TODO: add the caption and date if they exist
+		div += ' style="vertical-align: middle; max-width: 128px; max-height: 128px;"></img></div>';
+		return $(div);
+	};
+
+	for (var i = 0; i < items.length; ++i) {
+		parent.append(makeGalleryItem(items[i]));
+	}
 }
 
 $(document).ready(function () {
@@ -1538,9 +1542,14 @@ $(document).ready(function () {
 	});
 	
 	$('#moreButton').click(function() {
+		var $gallery = $('#gallery');
+		$gallery.empty();
+		populateGallery($gallery, popupFeature);
+		$.mobile.changePage('#gallery-page');
+		
 		// TODO: populate coverflow and try it out with just images for now
 		// we'll do video later, then figure out audio.
-//		showStatusesDialog();					   
+//		showStatusesDialog();
 	});
 
 	$('#screenlockbutton').click(function(){
