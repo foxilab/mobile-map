@@ -85,7 +85,7 @@
 				display:none;
 				position:relative;
 				z-index:1000;
-				top:20%;
+				/*top:20%;  #BUGFIX 38: This causes it to not center.*/
 				margin:auto;
 				background-color:#505050;
 				min-width:300px;
@@ -99,6 +99,19 @@
 
 			.ui-page {
 				height: 100% !important;
+			}
+			
+			.locImageMultiple{
+				position: absolute;
+				left: 40px;
+				top: 75px;
+				width: 262px;
+				height: 192px;
+			}
+			
+			.locImage{
+				width: 300px;
+				height: 264px;
 			}
 			
 	</style>
@@ -144,16 +157,19 @@
 						<span style="float: left; color:white; font-size:18px;">&nbsp;-&nbsp;</span>
 						<time id="locationDate" class="timeago" style="float: left; color:white; font-size:18px; margin-bottom:4px;"></time>
 						<div style='clear:both'></div>
-						<img id="locationImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." style="width: 300px; height: auto" onClick="locationPopup_onImageClick()" align="middle"/>
+						<!-- Image -->
+						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px" align="middle"/>
+						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." onClick="locationPopup_onImageClick()" align="middle"/>
+						<!-- Video -->
 						<div id='embedded-video'>
 							<video class="video-js vjs-default-skin" controls preload="auto" width="300" height="264" data-setup="{}">
 							</video>
 						</div>
+						<!-- Audio -->
 						<div id='embedded-audio'>
 							<audio preload='auto'>
 							</audio>
 						</div>
-						<a href="#" data-role="button" id="moreButton">More</a>
 					</div>
 				</div>
 			</div>
