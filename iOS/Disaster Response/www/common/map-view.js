@@ -893,7 +893,7 @@ function togglePhotoVideoDialog(){
 		cameraORvideoPopup.position({
 			my:	'center',
 			at:	'center',
-			of:	$('#map')
+			of:	$('#mapContainer')
 		});
 	}
 }
@@ -1147,12 +1147,6 @@ function onDeviceReady()
 				}else
 					togglePhotoVideoDialog();
 			}
-												
-			var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-			if(visibleListItems.length >= 0){
-				visibleListItems.addClass('ui-screen-hidden hid-myself');
-				$('#addressSearchDiv .ui-input-text').blur();
-			}
 			
 			wasFeatureSelected = false;
 			wasFeatureUnselected = false;
@@ -1376,6 +1370,12 @@ $(document).ready(function () {
 		hideQueueItemDelete();
 	});
 
+	$('#fs-video').position({
+		my:	'center',
+		at:	'center',
+		of:	$('#image-viewer')
+	});
+
 	var $queue_item;
 
 	$('.locImage').live('click', locationPopup_onImageClick);
@@ -1414,9 +1414,9 @@ $(document).ready(function () {
 				$img.show();
 				$img.load(function() {
 					$(this).position({
-						my:	'top center',
-						at:	'top center',
-						of:	$(this).parent()
+						my:	'center',
+						at:	'center',
+						of:	$viewer
 					});
 				});
 				break;
@@ -1425,10 +1425,13 @@ $(document).ready(function () {
 				$('#fs-audio').hide();
 				$viewer.find('img').hide();
 
-				var $container = $('#fs-video');
-				var $video = $container.find('video');
+				var $video = $('#fs-video video');
 				$video.attr('src', src);
-				$container.show();
+				$video.show();
+				_V_('fs-video-tag').ready(function() {
+					_V_('fs-video-tag').play();
+				});
+
 				break;
 		}
 
@@ -1471,7 +1474,7 @@ $(document).ready(function () {
 
 	$('#queue-tab-button').live('click', function(e) {
 		if(itemsInQueue === 0)
-			e.stopImmediatePropagation();
+			e.preventDefault();
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
@@ -1570,12 +1573,6 @@ $(document).ready(function () {
 	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
-
-	$('#northIndicator').click(function(){
-		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-		if(visibleListItems.length > 0)
-		   visibleListItems.addClass('ui-screen-hidden hid-myself');
-	});
 				  
 	$("#northIndicator").on("taphold", function(){
 		if(!screenLocked){
@@ -1595,7 +1592,7 @@ $(document).ready(function () {
 		var address = $('#addressSearchDiv .ui-input-text').val();
 		searchForAddress(address);
 	});
-	
+				  
 	$('.address-list-item').live('click', function(){
 		var coordinates = $(this).attr('location');
 		var commaIndex = coordinates.indexOf(",");
@@ -1609,11 +1606,18 @@ $(document).ready(function () {
 			cameraORvideoPopup.hide();
 			selectControl.unselectAll(); //Removes the LocationPopup
 			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+			if($('#cameraORvideoPopup').is(':visible'))
+					togglePhotoVideoDialog();
 	});
 		
-	/*$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
-			$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
-	});*/
+	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
+		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+		
+		setTimeout(function(){
+			if(visibleListItems.length > 0)
+				visibleListItems.addClass('ui-screen-hidden hid-myself');
+		}, 200);
+	});
 				  
 	$('#plus').click(function(){
 		map.zoomIn();
