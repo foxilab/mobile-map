@@ -1395,7 +1395,7 @@ function populateGallery(parent, items, options) {
 				break;
 
 			case 'video':
-				div += "<video id='video-thumb-" + index + "' class='gallery-video video-js vjs-default-skin' controls preload='auto' data-setup='{}' width='158' height='158'>";
+				div += "<video id='video-thumb-" + index + "' class='video-js vjs-default-skin' controls preload='auto' data-setup='{}' width='158' height='158'>";
 				div += "<source src=" + squote(item.media) + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
 				div += "</video>";
 				break;
@@ -1411,11 +1411,10 @@ function populateGallery(parent, items, options) {
 		var type = mimeTypeFromExt(items[i].media);
 		type = type.substr(0, type.indexOf('/'));
 		
-/*		if (type == 'video') {
-			_V_('video-thumb-' + i).addEvent('play', function() {
-				console.log('hola!');
-			});
-		}*/
+		if (type == 'video') {
+			// Initialize video-js on the video element
+			_V_('video-thumb-' + i);
+		}
 	}
 }
 
@@ -1526,8 +1525,12 @@ $(document).ready(function () {
 	});
 	$('#image-viewer').live('pagebeforehide', function() {
 		var $audio = $(this).find('audio');
+		var $video = $(this).find('video');
 		if ($audio.is(':visible')) {
 			$audio.get(0).pause();
+		}
+		else if ($video.is(':visible')) {
+			$video.get(0).pause();
 		}
 	});
 	
