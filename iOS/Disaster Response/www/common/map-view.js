@@ -1449,11 +1449,10 @@ $(document).ready(function () {
 		e.preventDefault();
 		e.stopPropagation();
 
-		$.mobile.changePage($viewer);
-
 		var type = $(this).attr('media-type');
 		var src = $(this).attr('media-src');
 		var $viewer = $('#image-viewer');
+		$.mobile.changePage($viewer);
 
 		switch (type) {
 			case 'audio':
