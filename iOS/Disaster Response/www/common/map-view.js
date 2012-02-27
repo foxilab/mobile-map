@@ -1367,7 +1367,7 @@ function populateGallery(parent, items, options) {
 				break;
 
 			case 'image':
-				div += quote(item.media);
+				div += quote(item.	media);
 				break;
 
 			case 'video':
