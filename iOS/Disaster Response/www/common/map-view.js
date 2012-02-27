@@ -1370,12 +1370,11 @@ function populateGallery(parent, items, options) {
 
 		// 3 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
 		var itemwidth = $(window).width() / 3 - 8 * 4 - 4;
-		itemwidth += 'px';
 
-		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + ';height:' + itemwidth + ';border:1px solid silver;text-align:center;line-height:' + itemwidth + ';display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
+		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
 
 		var photo = '';
-		
+
 		switch (type) {
 			case 'audio':
 				photo = quote('css/images/speaker.png');
@@ -1393,11 +1392,11 @@ function populateGallery(parent, items, options) {
 				break;
 			case 'image':
 				div += '<img src=' + photo;
-				div += ' style="vertical-align:middle;max-width:' + itemwidth + ';max-height:' + itemwidth + '"></img>';
+				div += ' style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
 
 			case 'video':
-				div += "<video id='video-thumb-" + index + "' class='video-js vjs-default-skin' controls preload='auto' data-setup='{}' width='158' height='158'>";
+				div += "<video id='video-thumb-" + index + "' class='video-js vjs-default-skin' controls='false' preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "'>";
 				div += "<source src=" + squote(item.media) + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
 				div += "</video>";
 				break;
@@ -1455,6 +1454,7 @@ $(document).ready(function () {
 		var type = $(this).attr('media-type');
 		var src = $(this).attr('media-src');
 		var $viewer = $('#image-viewer');
+		$.mobile.changePage($viewer);
 
 		switch (type) {
 			case 'audio':
@@ -1500,8 +1500,6 @@ $(document).ready(function () {
 
 				break;
 		}
-
-		$.mobile.changePage($viewer);
 	});
 
 	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
@@ -1535,7 +1533,7 @@ $(document).ready(function () {
 			$video.get(0).pause();
 		}
 	});
-	
+
 	$('#image-viewer img').live('click', function() {
 		history.back();
 	});
@@ -1549,7 +1547,7 @@ $(document).ready(function () {
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
 	$('#queue-tab-button').live('click', function(e) {
-		if(itemsInQueue === 0){
+		if(itemsInQueue === 0) {
 			e.preventDefault();
 			e.stopPropagation();
 		}
