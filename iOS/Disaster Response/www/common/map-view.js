@@ -1391,8 +1391,8 @@ function populateGallery(parent, items, options) {
 				break;
 
 			case 'video':
-				div += "<video id='video-thumb-" + i + "' class='gallery-video video-js vjs-default-skin' controls preload='auto' data-setup='{}' width='158' height='158'>";
-				div += "<source src='" + item.media + "'/>";
+				div += "<video id='video-thumb-" + index + "' class='gallery-video video-js vjs-default-skin' controls preload='auto' data-setup='{}' width='158' height='158'>";
+				div += "<source src=" + squote(item.media) + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
 				div += "</video>";
 				break;
 		}
@@ -1402,7 +1402,16 @@ function populateGallery(parent, items, options) {
 	};
 
 	for (var i = 0; i < items.length; ++i) {
-		parent.append(makeGalleryItem(items[i]));
+		parent.append(makeGalleryItem(items[i], i));
+
+		var type = mimeTypeFromExt(items[i].media);
+		type = type.substr(0, type.indexOf('/'));
+		
+/*		if (type == 'video') {
+			_V_('video-thumb-' + i).addEvent('play', function() {
+				console.log('hola!');
+			});
+		}*/
 	}
 }
 
@@ -1480,9 +1489,9 @@ $(document).ready(function () {
 				var $video = $container.find('video');
 				$video.attr('src', src);
 				$container.show();
-				_V_('fs-video-tag').ready(function() {
+/*				_V_('fs-video-tag').ready(function() {
 					_V_('fs-video-tag').play();
-				});
+				});*/
 
 				break;
 		}
