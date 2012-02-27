@@ -450,6 +450,7 @@ function uploadFileToS3(filepath) {
 		 			HeatMap and Icons
  		==============================================
  */
+ var isHeatMap = false;
 function onMapMoveEnd(_event) {
 	//The map bounds has changed...get the bounds and convert it
 	var bounds = map.getExtent();
@@ -460,6 +461,19 @@ function onMapMoveEnd(_event) {
 	var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
 		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
 		"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
+		
+	//#HACK - Demo Hack HeatMaps
+	// HeatMaps cause the program to become jumpy, so remove them unless they are visable
+	if(map.getResolution() <= iconMaxResolution && isHeatMap == true) {
+		//If the icons are visable
+		map.removeLayer(heatmapLayer);
+		isHeatMap = false;
+	}
+	else if(isHeatMap == false){
+		//If the heatmap is visable
+		map.addLayer(heatmapLayer);
+		isHeatMap = true;
+	}
 			
 	//With the bounds and SQL, query the Fusion Table for the features.
 	googleSQL(sql, 'GET', fusionSQLSuccess);
@@ -1108,7 +1122,8 @@ function onDeviceReady()
 	initHeatmap();
 	
 	 map.events.register("moveend", map, onMapMoveEnd);
-	map.addLayers([mapLayerOSM, heatmapLayer, navigationLayer, statusLayer, fusionLayer]);
+	 //#HACK
+	 map.addLayers([mapLayerOSM, /*heatmapLayer,*/ navigationLayer, statusLayer, fusionLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
 		enableHighAccuracy: true,
