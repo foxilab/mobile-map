@@ -196,6 +196,14 @@ function updateLocationStatus(db, id, status) {
 	db.transaction(update, errorSql);
 }
 
+function dropAddressSeachTable(db) {
+	var drop = function (tx) {
+		tx.executeSql('DROP TABLE searchAddresses');
+	};
+	
+	db.transaction(drop, errorSql);
+}
+
 function insertToAddressSearchTable(db, lon, lat, address){
 	var key = -1;
 	

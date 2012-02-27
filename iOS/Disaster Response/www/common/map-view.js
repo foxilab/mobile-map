@@ -59,6 +59,9 @@ var isAutoPush = false;
 var centered = false;
 var locatedSuccess = true;
 
+var wasFeatureSelected = false;
+var wasFeatureUnselected = false;
+
 // ============================
 //    Resolution per level
 // ============================
@@ -471,7 +474,6 @@ function onMapMoveEnd(_event) {
 var popupFeature;
 var popupFeatureMain;
 function createLocationPopup(_feature) {
-
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
 	cameraORvideoPopup.hide();
 
@@ -698,7 +700,7 @@ function getDataFromFusionRow(_row) {
 	//}
 	
 	//#BUGFIX 44
-	// The date is left in UTC for the main server, but it's converted to the users local time
+	// The date is left in UTC/GMT for the main server, but it's converted to the users local time
 	// when pulled. This code formats it and converts it to the correct timezone.
 	var dateFormated = $.format.date(date, "ddd, dd MMM yyyy HH:mm:ss UTC");
 	var dateConverted = new Date(dateFormated);
@@ -815,8 +817,6 @@ function initHeatmap() {
 	heatmapLayer.setDataSet(transformedTestData);
 }
 
-var popupOverPhoto = false;
-
 function getAudio(lonlat) {
 	var isSimulator = (device.name.indexOf('Simulator') != -1);
 	
@@ -883,6 +883,10 @@ function getVideo(lonlat) {
 }
 
 function togglePhotoVideoDialog(){
+
+	//Move B, get out the way: JIC the other popup is open
+	selectControl.unselectAll(); //Removes the LocationPopup
+
 	cameraORvideoPopup.toggle();
 	
 	if (cameraORvideoPopup.is(':visible')) {
@@ -1022,7 +1026,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	window.addEventListener("orientationchange", onOrientationChange,  true);
+	  window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -1131,22 +1135,28 @@ function onDeviceReady()
 		},
 		trigger : function (e) 
 		{
-			if(!cameraORvideoPopup.is(":visible"))
+			if(wasFeatureSelected == false && wasFeatureUnselected == false &&
+					!$('#addressSearchDiv').is(":focus"))
 			{
-				if(!popupOverPhoto)
+				if(!cameraORvideoPopup.is(":visible"))
 				{
+				
 					var lonlat = map.getLonLatFromViewPortPx(e.xy);
 					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 					togglePhotoVideoDialog();
-				}
-			}else
-				togglePhotoVideoDialog();
+				}else
+					togglePhotoVideoDialog();
+			}
 												
 			var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-			if(visibleListItems.length > 0){
+			if(visibleListItems.length >= 0){
 				visibleListItems.addClass('ui-screen-hidden hid-myself');
 				$('#addressSearchDiv .ui-input-text').blur();
 			}
+			
+			wasFeatureSelected = false;
+			wasFeatureUnselected = false;
+			$('#addressSearchDiv .ui-input-text').blur();
 		}
 	});
 	
@@ -1161,13 +1171,12 @@ function onDeviceReady()
 	
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
-			popupOverPhoto = true;
+			wasFeatureSelected = true;
 			createLocationPopup(_event.feature);
 		},
 		"featureunselected": function(_event) {
 			destroyLocationPopup(_event.feature);
-				setTimeout(function() {
-					popupOverPhoto = false; }, 500);
+			wasFeatureUnselected = true;
 		}
 	});
 
@@ -1597,6 +1606,8 @@ $(document).ready(function () {
 	});
 	
 	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
+			cameraORvideoPopup.hide();
+			selectControl.unselectAll(); //Removes the LocationPopup
 			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
 	});
 		
