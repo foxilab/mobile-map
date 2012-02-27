@@ -91,7 +91,7 @@ var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
 var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
-var photoguid;
+//var photoguid;
 var cameraORvideoPopup;
 var LocationPopup;
 var clickedLonLat;
@@ -405,7 +405,7 @@ function mimeTypeFromExt(filepath) {
 	return mime;
 }
 
-function uploadFileToS3(filepath) {
+function uploadFileToS3(filepath, photoguid) {
 	var mimeType = mimeTypeFromExt(filepath);
 
 	var policy = {
@@ -422,9 +422,11 @@ function uploadFileToS3(filepath) {
 	var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
 	var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret, { asString: true });
 	var signature = $.base64.encode(hmac);
-
+	var extensionIndex = filepath.lastIndexOf(".");
+	var extension = filepath.substr(extensionIndex).toLowerCase();
+	
 	var params = {
-		key:					"user/kzusy/" + photoguid + "-${filename}",
+		key:					"user/kzusy/" + photoguid + extension,
 		bucket:				"mobileresponse",
 		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
@@ -1020,7 +1022,7 @@ function onDeviceReady()
 		var as = audiojs.createAll();
 	});
 
-	photoguid = device.uuid;
+	//photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
 	var windowHeight = $(window).height();
@@ -1413,7 +1415,7 @@ function populateGallery(parent, items, options) {
 		
 		if (type == 'video') {
 			// Initialize video-js on the video element
-			_V_('video-thumb-' + i);
+			//_V_('video-thumb-' + i);
 		}
 	}
 }
@@ -1547,8 +1549,10 @@ $(document).ready(function () {
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
 	$('#queue-tab-button').live('click', function(e) {
-		if(itemsInQueue === 0)
+		if(itemsInQueue === 0){
 			e.preventDefault();
+			e.stopPropagation();
+		}
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
@@ -1754,15 +1758,19 @@ function submitToServer() {
 				//--------------------------------------------------				
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + "-" + row.media.substr(row.media.lastIndexOf('/')+1);
-												console.log("amazonURL: " + amazonURL);
+				var photoguid = Math.uuid();
+				var extensionIndex = row.media.lastIndexOf(".");
+				var extension = row.media.substr(extensionIndex).toLowerCase();
+				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + extension;
+				
+				
 				sql += squote(amazonURL) + ')';
 
 				if (rows.length > 1) {
 					sql += ';';
 				}
 
-				uploadFileToS3(row.media);
+				uploadFileToS3(row.media, photoguid);
 			}
 
 			googleSQL(sql, 'POST', function(data) {
