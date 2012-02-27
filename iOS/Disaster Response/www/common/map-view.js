@@ -1333,8 +1333,12 @@ function populateGallery(parent, items, options) {
 	var makeGalleryItem = function (item) {
 		var type = mimeTypeFromExt(item.media);
 		type = type.substr(0, type.indexOf('/'));
-	
-		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float: left; padding: 4px; margin: 8px; width: 128px; height: 128px; border: 1px solid silver; text-align: center; line-height:128px; display: table-cell; vertical-align: middle"><span style="vertical-align: middle"></span><img src=';
+
+		// 4 items across the screen minus the 8px margin (not sure where the extra 2 pixels comes from, but it's required on iPad - discovered through trial and error)
+		var itemwidth = $(window).width() / 4 - 8 * 4 - 2;
+		itemwidth += 'px';
+
+		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + ';height:' + itemwidth + ';border:1px solid silver;text-align:center;line-height:' + itemwidth + ';display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span><img src=';
 		switch (type) {
 			case 'audio':
 				div += quote('css/images/speaker.png');
@@ -1368,6 +1372,12 @@ $(document).ready(function () {
 		at:	'center',
 		of:	$('#image-viewer')
 	});
+	
+	$('#fs-audio').position({
+		my:	'center',
+		at:	'center',
+		of:	$('#image-viewer')
+	});
 
 	var $queue_item;
 
@@ -1393,7 +1403,10 @@ $(document).ready(function () {
 				$viewer.find('img').hide();
 				$('#fs-video').hide();
 				
-				var $audio = $('#fs-audio audio');
+				var $container = $('#fs-audio');
+				var $audio = $container.find('audio');
+				$audio.attr('src', src);
+				$container.show();
 				break;
 
 			case 'image':
@@ -1418,9 +1431,10 @@ $(document).ready(function () {
 				$('#fs-audio').hide();
 				$viewer.find('img').hide();
 
-				var $video = $('#fs-video video');
+				var $container = $('#fs-video');
+				var $video = $container.find('video');
 				$video.attr('src', src);
-				$video.show();
+				$container.show();
 				_V_('fs-video-tag').ready(function() {
 					_V_('fs-video-tag').play();
 				});
