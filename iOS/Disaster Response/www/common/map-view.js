@@ -1373,6 +1373,7 @@ function populateGallery(parent, items, options) {
 		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + ';height:' + itemwidth + ';border:1px solid silver;text-align:center;line-height:' + itemwidth + ';display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
 
 		var photo = '';
+		
 		switch (type) {
 			case 'audio':
 				photo = quote('css/images/speaker.png');
@@ -1385,6 +1386,9 @@ function populateGallery(parent, items, options) {
 
 		switch (type) {
 			case 'audio':
+				div += '<img src=' + photo;
+				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img';
+				break;
 			case 'image':
 				div += '<img src=' + photo;
 				div += ' style="vertical-align:middle;max-width:' + itemwidth + ';max-height:' + itemwidth + '"></img>';
@@ -1396,7 +1400,7 @@ function populateGallery(parent, items, options) {
 				div += "</video>";
 				break;
 		}
-		// TODO: add the caption and date if they exist
+		
 		div += '</div>';
 		return $(div);
 	};
@@ -2157,10 +2161,6 @@ function onOrientationChange(_error) {
 }
 
 function resizeMapContainer(orientation){
-	// var mapContainer = $('#mapContainer');
-	var windowHeight = $(window).height();
-	var windowWidth = $(window).width();
-						   console.log(deviceMinSize);
 	if((orientation == -90) || (orientation == 90)) //landscape
 	{
 	   $('.mypage').height(deviceMinSize);
