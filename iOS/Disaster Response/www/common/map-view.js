@@ -2104,10 +2104,6 @@ function onOrientationChange(_error) {
 }
 
 function resizeMapContainer(orientation){
-	// var mapContainer = $('#mapContainer');
-	var windowHeight = $(window).height();
-	var windowWidth = $(window).width();
-						   console.log(deviceMinSize);
 	if((orientation == -90) || (orientation == 90)) //landscape
 	{
 	   $('.mypage').height(deviceMinSize);
