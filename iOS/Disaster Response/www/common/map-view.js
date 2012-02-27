@@ -471,6 +471,10 @@ function onMapMoveEnd(_event) {
 var popupFeature;
 var popupFeatureMain;
 function createLocationPopup(_feature) {
+
+	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
+	cameraORvideoPopup.hide();
+
 	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
