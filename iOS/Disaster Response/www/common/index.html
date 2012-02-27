@@ -189,7 +189,7 @@
 		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
 			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
 				<h1>Locations</h1>
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='c' style='float: right'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='a' style='float: right'>Submit</a>
 			</div>
 			<div data-role='content' id="queue-content" style="width:80%;margin:auto;padding:0px;">
 				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
@@ -204,7 +204,7 @@
 				</ul>
 			</div>
 			<div data-role='footer' style="width:80%;margin:auto">
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='c' style='float: right;margin-right:20px;'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a' style='float: right;margin-right:20px;'>Submit</a>
 				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
 			</div>
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
@@ -301,14 +301,17 @@
 		</div>
 
 		<div data-role='page' id='image-viewer' style='background-image: none !important; background-color: black !important'>
-			<img/>
-			<div id='fs-video'>
-				<video class="video-js vjs-default-skin" controls preload="auto" style="width:300px; height:264px;" data-setup="{}">
-				</video>
-			</div>
-			<div id='fs-audio'>
-				<audio preload='auto'>
-				</audio>
+			<div data-role='content' style='height: 90% !important'>
+				<img />
+				<div id='fs-video' style="width:600px; height:375px; border: 1px solid silver">
+					<a style='float: right; left: 18px; top:-18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
+					<video id='fs-video-tag' class="video-js vjs-default-skin" controls autoplay preload="auto" data-setup="{}" width=600 height=375>
+					</video>
+				</div>
+				<div id='fs-audio'>
+					<audio preload='auto'>
+					</audio>
+				</div>
 			</div>
 			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
@@ -324,7 +327,9 @@
 		</div>
 
 		<div data-role='page' id='gallery-page' style='background-image: none !important; background-color: black !important'>
-			<div id='gallery'>
+			<div data-role='content'>
+				<div id='gallery'>
+				</div>
 			</div>
 			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">

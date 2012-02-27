@@ -1367,6 +1367,12 @@ $(document).ready(function () {
 		hideQueueItemDelete();
 	});
 
+	$('#fs-video').position({
+		my:	'center',
+		at:	'center',
+		of:	$('#image-viewer')
+	});
+
 	var $queue_item;
 
 	$('.locImage').live('click', locationPopup_onImageClick);
@@ -1405,9 +1411,9 @@ $(document).ready(function () {
 				$img.show();
 				$img.load(function() {
 					$(this).position({
-						my:	'top center',
-						at:	'top center',
-						of:	$(this).parent()
+						my:	'center',
+						at:	'center',
+						of:	$viewer
 					});
 				});
 				break;
@@ -1416,10 +1422,13 @@ $(document).ready(function () {
 				$('#fs-audio').hide();
 				$viewer.find('img').hide();
 
-				var $container = $('#fs-video');
-				var $video = $container.find('video');
+				var $video = $('#fs-video video');
 				$video.attr('src', src);
-				$container.show();
+				$video.show();
+				_V_('fs-video-tag').ready(function() {
+					_V_('fs-video-tag').play();
+				});
+
 				break;
 		}
 
