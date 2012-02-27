@@ -889,7 +889,7 @@ function togglePhotoVideoDialog(){
 		cameraORvideoPopup.position({
 			my:	'center',
 			at:	'center',
-			of:	$('#map')
+			of:	$('#mapContainer')
 		});
 	}
 }
@@ -1133,7 +1133,7 @@ function onDeviceReady()
 		{
 			if(!cameraORvideoPopup.is(":visible"))
 			{
-				if(!popupOverPhoto)
+				if(!popupOverPhoto && !$('#addressSearchDiv .ui-input-text').is(':focus'))
 				{
 					var lonlat = map.getLonLatFromViewPortPx(e.xy);
 					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
@@ -1142,11 +1142,7 @@ function onDeviceReady()
 			}else
 				togglePhotoVideoDialog();
 												
-			var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-			if(visibleListItems.length > 0){
-				visibleListItems.addClass('ui-screen-hidden hid-myself');
-				$('#addressSearchDiv .ui-input-text').blur();
-			}
+			$('#addressSearchDiv .ui-input-text').blur();
 		}
 	});
 	
@@ -1471,7 +1467,7 @@ $(document).ready(function () {
 
 	$('#queue-tab-button').live('click', function(e) {
 		if(itemsInQueue === 0)
-			e.stopImmediatePropagation();
+			e.preventDefault();
 	});
 
 	$('#queue-item-delete').live('click', function(e) {
@@ -1570,12 +1566,6 @@ $(document).ready(function () {
 	$('.status-submit-button').on('click', function() {
 		submitToServer();
 	});
-
-	$('#northIndicator').click(function(){
-		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-		if(visibleListItems.length > 0)
-		   visibleListItems.addClass('ui-screen-hidden hid-myself');
-	});
 				  
 	$("#northIndicator").on("taphold", function(){
 		if(!screenLocked){
@@ -1595,7 +1585,7 @@ $(document).ready(function () {
 		var address = $('#addressSearchDiv .ui-input-text').val();
 		searchForAddress(address);
 	});
-	
+				  
 	$('.address-list-item').live('click', function(){
 		var coordinates = $(this).attr('location');
 		var commaIndex = coordinates.indexOf(",");
@@ -1607,11 +1597,18 @@ $(document).ready(function () {
 	
 	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
 			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+			if($('#cameraORvideoPopup').is(':visible'))
+					togglePhotoVideoDialog();
 	});
 		
-	/*$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
-			$('#old-places-list .address-list-item').not('.ui-screen-hidden').addClass('ui-screen-hidden hid-myself');
-	});*/
+	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
+		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+		
+		setTimeout(function(){
+			if(visibleListItems.length > 0)
+				visibleListItems.addClass('ui-screen-hidden hid-myself');
+		}, 200);
+	});
 				  
 	$('#plus').click(function(){
 		map.zoomIn();
