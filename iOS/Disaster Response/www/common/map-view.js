@@ -602,6 +602,16 @@ function createLocationPopup(_feature) {
 }
 
 function destroyLocationPopup(_feature) {
+	// Stop playing any audio or video
+	var $audio = LocationPopup.find('audio');
+	var $video = LocationPopup.find('video');
+	if ($video.is(':visible')) {
+		$video.get(0).pause();
+	}
+	else if ($audio.is(':visible')) {
+		$audio.get(0).pause();
+	}
+
 	LocationPopup.hide();
 	popupFeature = null;
 	popupFeatureMain = null;
@@ -987,7 +997,7 @@ var mapDiv;
 function setMaxAndMinSizes(sizes){
 	deviceMaxSize = sizes[0];
 	deviceMinSize = sizes[0];
-	
+
 	for(var i = 1; i < sizes.length; i++)
 	{
 		if(sizes[i] > deviceMaxSize)
@@ -1009,7 +1019,7 @@ function onDeviceReady()
 	audiojs.events.ready(function() {
 		var as = audiojs.createAll();
 	});
-	
+
 	photoguid = device.uuid;
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
@@ -1017,10 +1027,10 @@ function onDeviceReady()
 	var windowWidth = $(window).width();
 	var windowMinHeight = $('#map-page').css('min-height');
 	windowMinHeight = windowMinHeight.substr(0, windowMinHeight.length-2);
-	
+
 	mapContainer = $("#mapContainer");
 	mapDiv = $("#map");
-	
+
 	/*if(windowHeight > windowWidth)
 	{
 		deviceMaxSize = windowHeight;
@@ -1352,35 +1362,46 @@ function populateGallery(parent, items, options) {
 	if (!parent || !$.isArray(items))
 		return;
 
-	var makeGalleryItem = function (item) {
+	var makeGalleryItem = function (item, index) {
 		var type = mimeTypeFromExt(item.media);
 		type = type.substr(0, type.indexOf('/'));
 
-		// 4 items across the screen minus the 8px margin (not sure where the extra 2 pixels comes from, but it's required on iPad - discovered through trial and error)
-		var itemwidth = $(window).width() / 4 - 8 * 4 - 2;
+		// 3 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
+		var itemwidth = $(window).width() / 3 - 8 * 4 - 4;
 		itemwidth += 'px';
+
+		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + ';height:' + itemwidth + ';border:1px solid silver;text-align:center;line-height:' + itemwidth + ';display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
+
+		var photo = '';
 		
-		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + ';height:' + itemwidth + ';border:1px solid silver;text-align:center;line-height:' + itemwidth + ';display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span><img src=';
 		switch (type) {
 			case 'audio':
-				div += quote('css/images/speaker.png');
+				photo = quote('css/images/speaker.png');
 				break;
 
 			case 'image':
-				div += quote(item.media);
+				photo = quote(item.media); 
+				break;
+		}
+
+		switch (type) {
+			case 'audio':
+				div += '<img src=' + photo;
+				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img';
+				break;
+			case 'image':
+				div += '<img src=' + photo;
+				div += ' style="vertical-align:middle;max-width:' + itemwidth + ';max-height:' + itemwidth + '"></img>';
 				break;
 
 			case 'video':
-				div += quote('Popup/Video.png');
+				div += "<video id='video-thumb-" + i + "' class='gallery-video video-js vjs-default-skin' controls preload='auto' data-setup='{}' width='158' height='158'>";
+				div += "<source src='" + item.media + "'/>";
+				div += "</video>";
 				break;
 		}
-		// TODO: add the caption and date if they exist
-		var imageWidth = "";
 		
-		if(type == 'audio')
-			imageWidth = 'width:64px;height:64px;';
-		
-		div += ' style="vertical-align: middle; max-width: 128px; max-height: 128px;' + imageWidth +'"></img></div>';
+		div += '</div>';
 		return $(div);
 	};
 
@@ -1427,7 +1448,7 @@ $(document).ready(function () {
 
 		switch (type) {
 			case 'audio':
-				$viewer.find('img').hide();
+				$('#fs-image').hide();
 				$('#fs-video').hide();
 				
 				var $container = $('#fs-audio');
@@ -1440,11 +1461,11 @@ $(document).ready(function () {
 				$('#fs-audio').hide();
 				$('#fs-video').hide();
 				
-				var $img = $viewer.find('img');
+				var $container = $('#fs-image');
+				var $img = $container.find('img');
 				$img.attr('max-height', $(window).height());
 				$img.attr('max-width', $(window).width());
 				$img.attr('src', src);
-				$img.show();
 				$img.load(function() {
 					$(this).position({
 						my:	'center',
@@ -1452,11 +1473,12 @@ $(document).ready(function () {
 						of:	$viewer
 					});
 				});
+				$container.show();
 				break;
 
 			case 'video':
 				$('#fs-audio').hide();
-				$viewer.find('img').hide();
+				$('#fs-image').hide();
 
 				var $container = $('#fs-video');
 				var $video = $container.find('video');
@@ -1493,11 +1515,17 @@ $(document).ready(function () {
 			});
 		}
 	});
-
+	$('#image-viewer').live('pagebeforehide', function() {
+		var $audio = $(this).find('audio');
+		if ($audio.is(':visible')) {
+			$audio.get(0).pause();
+		}
+	});
+	
 	$('#image-viewer img').live('click', function() {
 		history.back();
 	});
-	
+
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
 	});
