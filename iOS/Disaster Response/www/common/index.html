@@ -188,7 +188,7 @@
 		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
 			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
 				<h1>Locations</h1>
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='a' style='float: right'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='a' style='float:right'>Submit</a>
 			</div>
 			<div data-role='content' id="queue-content" style="width:80%;margin:auto;padding:0px;">
 				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
@@ -218,7 +218,7 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<!-- Multiple Statuses Dialog -->
 		<div data-role='dialog' id='multiStatus-dialog' data-theme='a'>
 			<div data-role='header'>
@@ -298,13 +298,17 @@
 
 		<div data-role='page' id='image-viewer' style='background-image: none !important; background-color: black !important'>
 			<div data-role='content' style='height: 90% !important'>
-				<img />
-				<div id='fs-video' style="width:600px; height:375px; border: 1px solid silver">
+				<div>
+					<a style='float: right; left: 18px; top:-18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
+					<img />
+				</div>
+				<div id='fs-video' style="width: 600px; height:375px; border: 1px solid silver">
 					<a style='float: right; left: 18px; top:-18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
 					<video id='fs-video-tag' class="video-js vjs-default-skin" controls autoplay preload="auto" data-setup="{}" width=600 height=375>
 					</video>
 				</div>
-				<div id='fs-audio'>
+				<div id='fs-audio' style="width: 460px; height:80px">
+					<a style='float: right; left: 18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
 					<audio preload='auto'>
 					</audio>
 				</div>
@@ -364,5 +368,5 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>
