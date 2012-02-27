@@ -1359,7 +1359,7 @@ function populateGallery(parent, items, options) {
 		// 4 items across the screen minus the 8px margin (not sure where the extra 2 pixels comes from, but it's required on iPad - discovered through trial and error)
 		var itemwidth = $(window).width() / 4 - 8 * 4 - 2;
 		itemwidth += 'px';
-
+		
 		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + ';height:' + itemwidth + ';border:1px solid silver;text-align:center;line-height:' + itemwidth + ';display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span><img src=';
 		switch (type) {
 			case 'audio':
@@ -1375,7 +1375,12 @@ function populateGallery(parent, items, options) {
 				break;
 		}
 		// TODO: add the caption and date if they exist
-		div += ' style="vertical-align: middle; max-width: 128px; max-height: 128px;"></img></div>';
+		var imageWidth = "";
+		
+		if(type == 'audio')
+			imageWidth = 'width:64px;height:64px;';
+		
+		div += ' style="vertical-align: middle; max-width: 128px; max-height: 128px;' + imageWidth +'"></img></div>';
 		return $(div);
 	};
 
