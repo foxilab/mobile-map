@@ -1373,25 +1373,13 @@ function populateGallery(parent, items, options) {
 
 		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
 
-		var photo = '';
-
 		switch (type) {
 			case 'audio':
-				photo = quote('css/images/speaker.png');
-				break;
-
-			case 'image':
-				photo = quote(item.media); 
-				break;
-		}
-
-		switch (type) {
-			case 'audio':
-				div += '<img src=' + photo;
-				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img';
+				div += '<img src=' + quote('css/images/speaker.png');
+				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img>';
 				break;
 			case 'image':
-				div += '<img src=' + photo;
+				div += '<img src=' + quote(item.media);
 				div += ' style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
 
