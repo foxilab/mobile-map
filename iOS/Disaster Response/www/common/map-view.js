@@ -204,6 +204,8 @@ var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
 		minResolution: "auto"
 });
 
+var fusionLayer_IsVisible = true;
+
 //Heatmap Variables
 var heatmapGradient = {
 	0.05: "rgb(128,128,128)", 
@@ -212,6 +214,8 @@ var heatmapGradient = {
 	0.90: "rgb(255,165,0)", 
 	1.00: "rgb(255,0,0)"
 };
+
+var heatmap_IsVisible = true;
 
 /*var gimmyHeading = 315;
 OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
@@ -463,22 +467,65 @@ function onMapMoveEnd(_event) {
 	var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
 		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
 		"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
-		
-	//#HACK - Demo Hack HeatMaps
-	// HeatMaps cause the program to become jumpy, so remove them unless they are visable
-	if(map.getResolution() <= iconMaxResolution && isHeatMap == true) {
-		//If the icons are visable
-		map.removeLayer(heatmapLayer);
-		isHeatMap = false;
-	}
-	else if(isHeatMap == false){
-		//If the heatmap is visable
-		map.addLayer(heatmapLayer);
-		isHeatMap = true;
+	
+	//Display the correct layer depending on the resolution
+	if(map.getResolution() <= iconMaxResolution) {
+		//Display the icons, but hide the heatmap
+		turnFusionLayerOn();
+		turnHeatMapOff();
+	} else {
+		//STOP! Heatmap time!
+		turnFusionLayerOff();
+		turnHeatMapOn();
 	}
 			
 	//With the bounds and SQL, query the Fusion Table for the features.
 	googleSQL(sql, 'GET', fusionSQLSuccess);
+}
+
+//----------------------------------------------------
+
+function toggleHeatMap() {
+	heatmap_IsVisible = !heatmap_IsVisible;
+	heatmapLayer.toggle();
+}
+
+function turnHeatMapOn() {
+	if(heatmap_IsVisible == false) {
+		toggleHeatMap();
+	}
+}
+
+function turnHeatMapOff() {
+	if(heatmap_IsVisible == true) {
+		toggleHeatMap();
+	}
+}
+
+function setHeatMapVisibility(_visible) {
+	if(_visible == true)
+		turnHeatMapOn();
+	else
+		turnHeatMapOff();
+}
+
+//----------------------------------------------------
+
+function toggleFusionLayer() {
+	setFusionLayerVisibility(!fusionLayer_IsVisible);
+}
+
+function turnFusionLayerOn() {
+	setFusionLayerVisibility(true);
+}
+
+function turnFusionLayerOff() {
+	setFusionLayerVisibility(false);
+}
+
+function setFusionLayerVisibility(_visible) {
+	fusionLayer_IsVisible = _visible;
+	fusionLayer.setVisibility(fusionLayer_IsVisible);
 }
 
 /*
@@ -746,15 +793,9 @@ function getDataFromFusionRow(_row) {
 }
 
 function fusionSQLSuccess(data) {
-	var transformedTestData = { max: 0 , data: [] }
-	var heatMapData = [];
-		
-	//We got our new data set, remove all the old features.
-	fusionLayer.removeAllFeatures();
-	
+
 	var rows = $.trim(data).split('\n');
 	var length = rows.length;
-	transformedTestData.max = (length-1);
 	
 	var locationArray = [];
 	locationArray.length = 0;
@@ -785,39 +826,60 @@ function fusionSQLSuccess(data) {
 		}
 	}
 	
-	//Yeah! Now that we have all of our data sorted, lets get it showing!
-	// Lets loop through our data again
-	for(var locA = 0; locA < locationArray.length; locA++) {
-		for(var loc = 0; loc < locationArray[locA].length; loc++) {
-			if(map.getResolution() <= iconMaxResolution) {
-				//Icons
+	//Parse ALL the data!!
+	parseSQLSuccess_Icons(locationArray);
+	parseSQLSuccess_Heatmap(locationArray);
+}
+
+function parseSQLSuccess_Icons(_locationArray) {
+	//Only do this if the icons are visible
+	if(fusionLayer_IsVisible == true) {
+		//We got our new data set, remove all the old features.
+		fusionLayer.removeAllFeatures();
+		
+		//Lets loop through the whole array
+		for(var locA = 0; locA < _locationArray.length; locA++) {
+				//The newest location (used for GUI)
+					var newestLocation = _locationArray[locA][0];
 				//convert the lat and lon for display
-				var lonlat = new OpenLayers.LonLat(locationArray[locA][loc].lon,locationArray[locA][loc].lat).transform(map.displayProjection, map.projection);
+					var lonlat = new OpenLayers.LonLat(newestLocation.lon,newestLocation.lat).transform(map.displayProjection, map.projection);
 				//create a point for the layer
-				var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+					var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
 				//and pick out a nice icon to go with the locations eyes.
-				var icon = getStatusIcon(locationArray[locA][loc].status);
-			
+					var icon = getStatusIcon(newestLocation.status);
+				
 				//Create a point and add it to the fusionLayer
 				// pass in all the location statuses
-				var locationFeature = new OpenLayers.Feature.Vector(point, {image: icon, locations: locationArray[locA]});
+					var locationFeature = new OpenLayers.Feature.Vector(point, {image: icon, locations: _locationArray[locA]});
 				fusionLayer.addFeatures([locationFeature]);
-			}//end if
-			else {
-				heatMapData.push({
-					lonlat: new OpenLayers.LonLat(locationArray[locA][loc].lon, 
-						locationArray[locA][loc].lat),
-					count: (parseInt(locationArray[locA][loc].status)*50)
-				});
-			}//end else
-			break; //Ladies please, one point per location!
-		}//end for loc
-	}//end for locA
+		}//end locA
+	}//end if
+}
+
+function parseSQLSuccess_Heatmap(_locationArray) {
+	//Only do this if the heatmap is visible
+	if(heatmap_IsVisible == true) {
 	
-	//Update all the layers to show the new data.
-	transformedTestData.data = heatMapData;
-	heatmapLayer.setDataSet(transformedTestData);
-	fusionLayer.redraw();
+		var transformedTestData = { max: _locationArray.length , data: [] }
+		var heatMapData = [];
+		
+		//Lets loop through the whole array
+		for(var locA = 0; locA < _locationArray.length; locA++) {
+			//The newest location (used for GUI)
+			var newestLocation = _locationArray[locA][0];
+			
+			heatMapData.push({
+				lonlat: new OpenLayers.LonLat(newestLocation.lon, 
+											  newestLocation.lat),
+				count: (parseInt(newestLocation.status)*50)
+			});
+		
+		}//end locA
+		
+		//Update the layer to show the new data.
+		transformedTestData.data = heatMapData;
+		heatmapLayer.setDataSet(transformedTestData);
+	}//end if
 }
 
 //This function just readys the heatmap layer
@@ -1133,9 +1195,8 @@ function onDeviceReady()
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
 	
-	 map.events.register("moveend", map, onMapMoveEnd);
-	 //#HACK
-	 map.addLayers([mapLayerOSM, /*heatmapLayer,*/ navigationLayer, statusLayer, fusionLayer]);
+	map.events.register("moveend", map, onMapMoveEnd);
+	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
 		
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
 		enableHighAccuracy: true,
