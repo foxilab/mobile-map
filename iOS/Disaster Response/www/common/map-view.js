@@ -1445,7 +1445,7 @@ function populateGallery(parent, items, options) {
 				break;
 
 			case 'video':
-				div += "<video id='video-thumb-" + index + "' class='video-js vjs-default-skin' controls='false' preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "'>";
+				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "'>";
 				div += "<source src=" + squote(item.media) + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
 				div += "</video>";
 				break;
@@ -1463,8 +1463,11 @@ function populateGallery(parent, items, options) {
 		
 		if (type == 'video') {
 			// Initialize video-js on the video element
+			// TODO: bug here - fullscreen mode only works the first time with VideoJS.
+			// Commented out for now, but that means no Flash fallback if no HTML5 video support.
 			//_V_('video-thumb-' + i);
 		}
+		parent.trigger('create');
 	}
 }
 
@@ -1487,6 +1490,7 @@ $(document).ready(function () {
 
 	var $queue_item;
 
+	// TODO: Why do some of these only work with live() and not on() ?
 	$('.locImage').live('click', locationPopup_onImageClick);
 	$('.locImageMultiple').live('click', function() {
 		var $gallery = $('#gallery');
@@ -1495,15 +1499,10 @@ $(document).ready(function () {
 		$.mobile.changePage('#gallery-page');
 	});
 
-	// TODO: Why do some of these only work with live() and not on() ?
 	$('.gallery-item').live('click', function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-
 		var type = $(this).attr('media-type');
 		var src = $(this).attr('media-src');
 		var $viewer = $('#image-viewer');
-		$.mobile.changePage($viewer);
 
 		switch (type) {
 			case 'audio':
@@ -1513,6 +1512,7 @@ $(document).ready(function () {
 				var $container = $('#fs-audio');
 				var $audio = $container.find('audio');
 				$audio.attr('src', src);
+				$.mobile.changePage($viewer);
 				$container.show();
 				break;
 
@@ -1532,28 +1532,15 @@ $(document).ready(function () {
 						of:	$viewer
 					});
 				});
+				$.mobile.changePage($viewer);
 				$container.show();
-				break;
-
-			case 'video':
-				$('#fs-audio').hide();
-				$('#fs-image').hide();
-
-				var $container = $('#fs-video');
-				var $video = $container.find('video');
-				$video.attr('src', src);
-				$container.show();
-/*				_V_('fs-video-tag').ready(function() {
-					_V_('fs-video-tag').play();
-				});*/
-
 				break;
 		}
 	});
 
 	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
 		$('#map-footer li').removeClass('ui-btn-active');
-	
+
 		if ($(popup.prevPage).attr('id') == 'map-page') {
 			$('#fs-audio').hide();
 			$('#fs-video').hide();
