@@ -1429,10 +1429,10 @@ function populateGallery(parent, items, options) {
 		var type = mimeTypeFromExt(item.media);
 		type = type.substr(0, type.indexOf('/'));
 
-		// 3 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
-		var itemwidth = $(window).width() / 3 - 8 * 4 - 4;
+		// 2 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
+		var itemwidth = $(window).width() / 2 - 8 * 5 - 4;
 
-		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
+		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="position:relative;float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
 
 		switch (type) {
 			case 'audio':
@@ -1450,9 +1450,14 @@ function populateGallery(parent, items, options) {
 				div += "</video>";
 				break;
 		}
-		
+
+		// Metadata overlay (this probably has a bug when name is so long that it takes up more than one line)
+		div += '<div style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;bottom:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time class="timeago" style="" datetime="' + $.format.date(item.date, "yyyy-MM-dd hh:mm:ss a") + '"></time></p>' + '</div></div>';
+
 		div += '</div>';
-		return $(div);
+		var $nrv = $(div);
+		$nrv.find('.timeago').timeago();
+		return $nrv;
 	};
 
 	for (var i = 0; i < items.length; ++i) {
@@ -1467,8 +1472,8 @@ function populateGallery(parent, items, options) {
 			// Commented out for now, but that means no Flash fallback if no HTML5 video support.
 			//_V_('video-thumb-' + i);
 		}
-		parent.trigger('create');
 	}
+	parent.trigger('create');
 }
 
 $(document).ready(function () {
