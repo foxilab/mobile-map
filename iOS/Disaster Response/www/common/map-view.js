@@ -216,6 +216,8 @@ var heatmapGradient = {
 };
 
 var heatmap_IsVisible = true;
+var heatmapLayer_IsVisible = false;
+var heatmapToggle_IsVisible = false;
 
 /*var gimmyHeading = 315;
 OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
@@ -456,7 +458,6 @@ function uploadFileToS3(filepath, photoguid) {
 		 			HeatMap and Icons
  		==============================================
  */
- var isHeatMap = false;
 function onMapMoveEnd(_event) {
 	//The map bounds has changed...get the bounds and convert it
 	var bounds = map.getExtent();
@@ -472,11 +473,11 @@ function onMapMoveEnd(_event) {
 	if(map.getResolution() <= iconMaxResolution) {
 		//Display the icons, but hide the heatmap
 		turnFusionLayerOn();
-		turnHeatMapOff();
+		turnHeatMapToggleButtonOff();
 	} else {
 		//STOP! Heatmap time!
 		turnFusionLayerOff();
-		turnHeatMapOn();
+		turnHeatMapToggleButtonOn();
 	}
 			
 	//With the bounds and SQL, query the Fusion Table for the features.
@@ -485,28 +486,73 @@ function onMapMoveEnd(_event) {
 
 //----------------------------------------------------
 
-function toggleHeatMap() {
-	heatmap_IsVisible = !heatmap_IsVisible;
+function turnHeatMapToggleButtonOn() {
+		$('#heatmapLock').show();
+		heatmapToggle_IsVisible = true;
+		
+		//if the heatmap should be visable, show it
+		if(heatmap_IsVisible == true)
+			turnHeatMapLayerOn();
+			
+		setHeatMapToggleIcon();
+}
+
+function turnHeatMapToggleButtonOff() {
+
+		$('#heatmapLock').hide();
+		heatmapToggle_IsVisible = false;
+		
+		//If this button goes away, that means the heatmap layer cannot be seen.
+		// turn off ALL the things
+		turnHeatMapLayerOff();
+}
+
+function setHeatMapToggleButtonVisibility(_visible) {
+	if(_visible == true)
+		turnHeatMapToggleButtonOn();
+	else
+		turnHeatMapToggleButtonOff();
+}
+
+function heatMapToggleButton_Click() {
+
+	heatmap_IsVisible = !heatmapLayer_IsVisible;
+	setHeatMapToggleIcon();
+	toggleHeatMapLayer();
+}
+
+function setHeatMapToggleIcon() {
+	if(heatmap_IsVisible == true) {
+		$('#heatmapLock').attr('data-icon','glyphish-chat-2');			//RADIO GooGoo
+		$("#heatmapLock span.ui-icon").addClass("ui-icon-radio-on").removeClass("ui-icon-radio-off")
+	} else {
+		$('#heatmapLock').attr('data-icon','glyphish-chat');			//RADIO GaGa
+		$("#heatmapLock span.ui-icon").addClass("ui-icon-radio-off").removeClass("ui-icon-radio-on")
+	}
+}
+
+//----------------------------------------------------
+
+function toggleHeatMapLayer() {
+	heatmapLayer_IsVisible = !heatmapLayer_IsVisible;
 	heatmapLayer.toggle();
 }
 
-function turnHeatMapOn() {
-	if(heatmap_IsVisible == false) {
-		toggleHeatMap();
-	}
+function turnHeatMapLayerOn() {
+		heatmapLayer_IsVisible = true;
+		heatmapLayer.show();
 }
 
-function turnHeatMapOff() {
-	if(heatmap_IsVisible == true) {
-		toggleHeatMap();
-	}
+function turnHeatMapLayerOff() {
+		heatmapLayer_IsVisible = false;
+		heatmapLayer.hide();
 }
 
-function setHeatMapVisibility(_visible) {
+function setHeatMapLayerVisibility(_visible) {
 	if(_visible == true)
-		turnHeatMapOn();
+		turnHeatMapLayerOn();
 	else
-		turnHeatMapOff();
+		turnHeatMapLayerOff();
 }
 
 //----------------------------------------------------
@@ -857,8 +903,7 @@ function parseSQLSuccess_Icons(_locationArray) {
 }
 
 function parseSQLSuccess_Heatmap(_locationArray) {
-	//Only do this if the heatmap is visible
-	if(heatmap_IsVisible == true) {
+	//Always do this, we never know when the user will toggle the heatmaps on and off.
 	
 		var transformedTestData = { max: _locationArray.length , data: [] }
 		var heatMapData = [];
@@ -879,7 +924,6 @@ function parseSQLSuccess_Heatmap(_locationArray) {
 		//Update the layer to show the new data.
 		transformedTestData.data = heatMapData;
 		heatmapLayer.setDataSet(transformedTestData);
-	}//end if
 }
 
 //This function just readys the heatmap layer
@@ -903,6 +947,9 @@ function initHeatmap() {
 	
     transformedTestData.data = nudata;
 	heatmapLayer.setDataSet(transformedTestData);
+	
+	setHeatMapLayerVisibility(heatmapLayer_IsVisible);
+	setHeatMapToggleButtonVisibility(heatmapToggle_IsVisible);
 }
 
 function getAudio(lonlat) {
@@ -1743,6 +1790,8 @@ $(document).ready(function () {
 	$('#minus').click(function(){
 		map.zoomOut();
 	});
+	
+	$('#heatmapLockButton').live('click', heatMapToggleButton_Click);
 				  
 	$('#audioButton').click(function(){
 		getAudio(clickedLonLat);
