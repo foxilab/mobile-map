@@ -1234,7 +1234,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	  window.addEventListener("orientationchange", onOrientationChange,  true);
+	window.addEventListener("orientationchange", onOrientationChange,  true);
 
 	// The Local Database (global for a reason)
 	try {
@@ -1255,7 +1255,7 @@ function onDeviceReady()
 		// Do we need to handle this?
 		navigator.notification.alert('Error opening database: ' + e);
 	}
-    
+
 	switch (window.orientation) {
 		case -90:   //Landscape with the screen turned to the left.
 			orientationHeadingOffset = -90;
@@ -1370,7 +1370,7 @@ function onDeviceReady()
 														 
 	map.addControl(selectControl);
 	selectControl.activate();
-	
+
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
 			wasFeatureSelected = true;
@@ -1395,7 +1395,7 @@ function onDeviceReady()
 	/*$('#map-page').live('pagebeforeshow', function(){
 		showMapToolDivs();
 	});*/
-	
+
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').live('pageshow', function() {
 	//	selectTabBarItem('Map');
@@ -1416,7 +1416,7 @@ function onDeviceReady()
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
 		clickedLonLat = null;		  
 	});
-					  
+
 	/*$('#map-page').live('pagebeforehide', function(){
 		hideMapToolDivs();
 	});*/
@@ -1459,7 +1459,7 @@ function onDeviceReady()
 	$('#status-dialog').live('pagehide', function() {
 		updateQueueSize();
 	});
-						      
+
 	//Now that we are done loading everything, read the queue and find the size
 	// then update all the badges accordingly.
 	updateQueueSize();
