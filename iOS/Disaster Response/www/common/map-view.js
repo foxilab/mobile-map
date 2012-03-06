@@ -300,8 +300,8 @@ var geolocationError = function(error) {
             navigator.notification.alert("Location permission denied", function(){}, 'Error', 'Okay');
         else if(error == PositionError.POSITION_UNAVAILABLE)
             navigator.notification.alert("Location unavailable", function(){}, 'Error', 'Okay');
-        else
-            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');
+        /*else
+            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');*/
         
         if(navigationLayer.features.length == 0) {
             var lon = -77.020000;
@@ -407,6 +407,8 @@ function mimeTypeFromExt(filepath) {
 		mime = "image/jpeg";
 	else if (extension == "png")
 		mime = "image/png";
+	else
+		mime = "none/none"; //prevent errors
 		
 	return mime;
 }
@@ -490,7 +492,7 @@ function turnHeatMapToggleButtonOn() {
 		$('#heatmapLock').show();
 		heatmapToggle_IsVisible = true;
 		
-		//if the heatmap should be visable, show it
+		//if the heatmap should be visible, show it
 		if(heatmap_IsVisible == true)
 			turnHeatMapLayerOn();
 			
@@ -780,13 +782,14 @@ function locationPopup_onImageClick() {
 	
 	//Check to see the media type
 	var fileType = mimeTypeFromExt(locMedia);
+	fileType = fileType.substr(0, fileType.indexOf('/'));
 
 	//Now that we know what type we have, open a new window for the user to view
-	if(fileType == "video/quicktime") {
+	if(fileType == "video") {
 		//launch the video
 		navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Video');
 	}
-	else if(fileType ==  "image/jpeg") {
+	else if(fileType ==  "image") {
 		$.mobile.changePage('#image-viewer');
 	}
 	else {
@@ -853,28 +856,35 @@ function fusionSQLSuccess(data) {
 		var location = getDataFromFusionRow(rows[i]);
 			exists = false;
 		
-		//Now that we have our location, loop through and find out if it already exists.
-		for(var locA = 0; locA < locationArray.length; locA++) {
-			for(var loc = 0; loc < locationArray[locA].length; loc++) {
-				//If the positions are the same, these are the same place
-				if(locationArray[locA][loc].position == location.position) {
-					//So add the location to this spot in the locationArray
-					locationArray[locA].push(location);
-					exists = true;
-					break;	//Okay we are done here.
+		//Before we add anything to the list, lets check to see if we it fits our
+		// search filters
+		if(shouldAddToLayer(location) == true) {
+			//Now that we have our location, loop through and find out if it already exists.
+			for(var locA = 0; locA < locationArray.length; locA++) {
+				for(var loc = 0; loc < locationArray[locA].length; loc++) {
+			
+					//If the positions are the same, these are the same place
+					if(locationArray[locA][loc].position == location.position) {
+						//So add the location to this spot in the locationArray
+						locationArray[locA].push(location);
+						exists = true;
+						break;	//Okay we are done here.
+					}
 				}
 			}
-		}
 		
-		//Does it exist?
-		if(exists == false) {
-			locationArray.push([location]);
+			//Does it exist?
+			if(exists == false) {
+				locationArray.push([location]);
+			}
 		}
 	}
 	
 	//Parse ALL the data!!
-	parseSQLSuccess_Icons(locationArray);
-	parseSQLSuccess_Heatmap(locationArray);
+	if(locationArray.length > 0) {
+		parseSQLSuccess_Icons(locationArray);
+		parseSQLSuccess_Heatmap(locationArray);
+	}
 }
 
 function parseSQLSuccess_Icons(_locationArray) {
@@ -887,6 +897,7 @@ function parseSQLSuccess_Icons(_locationArray) {
 		for(var locA = 0; locA < _locationArray.length; locA++) {
 				//The newest location (used for GUI)
 					var newestLocation = _locationArray[locA][0];
+					
 				//convert the lat and lon for display
 					var lonlat = new OpenLayers.LonLat(newestLocation.lon,newestLocation.lat).transform(map.displayProjection, map.projection);
 				//create a point for the layer
@@ -912,18 +923,80 @@ function parseSQLSuccess_Heatmap(_locationArray) {
 		for(var locA = 0; locA < _locationArray.length; locA++) {
 			//The newest location (used for GUI)
 			var newestLocation = _locationArray[locA][0];
-			
-			heatMapData.push({
-				lonlat: new OpenLayers.LonLat(newestLocation.lon, 
+					heatMapData.push({
+						lonlat: new OpenLayers.LonLat(newestLocation.lon, 
 											  newestLocation.lat),
-				count: (parseInt(newestLocation.status)*50)
-			});
-		
+						count: (parseInt(newestLocation.status)*50)
+					});
 		}//end locA
 		
 		//Update the layer to show the new data.
 		transformedTestData.data = heatMapData;
 		heatmapLayer.setDataSet(transformedTestData);
+}
+
+var SEARCHSTATUS = {
+	ALL : {value: 0, name: "All", color: "Black"},
+	OPERATIONAL : {value: 1, name: "Operational", color: "Green"},
+	LIMITED : {value: 2, name: "Limited Capabilities", color: "Yellow"},
+	INTACT : {value: 3, name: "Intact, but Uninhabited", color: "Orange"},
+	NONOPERATIONAL : {value: 4, name: "Non-Operational", color: "Red"}
+};
+
+var SEARCHMEDIA = {
+	ALL : {value: 0, name: "All"},
+	IMAGE : {value: 1, name: "image"},
+	VIDEO : {value: 2, name: "video"},
+	AUDIO : {value: 3, name: "audio"}
+};
+
+var SEARCHTIME = {
+	ALL : {value: 0, name: "All"},
+	DAY : {value: 1, name: "Day"},
+	WEEK : {value: 2, name: "Week"}
+};
+
+var filterStatus = SEARCHSTATUS.ALL;
+var filterMedia	= SEARCHMEDIA.ALL;
+var filterTime	= SEARCHTIME.ALL;
+
+//Allows the customization of the heatmap: e.g.,
+// - show only Operational buildings
+// - only locations in the last 3 days
+// - only pictures
+// - or a combination of the three
+function shouldAddToLayer(_location) {
+	
+	var shouldI_Status	= false;	//can you?
+	var shouldI_Media 	= false;
+	var shouldI_Time 	= false;
+	
+	console.log(_location);
+
+	//Check to see if the status is correct
+	if(filterStatus.value == _location.status || filterStatus == SEARCHSTATUS.ALL)
+		shouldI_Status = true;
+		
+	var fileType = mimeTypeFromExt(_location.media);
+	fileType = fileType.substr(0, fileType.indexOf('/'));
+	
+	if(filterMedia.name == fileType || filterMedia == SEARCHMEDIA.ALL)
+		shouldI_Media = true;
+		
+	/*
+	console.log("Status Filter : " + filterStatus.value + " - " + filterStatus.name);
+	console.log(" - current    : " + _location.status);
+	console.log("Media Filter  : " + filterMedia.name);
+	console.log(" - current    : " + fileType);
+	console.log("Time Filter   : " + filterTime.name);
+	console.log("--------------");
+	console.log(" - Should You? Status : " + shouldI_Status);
+	console.log(" - Should You? Media  : " + shouldI_Media);
+	console.log(" - Should You? Time   : " + shouldI_Time);
+	console.log("0===========================================0");
+	*/
+
+	return (shouldI_Status == shouldI_Media == true);
 }
 
 //This function just readys the heatmap layer
@@ -1376,9 +1449,11 @@ function onDeviceReady()
 		$('#user-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#more-dialog').live('pageshow', function() {
-	//	selectTabBarItem('More');
-		$('#more-tab-button').addClass('ui-btn-active');
+	$('#more-dialog').live('pageshow', function(event, ui) {
+		ui.prevPage.find('.ui-btn-active').removeClass('ui-btn-active');
+		$('#more-tab-button').children('a').addClass('ui-btn-active');
+		var length = $('#more-dialog #more-tab-button a').length;
+		console.log(length);
 	});
 	
 	$('#status-dialog').live('pagehide', function() {
@@ -1637,6 +1712,7 @@ $(document).ready(function () {
 		if(itemsInQueue === 0) {
 			e.preventDefault();
 			e.stopPropagation();
+			$(this).find('a').removeClass('ui-btn-active');
 		}
 	});
 
