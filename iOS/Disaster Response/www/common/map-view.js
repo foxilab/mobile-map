@@ -300,8 +300,8 @@ var geolocationError = function(error) {
             navigator.notification.alert("Location permission denied", function(){}, 'Error', 'Okay');
         else if(error == PositionError.POSITION_UNAVAILABLE)
             navigator.notification.alert("Location unavailable", function(){}, 'Error', 'Okay');
-        else
-            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');
+        /*else
+            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');*/
         
         if(navigationLayer.features.length == 0) {
             var lon = -77.020000;
@@ -1376,9 +1376,11 @@ function onDeviceReady()
 		$('#user-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#more-dialog').on('pageshow', function() {
-	//	selectTabBarItem('More');
-		$('#more-tab-button').addClass('ui-btn-active');
+	$('#more-dialog').on('pageshow', function(event, ui) {
+		ui.prevPage.find('.ui-btn-active').removeClass('ui-btn-active');
+		$('#more-tab-button').children('a').addClass('ui-btn-active');
+		var length = $('#more-dialog #more-tab-button a').length;
+		console.log(length);
 	});
 	
 	$('#status-dialog').on('pagehide', function() {
@@ -1638,6 +1640,7 @@ $(document).ready(function () {
 		if(itemsInQueue === 0) {
 			e.preventDefault();
 			e.stopPropagation();
+			$(this).find('a').removeClass('ui-btn-active');
 		}
 	});
 
