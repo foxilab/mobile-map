@@ -124,8 +124,8 @@ OpenLayers.Layer.Heatmap = OpenLayers.Class(OpenLayers.Layer, {
 	toggle: function(){
 		this.heatmap.toggleDisplay();
 	},
-	isVisable: function() {
-		return this.heatmap.isVisable();
+	isVisible: function() {
+		return this.heatmap.isVisible();
 	},
 	show: function() {
 		this.heatmap.show();										
