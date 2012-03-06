@@ -219,49 +219,6 @@ var heatmap_IsVisible = true;
 var heatmapLayer_IsVisible = false;
 var heatmapToggle_IsVisible = false;
 
-/*var gimmyHeading = 315;
-OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
-	defaultHandlerOptions: {
-		'single': true,
-		'double': false,
-		'pixelTolerance': 0,
-		'stopSingle': false,
-		'stopDouble': false
-	},
-					
-	initialize: function(options) {
-		this.handlerOptions = OpenLayers.Util.extend(
-		 {}, this.defaultHandlerOptions
-		);
-		OpenLayers.Control.prototype.initialize.apply(
-		  this, arguments
-		); 
-		this.handler = new OpenLayers.Handler.Click(
-			this, {
-				'click': this.trigger
-			}, this.handlerOptions
-		);
-	}, 
-											
-	trigger: function(e) {
-		//navSymbolizer.rotation += 10;
-		//navigationLayer.redraw();
-									
-		//Rotate map
-											var heading = gimmyHeading;
-											var mapRotation = 360 - heading;
-											var diff = (-1 * mapRotation) - map.events.rotationAngle;
-											if(diff > -180)
-											$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
-											else
-											$("#map").animate({rotate: (-1 * heading) + 'deg'}, 1000);
-											
-											map.events.rotationAngle = -1 * mapRotation;
-											gimmyHeading = 90;
-	}
-										
-});*/
-
 function onBodyLoad() {
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
@@ -1408,7 +1365,6 @@ function onDeviceReady()
 					  mapDiv.css('top', mapTopPosition);
 					  mapDiv.css('left', mapLeftPosition);
 					  $.mobile.fixedToolbars.show();
-		$('#map-tab-button').addClass('ui-btn-active');
 	});
 	
 	$('#map-page').on('pagehide', function() {
@@ -1425,7 +1381,6 @@ function onDeviceReady()
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		//selectTabBarItem('Queue');
-		$('#queue-tab-button').addClass('ui-btn-active');
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
 	
@@ -1442,18 +1397,6 @@ function onDeviceReady()
 	// blinks when you leave the page =/
 	$('#queue-dialog').on('pagehide', function() {
 		clearQueueDialog();
-	});
-	
-	$('#user-dialog').on('pageshow', function() {
-	//	selectTabBarItem('User');
-		$('#user-tab-button').addClass('ui-btn-active');
-	});
-	
-	$('#more-dialog').on('pageshow', function(event, ui) {
-		ui.prevPage.find('.ui-btn-active').removeClass('ui-btn-active');
-		$('#more-tab-button').children('a').addClass('ui-btn-active');
-		var length = $('#more-dialog #more-tab-button a').length;
-		console.log(length);
 	});
 	
 	$('#status-dialog').on('pagehide', function() {
