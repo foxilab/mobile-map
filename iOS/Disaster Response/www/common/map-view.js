@@ -1249,7 +1249,7 @@ function onDeviceReady()
 		enableHighAccuracy: true,
 		maximumAge: 3000
 	});
-	
+
 	var compassOptions = {
 		frequency: 3000
 	};
@@ -1324,7 +1324,7 @@ function onDeviceReady()
 	});*/
 	
 	//Hack to keep the Queue tab selected while in the status dialog.
-	$('#map-page').on('pageshow', function() {
+	$('#map-page').live('pageshow', function() {
 	//	selectTabBarItem('Map');
 					  var height = $('.queue-dialog').height();
 					  var width = $('.queue-dialog').width();
@@ -1338,7 +1338,7 @@ function onDeviceReady()
 		$('#map-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#map-page').on('pagehide', function() {
+	$('#map-page').live('pagehide', function() {
 		selectControl.unselectAll(); //Removes the LocationPopup
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
 		clickedLonLat = null;		  
@@ -1348,7 +1348,7 @@ function onDeviceReady()
 		hideMapToolDivs();
 	});*/
 	
-	$('#queue-dialog').on('pageshow', function() {
+	$('#queue-dialog').live('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		//selectTabBarItem('Queue');
@@ -1356,32 +1356,32 @@ function onDeviceReady()
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
 	
-	$('#multiStatus-dialog').on('pageshow', function() {
+	$('#multiStatus-dialog').live('pageshow', function() {
 
 	});
 						  
-	$('#multiStatus-dialog').on('pagehide', function() {
+	$('#multiStatus-dialog').live('pagehide', function() {
 		hideStatusesDialog();
 	});
 	
 	//Clear the queue when the user is done with the page,
 	// fixes double queue on when you get over 20 items
 	// blinks when you leave the page =/
-	$('#queue-dialog').on('pagehide', function() {
+	$('#queue-dialog').live('pagehide', function() {
 		clearQueueDialog();
 	});
 	
-	$('#user-dialog').on('pageshow', function() {
+	$('#user-dialog').live('pageshow', function() {
 	//	selectTabBarItem('User');
 		$('#user-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#more-dialog').on('pageshow', function() {
+	$('#more-dialog').live('pageshow', function() {
 	//	selectTabBarItem('More');
 		$('#more-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#status-dialog').on('pagehide', function() {
+	$('#status-dialog').live('pagehide', function() {
 		updateQueueSize();
 	});
 						      
@@ -1542,7 +1542,6 @@ $(document).ready(function () {
 
 	var $queue_item;
 
-	// TODO: Why do some of these only work with live() and not on() ?
 	$('.locImage').live('click', locationPopup_onImageClick);
 	$('.locImageMultiple').live('click', function() {
 		var $gallery = $('#gallery');
@@ -1728,17 +1727,17 @@ $(document).ready(function () {
 		updateLocationName(sqlDb, id, $(this).text());
 	});
 
-	$('.status-list-item').on('click', function() {
+	$('.status-list-item').live('click', function() {
 		// Store back to local DB
 		var id = $queue_item.attr('rowid');
 		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('.status-submit-button').on('click', function() {
+	$('.status-submit-button').live('click', function() {
 		submitToServer();
 	});
 				  
-	$("#northIndicator").on("taphold", function(){
+	$("#northIndicator").live("taphold", function(){
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
