@@ -1603,18 +1603,6 @@ $(document).ready(function () {
 		hideQueueItemDelete();
 	});
 
-	$('#fs-video').position({
-		my:	'center',
-		at:	'center',
-		of:	$('#image-viewer')
-	});
-	
-	$('#fs-audio').position({
-		my:	'center',
-		at:	'center',
-		of:	$('#image-viewer')
-	});
-
 	var $queue_item;
 
 	$('.locImage').live('click', locationPopup_onImageClick);
@@ -1633,7 +1621,6 @@ $(document).ready(function () {
 		switch (type) {
 			case 'audio':
 				$('#fs-image').hide();
-				$('#fs-video').hide();
 				
 				var $container = $('#fs-audio');
 				var $audio = $container.find('audio');
@@ -1644,7 +1631,6 @@ $(document).ready(function () {
 
 			case 'image':
 				$('#fs-audio').hide();
-				$('#fs-video').hide();
 				
 				var $container = $('#fs-image');
 				var $img = $container.find('img');

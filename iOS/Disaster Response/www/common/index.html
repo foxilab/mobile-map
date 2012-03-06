@@ -100,10 +100,6 @@
 				-moz-border-radius: 10px;
 				border-radius: 10px;
 			}
-			.ui-page {
-				min-height: 100% !important;
-				height: auto !important;
-			}
 			.locImageMultiple{
 				position: absolute;
 				left: 48px;
@@ -306,13 +302,13 @@
 		</div>
 
 		<div data-role='page' id='image-viewer' class="mypage" style='background-image: none !important; background-color: black !important'>
-			<div data-role='content' style='height: 90% !important'>
+			<div data-role='content'>
 				<div id='fs-image'>
 					<a style='float: right; left: 18px; top:-18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
 					<img id='chosenImage'/>
 				</div>
-				<div id='fs-audio' style="width: 460px; height:80px">
-					<a style='float: right; left: 18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
+				<div id='fs-audio' style="width: 460px; height: 80px">
+					<a style='float: right; left: 18px; z-index: 2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
 					<audio preload='auto'>
 					</audio>
 				</div>
