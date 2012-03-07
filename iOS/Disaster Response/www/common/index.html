@@ -50,6 +50,30 @@
 				display: block;
 				padding: 7px 6px 7px 8px;
 			}
+			
+			#filterButton {
+				position: absolute;
+				top: 0px;
+				left: 10px;
+				z-index: 1011;
+			}
+			#filterPopup{
+				position: absolute;
+				top: 35px;
+				left: 10px;
+				z-index: 1010;
+				background-color:#505050;
+				min-width:375px;
+				min-height:300px;
+				max-width:400px;
+				max-height:400px;
+				
+				border:5px solid black;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}
+
 			#navigation {
 				position: absolute;
 				bottom: 70px;
@@ -137,6 +161,38 @@
 					
 					<div id="heatmapLockButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="heatmapLock" data-icon="plus" data-iconpos="notext"></a>
+					</div>
+					
+					<div id="filterButton" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" id="filterToggle">Filter</a>
+					</div>
+					<div id="filterPopup" data-role="fieldcontain" style="text-align:left; display: none; padding: 4px;">
+						<fieldset data-role="controlgroup">
+							<legend>Statuses</legend>
+							<input type="checkbox" name="checkbox-StatusA" id="checkbox-StatusA" class="checkBox_Status_Operational" data-mini="true"/>
+							<label for="checkbox-StatusA">Operational</label>
+							
+							<input type="checkbox" name="checkbox-StatusB" id="checkbox-StatusB" class="checkBox_Status_Limited" data-mini="true"/>
+							<label for="checkbox-StatusB">Limited Capabilities</label>
+							
+							<input type="checkbox" name="checkbox-StatusC" id="checkbox-StatusC" class="checkBox_Status_Intact" data-mini="true"/>
+							<label for="checkbox-StatusC">Intact, but Uninhabited</label>
+							
+							<input type="checkbox" name="checkbox-StatusD" id="checkbox-StatusD" class="checkBox_Status_NonOperational" data-mini="true"/>
+							<label for="checkbox-StatusD">Non-Operational</label>
+						</fieldset>
+						
+						<fieldset data-role="controlgroup">
+							<legend>File Types</legend>
+							<input type="checkbox" name="checkbox-FileTypeA" id="checkbox-FileTypeA" class="checkBox_FileType_Image" data-mini="true"/>
+							<label for="checkbox-FileTypeA">Image</label>
+							
+							<input type="checkbox" name="checkbox-FileTypeB" id="checkbox-FileTypeB" class="checkBox_FileType_Video" data-mini="true"/>
+							<label for="checkbox-FileTypeB">Video</label>
+							
+							<input type="checkbox" name="checkbox-FileTypeC" id="checkbox-FileTypeC" class="checkBox_FileType_Audio" data-mini="true"/>
+							<label for="checkbox-FileTypeC">Audio</label>
+						</fieldset>
 					</div>
 					<!--<div id="screenLock">
 						<a href="#" data-role="button" data-icon="glyphish-lock" id="screenlockbutton" data-iconpos="notext"></a>

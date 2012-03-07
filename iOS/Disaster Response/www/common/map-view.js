@@ -838,10 +838,8 @@ function fusionSQLSuccess(data) {
 	}
 	
 	//Parse ALL the data!!
-	if(locationArray.length > 0) {
-		parseSQLSuccess_Icons(locationArray);
-		parseSQLSuccess_Heatmap(locationArray);
-	}
+	parseSQLSuccess_Icons(locationArray);
+	parseSQLSuccess_Heatmap(locationArray);
 }
 
 function parseSQLSuccess_Icons(_locationArray) {
@@ -893,29 +891,68 @@ function parseSQLSuccess_Heatmap(_locationArray) {
 }
 
 var SEARCHSTATUS = {
-	ALL : {value: 0, name: "All", color: "Black"},
-	OPERATIONAL : {value: 1, name: "Operational", color: "Green"},
-	LIMITED : {value: 2, name: "Limited Capabilities", color: "Yellow"},
-	INTACT : {value: 3, name: "Intact, but Uninhabited", color: "Orange"},
-	NONOPERATIONAL : {value: 4, name: "Non-Operational", color: "Red"}
+	ALL 			: {value: 0, name: "All", color: "Black", checked: false},
+	OPERATIONAL		: {value: 1, name: "Operational", color: "Green", checked: true},
+	LIMITED 		: {value: 2, name: "Limited Capabilities", color: "Yellow", checked: true},
+	INTACT 			: {value: 3, name: "Intact, but Uninhabited", color: "Orange", checked: true},
+	NONOPERATIONAL	: {value: 4, name: "Non-Operational", color: "Red", checked: true}
 };
 
 var SEARCHMEDIA = {
-	ALL : {value: 0, name: "All"},
-	IMAGE : {value: 1, name: "image"},
-	VIDEO : {value: 2, name: "video"},
-	AUDIO : {value: 3, name: "audio"}
+	ALL 	: {value: 0, name: "All", checked: false},
+	IMAGE 	: {value: 1, name: "image", checked: true},
+	VIDEO 	: {value: 2, name: "video", checked: true},
+	AUDIO 	: {value: 3, name: "audio", checked: true}
 };
 
 var SEARCHTIME = {
-	ALL : {value: 0, name: "All"},
-	DAY : {value: 1, name: "Day"},
-	WEEK : {value: 2, name: "Week"}
+	ALL 	: {value: 0, name: "All", checked: false},
+	DAY 	: {value: 1, name: "Day", checked: true},
+	WEEK 	: {value: 2, name: "Week", checked: true}
 };
 
-var filterStatus = SEARCHSTATUS.ALL;
-var filterMedia	= SEARCHMEDIA.ALL;
-var filterTime	= SEARCHTIME.ALL;
+function initFilter() {
+	//#LOAD - If we offer to save data, load it here {
+	//	Reloading!
+	//}
+	
+	//Take the data and set the filter checkboxes
+	$("input[name=checkbox-StatusA]").attr("checked", SEARCHSTATUS.OPERATIONAL.checked);
+	$("input[name=checkbox-StatusB]").attr("checked", SEARCHSTATUS.LIMITED.checked);
+	$("input[name=checkbox-StatusC]").attr("checked", SEARCHSTATUS.INTACT.checked);
+	$("input[name=checkbox-StatusD]").attr("checked", SEARCHSTATUS.NONOPERATIONAL.checked);
+	
+	$("input[name=checkbox-FileTypeA]").attr("checked", SEARCHMEDIA.IMAGE.checked);
+	$("input[name=checkbox-FileTypeB]").attr("checked", SEARCHMEDIA.VIDEO.checked);
+	$("input[name=checkbox-FileTypeC]").attr("checked", SEARCHMEDIA.AUDIO.checked);
+	
+	//refreash the checkboxes (jic)
+	$("input[type='checkbox']").checkboxradio("refresh");
+}
+
+function filterUpdated() {
+	
+	SEARCHSTATUS.OPERATIONAL.checked = $("input[name=checkbox-StatusA]").attr("checked");
+	SEARCHSTATUS.LIMITED.checked = $("input[name=checkbox-StatusB]").attr("checked");
+	SEARCHSTATUS.INTACT.checked = $("input[name=checkbox-StatusC]").attr("checked");
+	SEARCHSTATUS.NONOPERATIONAL.checked = $("input[name=checkbox-StatusD]").attr("checked");
+	
+	SEARCHMEDIA.IMAGE.checked = $("input[name=checkbox-FileTypeA]").attr("checked");
+	SEARCHMEDIA.VIDEO.checked = $("input[name=checkbox-FileTypeB]").attr("checked");
+	SEARCHMEDIA.AUDIO.checked = $("input[name=checkbox-FileTypeC]").attr("checked");
+	
+	//New data, fake a move end
+	onMapMoveEnd();
+}
+
+function toggleFilterPopup() {
+	filterPopup = $('#filterPopup');
+	
+	if(filterPopup.is(':visible'))
+		filterPopup.hide();
+	else
+		filterPopup.show();
+}
 
 //Allows the customization of the heatmap: e.g.,
 // - show only Operational buildings
@@ -927,18 +964,30 @@ function shouldAddToLayer(_location) {
 	var shouldI_Status	= false;	//can you?
 	var shouldI_Media 	= false;
 	var shouldI_Time 	= false;
-	
-	console.log(_location);
-
-	//Check to see if the status is correct
-	if(filterStatus.value == _location.status || filterStatus == SEARCHSTATUS.ALL)
-		shouldI_Status = true;
 		
+	if(SEARCHSTATUS.OPERATIONAL.value == _location.status && SEARCHSTATUS.OPERATIONAL.checked)
+		shouldI_Status = true;
+	else if(SEARCHSTATUS.LIMITED.value == _location.status && SEARCHSTATUS.LIMITED.checked)
+		shouldI_Status = true;
+	else if(SEARCHSTATUS.INTACT.value == _location.status && SEARCHSTATUS.INTACT.checked)
+		shouldI_Status = true;
+	else if(SEARCHSTATUS.NONOPERATIONAL.value == _location.status && SEARCHSTATUS.NONOPERATIONAL.checked)
+		shouldI_Status = true;
+	else
+		shouldI_Status = false;
+	
+	//Now check to see if the media type is correct
 	var fileType = mimeTypeFromExt(_location.media);
 	fileType = fileType.substr(0, fileType.indexOf('/'));
-	
-	if(filterMedia.name == fileType || filterMedia == SEARCHMEDIA.ALL)
+		
+	if(SEARCHMEDIA.IMAGE.name == fileType && SEARCHMEDIA.IMAGE.checked)
 		shouldI_Media = true;
+	else if(SEARCHMEDIA.VIDEO.name == fileType && SEARCHMEDIA.VIDEO.checked)
+		shouldI_Media = true;
+	else if(SEARCHMEDIA.AUDIO.name == fileType && SEARCHMEDIA.AUDIO.checked)
+		shouldI_Media = true;
+	else
+		shouldI_Media = false;
 		
 	/*
 	console.log("Status Filter : " + filterStatus.value + " - " + filterStatus.name);
@@ -950,10 +999,12 @@ function shouldAddToLayer(_location) {
 	console.log(" - Should You? Status : " + shouldI_Status);
 	console.log(" - Should You? Media  : " + shouldI_Media);
 	console.log(" - Should You? Time   : " + shouldI_Time);
+	console.log("     - return " + (shouldI_Status && shouldI_Media));
 	console.log("0===========================================0");
 	*/
-
-	return (shouldI_Status == shouldI_Media == true);
+	
+	//Return true if the item meets all filters
+	return (shouldI_Status && shouldI_Media);
 }
 
 //This function just readys the heatmap layer
@@ -1191,7 +1242,10 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	window.addEventListener("orientationchange", onOrientationChange,  true);
+	  window.addEventListener("orientationchange", onOrientationChange,  true);
+	  
+	initFilter();
+
 
 	// The Local Database (global for a reason)
 	try {
@@ -1760,6 +1814,10 @@ $(document).ready(function () {
 	$('.status-submit-button').live('click', function() {
 		submitToServer();
 	});
+	
+	$('#filterToggle').on('click', function() {
+			toggleFilterPopup();
+	});
 				  
 	$("#northIndicator").live("taphold", function(){
 		if(!screenLocked){
@@ -1851,6 +1909,15 @@ $(document).ready(function () {
 								 
 		navigationLayer.redraw();
 	});
+	
+	$('input[name="checkbox-StatusA"]').live('change',filterUpdated);
+	$('input[name="checkbox-StatusB"]').live('change',filterUpdated);
+	$('input[name="checkbox-StatusC"]').live('change',filterUpdated);
+	$('input[name="checkbox-StatusD"]').live('change',filterUpdated);
+	
+	$('input[name="checkbox-FileTypeA"]').live('change',filterUpdated);
+	$('input[name="checkbox-FileTypeB"]').live('change',filterUpdated);
+	$('input[name="checkbox-FileTypeC"]').live('change',filterUpdated);
 });
 
 function submitToServer() {
