@@ -9,10 +9,7 @@
 		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
 		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css"/>
 		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
-		<link rel="stylesheet" href="css/video-js.min.css" type="text/css"/>
 		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
-
-		<script type="text/javascript" charset="utf-8" src="video.min.js"></script>
 
 		<style type="text/css">
 			#zoomPanel{
@@ -220,7 +217,7 @@
 						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." align="middle"/>
 						<!-- Video -->
 						<div id='embedded-video'>
-							<video class="video-js vjs-default-skin" controls preload="auto" width="300" height="264" data-setup="{}">
+							<video controls preload="auto" width="300" height="264" data-setup="{}" onclick="this.play();">
 							</video>
 						</div>
 						<!-- Audio -->
@@ -424,5 +421,5 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>
