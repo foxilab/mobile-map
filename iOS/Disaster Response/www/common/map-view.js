@@ -419,7 +419,8 @@ function uploadFileToS3(filepath, photoguid) {
  */
 function onMapMoveEnd(_event) {
 	//Close all popups or just some?
-	selectControl.unselectAll();
+	if(selectedFeature)
+		selectControl.unselect(selectedFeature);
 
 	//The map bounds has changed...get the bounds and convert it
 	var bounds = map.getExtent();
@@ -542,11 +543,14 @@ function setFusionLayerVisibility(_visible) {
  		==============================================
  */
 
-var popupFeature;
-var popupFeatureMain;
+var popupFeature = null;
+var popupFeatureMain = null;
+var selectedFeature = null;
 function createLocationPopup(_feature) {
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
 	closeAllPopups();
+	
+	selectedFeature = _feature;
 
 	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
@@ -660,6 +664,7 @@ function createLocationPopup(_feature) {
 
 function destroyLocationPopup(_feature) {
 	// Stop playing any audio or video
+	console.log("destroy");
 	var $audio = LocationPopup.find('audio');
 	var $video = LocationPopup.find('video');
 	if ($video.is(':visible')) {
@@ -672,6 +677,7 @@ function destroyLocationPopup(_feature) {
 	LocationPopup.hide();
 	popupFeature = null;
 	popupFeatureMain = null;
+	selectedFeature = null;
 	
 	//Clear out the div's
 	document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
@@ -723,7 +729,8 @@ function showStatusesDialog() {
 }
 
 function closeAllPopups() {
-	selectControl.unselectAll(); //Removes the LocationPopup
+	if(selectedFeature)
+		selectControl.unselect(selectedFeature); //Removes the LocationPopup
 	cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
 	$('#filterPopup').hide();
 }
