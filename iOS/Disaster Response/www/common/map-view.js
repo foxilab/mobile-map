@@ -1218,15 +1218,7 @@ function onDeviceReady()
 
 	mapContainer = $("#mapContainer");
 	mapDiv = $("#map");
-
-	/*if(windowHeight > windowWidth)
-	{
-		deviceMaxSize = windowHeight;
-		deviceMinSize = windowWidth;
-	}else{
-		deviceMaxSize = windowWidth;
-		deviceMinSize = windowHeight;
-	}*/
+	
 	setMaxAndMinSizes([windowHeight, windowWidth, windowMinHeight]);
 	console.log("maxSize: " + deviceMaxSize);
 	console.log("minSize: "  + deviceMinSize);
@@ -1284,21 +1276,11 @@ function onDeviceReady()
 			console.log('Orientation issue: ' + window.orientation);
 			break;
 	}
-	
-	// Set up NativeControls
-	//nativeControls = window.plugins.nativeControls;
-	//setupTabBar();
-	//selectTabBarItem('Map');
-        //setupNavBar();
-    
-	// do your thing!
-	var windowHeight = $(window).height();
-	var windowWidth = $(window).width();
 
 	if(windowHeight > windowWidth)
-		docHeight = windowHeight;
+		docHeight = deviceMaxSize;
 	else
-		docHeight = windowWidth;
+		docHeight = deviceMinSize;
 	
 	var footerHeight = $("#map-footer").height();
 	var mapHeight = docHeight - footerHeight - 20;
@@ -1418,7 +1400,7 @@ function onDeviceReady()
 					  var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
 					  mapDiv.css('top', mapTopPosition);
 					  mapDiv.css('left', mapLeftPosition);
-					//  $.mobile.fixedToolbars.show();
+					 $.mobile.fixedToolbars.show();
 	});
 	
 	$('#map-page').live('pagehide', function() {
@@ -1448,14 +1430,17 @@ function onDeviceReady()
 	});
 	
 	$('#queue-dialog').live('pagebeforeshow', function(){
+		$('.mypage').height(docHeight);
 		$('.queue-tab-button').children().addClass('ui-btn-active');
 	});
 	
 	$('#user-dialog').live('pagebeforeshow', function(){
+						   $('.mypage').height(docHeight);
 		$('.user-tab-button').children().addClass('ui-btn-active');
 	});
 	
 	$('#more-dialog').live('pagebeforeshow', function(){
+						   $('.mypage').height(docHeight);
 		$('.more-tab-button').children().addClass('ui-btn-active');
 	});
 	
@@ -1846,7 +1831,6 @@ $(document).ready(function () {
 	});
 	
 	$('#addressSearchDiv .ui-listview-filter').submit(function(){
-													  console.log("hi friend");
 		var address = $('#addressSearchDiv .ui-input-text').val();
 		searchForAddress(address);
 	});
