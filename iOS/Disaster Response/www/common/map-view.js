@@ -418,6 +418,9 @@ function uploadFileToS3(filepath, photoguid) {
  		==============================================
  */
 function onMapMoveEnd(_event) {
+	//Close all popups or just some?
+	selectControl.unselectAll();
+
 	//The map bounds has changed...get the bounds and convert it
 	var bounds = map.getExtent();
 	var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
@@ -543,7 +546,7 @@ var popupFeature;
 var popupFeatureMain;
 function createLocationPopup(_feature) {
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
-	cameraORvideoPopup.hide();
+	closeAllPopups();
 
 	if (!LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
@@ -717,6 +720,12 @@ function showStatusesDialog() {
 	
 	
 	$.mobile.changePage('#multiStatus-dialog', 'pop');
+}
+
+function closeAllPopups() {
+	selectControl.unselectAll(); //Removes the LocationPopup
+	cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+	$('#filterPopup').hide();
 }
 
 function hideStatusesDialog() {
@@ -949,8 +958,10 @@ function toggleFilterPopup() {
 	
 	if(filterPopup.is(':visible'))
 		filterPopup.hide();
-	else
+	else {
+		closeAllPopups();
 		filterPopup.show();
+	}
 }
 
 //Allows the customization of the heatmap: e.g.,
@@ -1097,7 +1108,7 @@ function getVideo(lonlat) {
 function togglePhotoVideoDialog(){
 
 	//Move B, get out the way: JIC the other popup is open
-	selectControl.unselectAll(); //Removes the LocationPopup
+	closeAllPopups();
 
 	cameraORvideoPopup.toggle();
 	
@@ -1423,8 +1434,7 @@ function onDeviceReady()
 	});
 	
 	$('#map-page').live('pagehide', function() {
-		selectControl.unselectAll(); //Removes the LocationPopup
-		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+		closeAllPopups();
 		clickedLonLat = null;		  
 	});
 
@@ -1844,8 +1854,7 @@ $(document).ready(function () {
 	});
 	
 	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
-			cameraORvideoPopup.hide();
-			selectControl.unselectAll(); //Removes the LocationPopup
+			closeAllPopups();
 			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
 			if($('#cameraORvideoPopup').is(':visible'))
 					togglePhotoVideoDialog();
