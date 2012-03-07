@@ -1834,6 +1834,7 @@ $(document).ready(function () {
 	});
 	
 	$('#addressSearchDiv .ui-listview-filter').submit(function(){
+													  console.log("hi friend");
 		var address = $('#addressSearchDiv .ui-input-text').val();
 		searchForAddress(address);
 	});
