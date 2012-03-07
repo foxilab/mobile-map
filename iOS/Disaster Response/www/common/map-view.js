@@ -1365,6 +1365,7 @@ function onDeviceReady()
 					  mapDiv.css('top', mapTopPosition);
 					  mapDiv.css('left', mapLeftPosition);
 					  $.mobile.fixedToolbars.show();
+		$('#map-page').find('.map-tab-button').children().addClass('ui-btn-active');
 	});
 	
 	$('#map-page').live('pagehide', function() {
@@ -1651,7 +1652,7 @@ $(document).ready(function () {
 	$('.queue-list-item').live('swiperight', hideQueueItemDelete);
 	$('.queue-list-item').live('blur', hideQueueItemDelete);
 
-	$('#queue-tab-button').live('click', function(e) {
+	$('.queue-tab-button').click(function(e) {
 		if(itemsInQueue === 0) {
 			e.preventDefault();
 			e.stopPropagation();
