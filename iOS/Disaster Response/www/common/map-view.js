@@ -1353,10 +1353,15 @@ function onDeviceReady()
 		showMapToolDivs();
 	});*/
 
+	$('#map-page').live('pagebeforeshow', function(){
+		$('.map-tab-button').children().addClass('ui-btn-active');
+	});
+	
 	//Hack to keep the Queue tab selected while in the status dialog.
 	$('#map-page').live('pageshow', function() {
 	//	selectTabBarItem('Map');
-					  var height = $('.queue-dialog').height();
+						
+						var height = $('.queue-dialog').height();
 					  var width = $('.queue-dialog').width();
 					  $(this).height(height);
 					  $(this).width(width);
@@ -1364,8 +1369,7 @@ function onDeviceReady()
 					  var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
 					  mapDiv.css('top', mapTopPosition);
 					  mapDiv.css('left', mapLeftPosition);
-					  $.mobile.fixedToolbars.show();
-		$('#map-page').find('.map-tab-button').children().addClass('ui-btn-active');
+					//  $.mobile.fixedToolbars.show();
 	});
 	
 	$('#map-page').live('pagehide', function() {
@@ -1377,6 +1381,18 @@ function onDeviceReady()
 	/*$('#map-page').live('pagebeforehide', function(){
 		hideMapToolDivs();
 	});*/
+	
+	$('#queue-dialog').live('pagebeforeshow', function(){
+		$('.queue-tab-button').children().addClass('ui-btn-active');
+	});
+	
+	$('#user-dialog').live('pagebeforeshow', function(){
+		$('.user-tab-button').children().addClass('ui-btn-active');
+	});
+	
+	$('#more-dialog').live('pagebeforeshow', function(){
+		$('.more-tab-button').children().addClass('ui-btn-active');
+	});
 	
 	$('#queue-dialog').live('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
@@ -1643,6 +1659,7 @@ $(document).ready(function () {
 		if(itemsInQueue === 0) {
 			e.preventDefault();
 			e.stopPropagation();
+			e.stopImmediatePropagation();
 			$(this).find('a').removeClass('ui-btn-active');
 		}
 	});
