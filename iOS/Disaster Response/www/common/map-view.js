@@ -1403,7 +1403,6 @@ function onDeviceReady()
 	});*/
 
 	$('#map-page').live('pagebeforeshow', function(){
-		$('.queue-tab-button').children().removeClass('ui-btn-active');
 		$('.map-tab-button').children().addClass('ui-btn-active');
 	});
 	
@@ -1432,17 +1431,31 @@ function onDeviceReady()
 		hideMapToolDivs();
 	});*/
 	
+	$('#map-page').live('pagebeforehide', function(){
+		$('.map-tab-button').children().removeClass('ui-btn-active');
+	});
+	
+	$('#queue-dialog').live('pagebeforehide', function(){
+		$('.queue-tab-button').children().removeClass('ui-btn-active');
+	});
+	
+	$('#user-dialog').live('pagebeforehide', function(){
+		$('.user-tab-button').children().removeClass('ui-btn-active');
+	});
+	
+	$('#more-dialog').live('pagebeforehide', function(){
+		$('.more-tab-button').children().removeClass('ui-btn-active');
+	});
+	
 	$('#queue-dialog').live('pagebeforeshow', function(){
 		$('.queue-tab-button').children().addClass('ui-btn-active');
 	});
 	
 	$('#user-dialog').live('pagebeforeshow', function(){
-		$('.queue-tab-button').children().removeClass('ui-btn-active');
 		$('.user-tab-button').children().addClass('ui-btn-active');
 	});
 	
 	$('#more-dialog').live('pagebeforeshow', function(){
-		$('.queue-tab-button').children().removeClass('ui-btn-active');
 		$('.more-tab-button').children().addClass('ui-btn-active');
 	});
 	
