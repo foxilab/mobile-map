@@ -1366,7 +1366,6 @@ function onDeviceReady()
 			{
 				if(!cameraORvideoPopup.is(":visible"))
 				{
-				
 					var lonlat = map.getLonLatFromViewPortPx(e.xy);
 					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 					togglePhotoVideoDialog();
@@ -1441,6 +1440,22 @@ function onDeviceReady()
 	/*$('#map-page').live('pagebeforehide', function(){
 		hideMapToolDivs();
 	});*/
+	
+	$('#map-page').live('pagebeforehide', function(){
+		$('.map-tab-button').children().removeClass('ui-btn-active');
+	});
+	
+	$('#queue-dialog').live('pagebeforehide', function(){
+		$('.queue-tab-button').children().removeClass('ui-btn-active');
+	});
+	
+	$('#user-dialog').live('pagebeforehide', function(){
+		$('.user-tab-button').children().removeClass('ui-btn-active');
+	});
+	
+	$('#more-dialog').live('pagebeforehide', function(){
+		$('.more-tab-button').children().removeClass('ui-btn-active');
+	});
 	
 	$('#queue-dialog').live('pagebeforeshow', function(){
 		$('.queue-tab-button').children().addClass('ui-btn-active');
@@ -1581,14 +1596,15 @@ function populateGallery(parent, items, options) {
 				div += '<img src=' + quote('css/images/speaker.png');
 				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img>';
 				break;
+
 			case 'image':
 				div += '<img src=' + quote(item.media);
 				div += ' style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
 
 			case 'video':
-				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "'>";
-				div += "<source src=" + squote(item.media) + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
+				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "' onclick='this.play();'>";
+				div += "<source src=" + squote(item.media) + "/>";// + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
 				div += "</video>";
 				break;
 		}
@@ -1840,6 +1856,7 @@ $(document).ready(function () {
 	});
 	
 	$('#addressSearchDiv .ui-listview-filter').submit(function(){
+													  console.log("hi friend");
 		var address = $('#addressSearchDiv .ui-input-text').val();
 		searchForAddress(address);
 	});
@@ -1888,12 +1905,12 @@ $(document).ready(function () {
 		getPicture(clickedLonLat);
 		clickedLonLat = null;
 	});
-	
+
 	$('#videoButton').click(function(){
 		getVideo(clickedLonLat);
 		clickedLonLat = null;
 	});
-		
+
 	$('#cancelButton').click(function(){
 		togglePhotoVideoDialog();
 		clickedLonLat = null;
