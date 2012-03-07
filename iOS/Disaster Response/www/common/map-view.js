@@ -1355,7 +1355,6 @@ function onDeviceReady()
 			{
 				if(!cameraORvideoPopup.is(":visible"))
 				{
-				
 					var lonlat = map.getLonLatFromViewPortPx(e.xy);
 					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
 					togglePhotoVideoDialog();
@@ -1571,14 +1570,15 @@ function populateGallery(parent, items, options) {
 				div += '<img src=' + quote('css/images/speaker.png');
 				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img>';
 				break;
+
 			case 'image':
 				div += '<img src=' + quote(item.media);
 				div += ' style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
 
 			case 'video':
-				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "'>";
-				div += "<source src=" + squote(item.media) + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
+				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "' onclick='this.play();'>";
+				div += "<source src=" + squote(item.media) + "/>";// + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
 				div += "</video>";
 				break;
 		}
@@ -1880,12 +1880,12 @@ $(document).ready(function () {
 		getPicture(clickedLonLat);
 		clickedLonLat = null;
 	});
-	
+
 	$('#videoButton').click(function(){
 		getVideo(clickedLonLat);
 		clickedLonLat = null;
 	});
-		
+
 	$('#cancelButton').click(function(){
 		togglePhotoVideoDialog();
 		clickedLonLat = null;
