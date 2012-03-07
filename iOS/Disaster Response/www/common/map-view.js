@@ -1904,7 +1904,7 @@ $(document).ready(function () {
 		togglePhotoVideoDialog();
 		clickedLonLat = null;
 	});
-	
+
 	$('#screenlockbutton').click(function(){
 		if(screenLocked){
 			screenLocked = false;
@@ -1920,7 +1920,7 @@ $(document).ready(function () {
 								 
 		navigationLayer.redraw();
 	});
-	
+
 	$('input[name="checkbox-StatusA"]').live('change',filterUpdated);
 	$('input[name="checkbox-StatusB"]').live('change',filterUpdated);
 	$('input[name="checkbox-StatusC"]').live('change',filterUpdated);
