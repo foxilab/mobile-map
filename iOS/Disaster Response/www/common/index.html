@@ -7,10 +7,9 @@
 		<meta charset="utf-8">
 
 		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
-		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css" />
+		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css"/>
 		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
 		<link rel="stylesheet" href="css/video-js.min.css" type="text/css"/>
-		<link rel="stylesheet" href="css/imageflow.packed.css" type="text/css"/>
 		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
 
 		<script type="text/javascript" charset="utf-8" src="video.min.js"></script>
@@ -23,27 +22,24 @@
 				height:54px;
 				width:18px;
 				cursor:pointer;
-			  }
+			}
 			.olControlZoomInItemInactive { 
 				position: absolute;
 				height: 18px;
 				width: 18px;
 			}
-				
 			.olControlZoomToMaxExtentItemInactive {
 				position: absolute;
 				top:18px;
 				height: 18px;
 				width: 18px;
 			}
-				
 			.olControlZoomOutItemInactive {
 				position: absolute;
 				top:36px;
 				height: 18px;
 				width: 18px;
 			}
-			
 			#heatmapLockButton {
 				position: absolute;
 				bottom: 10px;
@@ -77,7 +73,7 @@
 				-moz-border-radius: 10px;
 				border-radius: 10px;
 			}
-			
+
 			#navigation {
 				position: absolute;
 				bottom: 70px;
@@ -99,7 +95,6 @@
 				padding: 10px;
 				padding-top: 6px;
 			}
-			 
 			#addressSearchDiv{
 				position:absolute;
 				z-index:1000;
@@ -107,7 +102,6 @@
 				right:5px;
 				width:40%;
 			}
-
 			#cameraORvideoPopup {
 				display:none;
 				position:relative;
@@ -115,7 +109,6 @@
 				margin:auto;
 				width:300px;
 			}
-			
 			#locationPopup{
 				display:none;
 				position:relative;
@@ -131,11 +124,6 @@
 				-moz-border-radius: 10px;
 				border-radius: 10px;
 			}
-
-			.ui-page {
-				height: 100% !important;
-			}
-			
 			.locImageMultiple{
 				position: absolute;
 				left: 48px;
@@ -143,7 +131,6 @@
 				width: 244px;
 				height: 174px;
 			}
-			
 			.locImage{
 				width: 300px;
 				height: 264px;
@@ -247,7 +234,7 @@
 			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
-						<li id='map-tab-button'><a href="#map-page" data-icon="home" class="ui-btn-active">Map</a></li>
+						<li id='map-tab-button'><a href="#map-page" data-icon="home">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
 						<li><a href="#user-dialog" data-icon="gear">User</a></li>
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
@@ -341,7 +328,7 @@
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
-						<li id='user-tab-button'><a href="#user-dialog" data-icon="gear" class="ui-btn-active">User</a></li>
+						<li id='user-tab-button'><a href="#user-dialog" data-icon="gear">User</a></li>
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
 					</ul>
 				</div>
@@ -364,20 +351,20 @@
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li id='queue-tab-button'><a href="#queue-dialog" data-icon="grid">Queue</a></li>
 						<li><a href="#user-dialog" data-icon="gear">User</a></li>
-						<li id='more-tab-button'><a href="#more-dialog" data-icon="info" class="ui-btn-active">More</a></li>
+						<li id='more-tab-button'><a href="#more-dialog" data-icon="info">More</a></li>
 					</ul>
 				</div>
 			</div>
 		</div>
 
 		<div data-role='page' id='image-viewer' class="mypage" style='background-image: none !important; background-color: black !important'>
-			<div data-role='content' style='height: 90% !important'>
+			<div data-role='content' style='overflow-x: visible !important'>
 				<div id='fs-image'>
 					<a style='float: right; left: 18px; top:-18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
 					<img id='chosenImage'/>
 				</div>
-				<div id='fs-audio' style="width: 460px; height:80px">
-					<a style='float: right; left: 18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
+				<div id='fs-audio' style="width: 460px; height: 80px">
+					<a style='float: right; left: 18px; z-index: 2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
 					<audio preload='auto'>
 					</audio>
 				</div>
@@ -414,9 +401,9 @@
 
 	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false" defer="defer"></script>
 	<script type="text/javascript" charset="utf-8" src="../phonegap-1.4.1.js"></script>
-	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.17.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-1.6.4.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.18.custom.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
@@ -426,7 +413,6 @@
 	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
 	<script type="text/javascript" charset="utf-8" src="audio.min.js"></script>
-	<script type="text/javascript" charset="utf-8" src="imageflow.packed.js"></script>
 	<script type="text/javascript" charset="utf-8" src="Math.uuid.js"></script>
 
 	<!-- Plugins -->
@@ -438,5 +424,5 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>

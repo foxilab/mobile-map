@@ -300,8 +300,8 @@ var geolocationError = function(error) {
             navigator.notification.alert("Location permission denied", function(){}, 'Error', 'Okay');
         else if(error == PositionError.POSITION_UNAVAILABLE)
             navigator.notification.alert("Location unavailable", function(){}, 'Error', 'Okay');
-        else
-            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');
+        /*else
+            navigator.notification.alert("Location timeout", function(){}, 'Error', 'Okay');*/
         
         if(navigationLayer.features.length == 0) {
             var lon = -77.020000;
@@ -1289,6 +1289,7 @@ function onDeviceReady()
 	  
 	initFilter();
 
+
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -1308,7 +1309,7 @@ function onDeviceReady()
 		// Do we need to handle this?
 		navigator.notification.alert('Error opening database: ' + e);
 	}
-    
+
 	switch (window.orientation) {
 		case -90:   //Landscape with the screen turned to the left.
 			orientationHeadingOffset = -90;
@@ -1375,7 +1376,7 @@ function onDeviceReady()
 		enableHighAccuracy: true,
 		maximumAge: 3000
 	});
-	
+
 	var compassOptions = {
 		frequency: 3000
 	};
@@ -1423,7 +1424,7 @@ function onDeviceReady()
 														 
 	map.addControl(selectControl);
 	selectControl.activate();
-	
+
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
 			wasFeatureSelected = true;
@@ -1448,9 +1449,9 @@ function onDeviceReady()
 	/*$('#map-page').live('pagebeforeshow', function(){
 		showMapToolDivs();
 	});*/
-	
+
 	//Hack to keep the Queue tab selected while in the status dialog.
-	$('#map-page').on('pageshow', function() {
+	$('#map-page').live('pageshow', function() {
 	//	selectTabBarItem('Map');
 					  var height = $('.queue-dialog').height();
 					  var width = $('.queue-dialog').width();
@@ -1464,17 +1465,17 @@ function onDeviceReady()
 		$('#map-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#map-page').on('pagehide', function() {
+	$('#map-page').live('pagehide', function() {
 		selectControl.unselectAll(); //Removes the LocationPopup
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
 		clickedLonLat = null;		  
 	});
-					  
+
 	/*$('#map-page').live('pagebeforehide', function(){
 		hideMapToolDivs();
 	});*/
 	
-	$('#queue-dialog').on('pageshow', function() {
+	$('#queue-dialog').live('pageshow', function() {
 		// TODO: more efficient to keep a 'dirty' flag telling us when we need to clear/update
 		// rather than doing it every time.
 		//selectTabBarItem('Queue');
@@ -1482,35 +1483,37 @@ function onDeviceReady()
 		forAllLocations(sqlDb, addToQueueDialog);
 	});
 	
-	$('#multiStatus-dialog').on('pageshow', function() {
+	$('#multiStatus-dialog').live('pageshow', function() {
 
 	});
 						  
-	$('#multiStatus-dialog').on('pagehide', function() {
+	$('#multiStatus-dialog').live('pagehide', function() {
 		hideStatusesDialog();
 	});
 	
 	//Clear the queue when the user is done with the page,
 	// fixes double queue on when you get over 20 items
 	// blinks when you leave the page =/
-	$('#queue-dialog').on('pagehide', function() {
+	$('#queue-dialog').live('pagehide', function() {
 		clearQueueDialog();
 	});
 	
-	$('#user-dialog').on('pageshow', function() {
+	$('#user-dialog').live('pageshow', function() {
 	//	selectTabBarItem('User');
 		$('#user-tab-button').addClass('ui-btn-active');
 	});
 	
-	$('#more-dialog').on('pageshow', function() {
-	//	selectTabBarItem('More');
-		$('#more-tab-button').addClass('ui-btn-active');
+	$('#more-dialog').live('pageshow', function(event, ui) {
+		ui.prevPage.find('.ui-btn-active').removeClass('ui-btn-active');
+		$('#more-tab-button').children('a').addClass('ui-btn-active');
+		var length = $('#more-dialog #more-tab-button a').length;
+		console.log(length);
 	});
 	
-	$('#status-dialog').on('pagehide', function() {
+	$('#status-dialog').live('pagehide', function() {
 		updateQueueSize();
 	});
-						      
+
 	//Now that we are done loading everything, read the queue and find the size
 	// then update all the badges accordingly.
 	updateQueueSize();
@@ -1654,12 +1657,6 @@ $(document).ready(function () {
 		hideQueueItemDelete();
 	});
 
-	$('#fs-video').position({
-		my:	'center',
-		at:	'center',
-		of:	$('#image-viewer')
-	});
-	
 	$('#fs-audio').position({
 		my:	'center',
 		at:	'center',
@@ -1668,7 +1665,6 @@ $(document).ready(function () {
 
 	var $queue_item;
 
-	// TODO: Why do some of these only work with live() and not on() ?
 	$('.locImage').live('click', locationPopup_onImageClick);
 	$('.locImageMultiple').live('click', function() {
 		var $gallery = $('#gallery');
@@ -1685,24 +1681,23 @@ $(document).ready(function () {
 		switch (type) {
 			case 'audio':
 				$('#fs-image').hide();
-				$('#fs-video').hide();
 				
 				var $container = $('#fs-audio');
 				var $audio = $container.find('audio');
 				$audio.attr('src', src);
-				$.mobile.changePage($viewer);
 				$container.show();
+				$.mobile.changePage($viewer);
 				break;
 
 			case 'image':
 				$('#fs-audio').hide();
-				$('#fs-video').hide();
 				
 				var $container = $('#fs-image');
 				var $img = $container.find('img');
 				$img.attr('max-height', $(window).height());
 				$img.attr('max-width', $(window).width());
 				$img.attr('src', src);
+				$container.show();
 				$img.load(function() {
 					$(this).position({
 						my:	'center',
@@ -1711,7 +1706,6 @@ $(document).ready(function () {
 					});
 				});
 				$.mobile.changePage($viewer);
-				$container.show();
 				break;
 		}
 	});
@@ -1721,7 +1715,6 @@ $(document).ready(function () {
 
 		if ($(popup.prevPage).attr('id') == 'map-page') {
 			$('#fs-audio').hide();
-			$('#fs-video').hide();
 		
 			var src = popup.prevPage.find('#locationImage').attr('src');
 			var $img = $(this).find('img');
@@ -1739,12 +1732,8 @@ $(document).ready(function () {
 	});
 	$('#image-viewer').live('pagebeforehide', function() {
 		var $audio = $(this).find('audio');
-		var $video = $(this).find('video');
 		if ($audio.is(':visible')) {
 			$audio.get(0).pause();
-		}
-		else if ($video.is(':visible')) {
-			$video.get(0).pause();
 		}
 	});
 
@@ -1764,6 +1753,7 @@ $(document).ready(function () {
 		if(itemsInQueue === 0) {
 			e.preventDefault();
 			e.stopPropagation();
+			$(this).find('a').removeClass('ui-btn-active');
 		}
 	});
 
@@ -1854,13 +1844,13 @@ $(document).ready(function () {
 		updateLocationName(sqlDb, id, $(this).text());
 	});
 
-	$('.status-list-item').on('click', function() {
+	$('.status-list-item').live('click', function() {
 		// Store back to local DB
 		var id = $queue_item.attr('rowid');
 		updateLocationStatus(sqlDb, id, $(this).attr('status-ref'));
 	});
 
-	$('.status-submit-button').on('click', function() {
+	$('.status-submit-button').live('click', function() {
 		submitToServer();
 	});
 	
@@ -1868,7 +1858,7 @@ $(document).ready(function () {
 			toggleFilterPopup();
 	});
 				  
-	$("#northIndicator").on("taphold", function(){
+	$("#northIndicator").live("taphold", function(){
 		if(!screenLocked){
 			screenLocked = true;
 			$("#screenLock .ui-icon").css("background", "url('css/images/lock.png') 50% 50% no-repeat");
