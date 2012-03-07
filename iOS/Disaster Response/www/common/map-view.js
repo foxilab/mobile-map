@@ -931,15 +931,14 @@ function initFilter() {
 }
 
 function filterUpdated() {
+	SEARCHSTATUS.OPERATIONAL.checked = $("input[name=checkbox-StatusA]").is(':checked');
+	SEARCHSTATUS.LIMITED.checked = $("input[name=checkbox-StatusB]").is(':checked');
+	SEARCHSTATUS.INTACT.checked = $("input[name=checkbox-StatusC]").is(':checked');
+	SEARCHSTATUS.NONOPERATIONAL.checked = $("input[name=checkbox-StatusD]").is(':checked');
 	
-	SEARCHSTATUS.OPERATIONAL.checked = $("input[name=checkbox-StatusA]").attr("checked");
-	SEARCHSTATUS.LIMITED.checked = $("input[name=checkbox-StatusB]").attr("checked");
-	SEARCHSTATUS.INTACT.checked = $("input[name=checkbox-StatusC]").attr("checked");
-	SEARCHSTATUS.NONOPERATIONAL.checked = $("input[name=checkbox-StatusD]").attr("checked");
-	
-	SEARCHMEDIA.IMAGE.checked = $("input[name=checkbox-FileTypeA]").attr("checked");
-	SEARCHMEDIA.VIDEO.checked = $("input[name=checkbox-FileTypeB]").attr("checked");
-	SEARCHMEDIA.AUDIO.checked = $("input[name=checkbox-FileTypeC]").attr("checked");
+	SEARCHMEDIA.IMAGE.checked = $("input[name=checkbox-FileTypeA]").is(':checked');
+	SEARCHMEDIA.VIDEO.checked = $("input[name=checkbox-FileTypeB]").is(':checked');
+	SEARCHMEDIA.AUDIO.checked = $("input[name=checkbox-FileTypeC]").is(':checked');
 	
 	//New data, fake a move end
 	onMapMoveEnd();
@@ -990,11 +989,8 @@ function shouldAddToLayer(_location) {
 		shouldI_Media = false;
 		
 	/*
-	console.log("Status Filter : " + filterStatus.value + " - " + filterStatus.name);
 	console.log(" - current    : " + _location.status);
-	console.log("Media Filter  : " + filterMedia.name);
 	console.log(" - current    : " + fileType);
-	console.log("Time Filter   : " + filterTime.name);
 	console.log("--------------");
 	console.log(" - Should You? Status : " + shouldI_Status);
 	console.log(" - Should You? Media  : " + shouldI_Media);
@@ -1815,7 +1811,7 @@ $(document).ready(function () {
 		submitToServer();
 	});
 	
-	$('#filterToggle').on('click', function() {
+	$('#filterToggle').live('click', function() {
 			toggleFilterPopup();
 	});
 				  
