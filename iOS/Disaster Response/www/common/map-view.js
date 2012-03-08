@@ -59,8 +59,8 @@ var isAutoPush = false;
 var centered = false;
 var locatedSuccess = true;
 
-var wasFeatureSelected = false;
-var wasFeatureUnselected = false;
+var wasPopupOpen = false;
+var wasPopupClosed = false;
 
 // ============================
 //    Resolution per level
@@ -570,6 +570,7 @@ function createLocationPopup(_feature) {
 		var $locationDate = $('#locationDate');
 		var $locationLonlat = $('#locationLonlat');
 		
+		var stacked = false;
 		//If there are not multiple status for this location
 		if(featureSize <= 1) {
 			$('#locationImageStack').hide();	//hide ALL the things
@@ -578,6 +579,7 @@ function createLocationPopup(_feature) {
 		else {
 			$('#locationImageStack').show();	//Otherwise show ALL the things
 			$locationImage.attr('class', 'locImageMultiple');
+			stacked = true;
 		}
 		
 		//Check to see the media type
@@ -589,22 +591,40 @@ function createLocationPopup(_feature) {
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
 				if(fileType == "video") {
-					$locationImage.hide();
-					$('#embedded-audio').hide();
+				
+					if(!stacked) {
+						$locationImage.hide();
+						$('#embedded-audio').hide();
 
-					var $div = $('#embedded-video');
-					var $video = $div.find('video');
-					$video.attr('src', locMedia);
-					$div.show();
+						var $div = $('#embedded-video');
+						var $video = $div.find('video');
+						$video.attr('src', locMedia);
+						$div.show();
+					} else {
+						$('#embedded-audio').hide();
+						$('#embedded-video').hide();
+						
+						$locationImage.attr('src', "Popup/Video.png");
+						$locationImage.attr('alt', "Video of " + locName + ".").show();
+					}
 				}
 				else if(fileType == "audio") {
-					$locationImage.hide();
-					$('#embedded-video').hide();
+				
+					if(!stacked) {
+						$locationImage.hide();
+						$('#embedded-video').hide();
 					
-					var $div = $('#embedded-audio');
-					var $audio = $div.find('audio');
-					$audio.attr('src', locMedia);
-					$div.show();
+						var $div = $('#embedded-audio');
+						var $audio = $div.find('audio');
+						$audio.attr('src', locMedia);
+						$div.show();
+					} else {
+						$('#embedded-audio').hide();
+						$('#embedded-video').hide();
+						
+						$locationImage.attr('src', "css/images/speaker.png");
+						$locationImage.attr('alt', "Audio recorded at " + locName + ".").show();
+					}
 				}
 				else if(fileType ==  "image") {
 					$('#embedded-audio').hide();
@@ -621,15 +641,15 @@ function createLocationPopup(_feature) {
 			
 				if(fileType == "video") {
 					$locationImage.attr('src', "Popup/Video_Offline.png");
-					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.");
+					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.").show();
 				}
 				else if(fileType == "audio") {
 					$locationImage.attr('src', "Popup/Audio_Offline.png");
-					$locationImage.attr('alt', "Audio recorded at "+locName+", currently unavailable.");
+					$locationImage.attr('alt', "Audio recorded at "+locName+", currently unavailable.").show();
 				}
 				else if(fileType ==  "image") {
 					$locationImage.attr('src', "Popup/Image_Offline.png");
-					$locationImage.attr('alt', "Image taken of "+locName+", currently unavailable.");
+					$locationImage.attr('alt', "Image taken of "+locName+", currently unavailable.").show();
 				}
 				$locationImage.show();
 			}
@@ -664,7 +684,6 @@ function createLocationPopup(_feature) {
 
 function destroyLocationPopup(_feature) {
 	// Stop playing any audio or video
-	console.log("destroy");
 	var $audio = LocationPopup.find('audio');
 	var $video = LocationPopup.find('video');
 	if ($video.is(':visible')) {
@@ -729,10 +748,43 @@ function showStatusesDialog() {
 }
 
 function closeAllPopups() {
-	if(selectedFeature)
+	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
-	cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
-	$('#filterPopup').hide();
+		wasPopupClosed = true;
+	}
+	if(cameraORvideoPopup.is(':visible')) {
+		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+		wasPopupClosed = true;
+	}
+	if($('#filterPopup').is(':visible')) {
+		$('#filterPopup').hide();
+		wasPopupClosed = true;
+	}
+}
+
+function closeAllPopups_NoToggle() {
+	if(selectedFeature) {
+		selectControl.unselect(selectedFeature); //Removes the LocationPopup
+	}
+	if(cameraORvideoPopup.is(':visible')) {
+		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+	}
+	if($('#filterPopup').is(':visible')) {
+		$('#filterPopup').hide();
+	}
+}
+
+function arePopupsOpen() {
+	var open = false;
+	
+	if(selectedFeature)
+		open = true;
+	if(cameraORvideoPopup.is(':visible'))
+		open = true;
+	if($('#filterPopup').is(':visible'))
+		open = true;
+	
+	return open;
 }
 
 function hideStatusesDialog() {
@@ -963,11 +1015,12 @@ function filterUpdated() {
 function toggleFilterPopup() {
 	filterPopup = $('#filterPopup');
 	
-	if(filterPopup.is(':visible'))
+	if(filterPopup.is(':visible')) {
 		filterPopup.hide();
-	else {
+	} else {
 		closeAllPopups();
 		filterPopup.show();
+		wasPopupOpen = true;
 	}
 }
 
@@ -1115,7 +1168,10 @@ function getVideo(lonlat) {
 function togglePhotoVideoDialog(){
 
 	//Move B, get out the way: JIC the other popup is open
-	closeAllPopups();
+	if(selectedFeature)
+		selectControl.unselect(selectedFeature); //Removes the LocationPopup
+	if($('#filterPopup').is(':visible'))
+		$('#filterPopup').hide();
 
 	cameraORvideoPopup.toggle();
 	
@@ -1125,7 +1181,11 @@ function togglePhotoVideoDialog(){
 			at:	'center',
 			of:	$('#mapContainer')
 		});
+		
+		wasPopupOpen = true;
 	}
+	else
+		wasPopupClosed = true;
 }
 
 function getStatusColor(_status) {
@@ -1368,21 +1428,33 @@ function onDeviceReady()
 		},
 		trigger : function (e) 
 		{
-			if(wasFeatureSelected == false && wasFeatureUnselected == false &&
-					!$('#addressSearchDiv').is(":focus"))
+			//First thing we need to do is check if the search bar was focused before you
+			// clicked the map. If so, unfocus it and close that popup
+			if($('#addressSearchDiv .ui-input-text').is(":focus")) {
+				$('#addressSearchDiv .ui-input-text').blur();
+				wasPopupClosed = true;
+			}
+												
+			//Now check to make sure that no popups are open and one wasn't just closed
+			if(!arePopupsOpen() && !wasPopupClosed)
 			{
-				if(!cameraORvideoPopup.is(":visible"))
-				{
-					var lonlat = map.getLonLatFromViewPortPx(e.xy);
-					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-					togglePhotoVideoDialog();
-				}else
+				//If not, open the PhotoVideo dialog
+				var lonlat = map.getLonLatFromViewPortPx(e.xy);
+				clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+				togglePhotoVideoDialog();
+			}
+			else {
+				//A popup was open, close em all!
+				//	cant call closeAllPopups, feature pop up cant be closed here =(
+				if($('#filterPopup').is(':visible'))
+					toggleFilterPopup();
+				if(cameraORvideoPopup.is(':visible'))
 					togglePhotoVideoDialog();
 			}
 			
-			wasFeatureSelected = false;
-			wasFeatureUnselected = false;
-			$('#addressSearchDiv .ui-input-text').blur();
+			//Reset these
+			wasPopupOpen = false;
+			wasPopupClosed = false;
 		}
 	});
 	
@@ -1397,12 +1469,12 @@ function onDeviceReady()
 
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
-			wasFeatureSelected = true;
+			wasPopupOpen = true;
 			createLocationPopup(_event.feature);
 		},
 		"featureunselected": function(_event) {
 			destroyLocationPopup(_event.feature);
-			wasFeatureUnselected = true;
+			wasPopupClosed = true;
 		}
 	});
 
@@ -1894,10 +1966,12 @@ $(document).ready(function () {
 	});
 				  
 	$('#plus').click(function(){
+		closeAllPopups_NoToggle();
 		map.zoomIn();
 	});
 						
 	$('#minus').click(function(){
+		closeAllPopups_NoToggle();
 		map.zoomOut();
 	});
 	
