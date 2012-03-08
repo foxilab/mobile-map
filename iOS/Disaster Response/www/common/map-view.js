@@ -350,24 +350,59 @@ function mediaUploadFailure(response) {
 }
 
 function mimeTypeFromExt(filepath) {
-	var extensionIndex = filepath.lastIndexOf(".");
-	var extension = filepath.substr(extensionIndex+1).toLowerCase();
+	var extension = getFileExtension(filepath);
 	var mime = null;
-
-	if (extension == "mov")
+		
+	//Video MIME's
+	if(extension == "mov")
 		mime = "video/quicktime";
+	else if(extension == "mp4" || extension == "m4v")
+		mime = "video/mp4";
+	
+	//Audio MIME's
 	else if (extension == "wav")
 		mime = "audio/wav";
+	//	MPEG 1 & 2
+	else if (extension == "mpg" || extension == "mpeg" || extension == "mp1" || extension == "mp2")
+		mime = "audio/mpeg"
+	//	MPEG-3
 	else if (extension == "mp3")
 		mime = "audio/mpeg";
-	else if (extension == "jpg" || extension == "jpeg")
+	else if (extension == "ogg")
+		mime = "audio/ogg";
+	else if (extension == "m4a")
+		mime = "audio/mp4";
+	
+	//Image MIME's
+	else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
+			 extension == "jif" || extension == "jfif" || extension == "jfi")
 		mime = "image/jpeg";
 	else if (extension == "png")
 		mime = "image/png";
-	else
-		mime = "none/none"; //prevent errors
+	else if (extension == "gif")
+		mime = "image/gif";
+		
+	//Media type not supported
+	else {
+		navigator.notification.alert('Media type .' + extension + ' not supported.', function(){}, 'Error', 'Okay');
+		mime = "none/none"
+	}
 		
 	return mime;
+}
+
+function getFileExtension(_filepath) {
+	var extIndex = _filepath.lastIndexOf('.');
+	return _filepath.substr(extIndex+1).toLowerCase();
+}
+
+function getFileMimeType(_filepath) {
+	return mimeTypeFromExt(_filepath);	//Keep existing code working
+}
+
+function getFileType(_filepath) {
+	var mime = getFileMimeType(_filepath);
+	return mime.substr(0, mime.indexOf('/'));
 }
 
 function uploadFileToS3(filepath, photoguid) {
@@ -586,7 +621,7 @@ function createLocationPopup(_feature) {
 		var mime = mimeTypeFromExt(locMedia);
 
 		if (mime) {
-			var fileType = mime.substr(0, mime.indexOf('/'));
+			var fileType = getFileType(locMedia);
 		
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
@@ -710,8 +745,7 @@ function showStatusesDialog() {
 		var $clone = $('#multiStatus-list-item-archetype').clone();	
 		$clone.removeAttr('id');
 	
-		var type = mimeTypeFromExt(popupFeature[i].media);
-		type = type.substr(0, type.indexOf('/'));
+		type = getFileType(popupFeature[i].media);
 	
 		if (type == "image") {
 			$clone.find('img').attr('src', popupFeature[i].media);
@@ -806,8 +840,7 @@ function locationPopup_onImageClick() {
 	//  1) Image 2) Video file, open it for the user.
 	
 	//Check to see the media type
-	var fileType = mimeTypeFromExt(locMedia);
-	fileType = fileType.substr(0, fileType.indexOf('/'));
+	fileType = getFileType(locMedia);
 
 	//Now that we know what type we have, open a new window for the user to view
 	if(fileType == "video") {
@@ -1047,8 +1080,7 @@ function shouldAddToLayer(_location) {
 		shouldI_Status = false;
 	
 	//Now check to see if the media type is correct
-	var fileType = mimeTypeFromExt(_location.media);
-	fileType = fileType.substr(0, fileType.indexOf('/'));
+	fileType = getFileType(_location.media);
 		
 	if(SEARCHMEDIA.IMAGE.name == fileType && SEARCHMEDIA.IMAGE.checked)
 		shouldI_Media = true;
@@ -1570,8 +1602,7 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	
-	var type = mimeTypeFromExt(locRow.media);
-	type = type.substr(0, type.indexOf('/'));
+	type = getFileType(locRow.media);
 
 	if (type == "image") {
 		$clone.find('img').attr('src', locRow.media);
@@ -1645,8 +1676,7 @@ function populateGallery(parent, items, options) {
 		return;
 
 	var makeGalleryItem = function (item, index) {
-		var type = mimeTypeFromExt(item.media);
-		type = type.substr(0, type.indexOf('/'));
+		type = getFileType(item.media);
 
 		// 2 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
 		var itemwidth = $(window).width() / 2 - 8 * 5 - 4;
@@ -1683,8 +1713,7 @@ function populateGallery(parent, items, options) {
 	for (var i = 0; i < items.length; ++i) {
 		parent.append(makeGalleryItem(items[i], i));
 
-		var type = mimeTypeFromExt(items[i].media);
-		type = type.substr(0, type.indexOf('/'));
+		type = getFileType(items[i].media);
 		
 		if (type == 'video') {
 			// Initialize video-js on the video element
