@@ -59,8 +59,8 @@ var isAutoPush = false;
 var centered = false;
 var locatedSuccess = true;
 
-var wasFeatureSelected = false;
-var wasFeatureUnselected = false;
+var wasPopupOpen = false;
+var wasPopupClosed = false;
 
 // ============================
 //    Resolution per level
@@ -183,7 +183,7 @@ var options = {
 
 //Fusion Layer Variables (Building Icons) 
 var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 15,
+		pointRadius : 25,
 		externalGraphic : "${image}",
 		fillOpacity: 1,
 		rotation: 0
@@ -350,24 +350,59 @@ function mediaUploadFailure(response) {
 }
 
 function mimeTypeFromExt(filepath) {
-	var extensionIndex = filepath.lastIndexOf(".");
-	var extension = filepath.substr(extensionIndex+1).toLowerCase();
+	var extension = getFileExtension(filepath);
 	var mime = null;
-
-	if (extension == "mov")
+		
+	//Video MIME's
+	if(extension == "mov")
 		mime = "video/quicktime";
+	else if(extension == "mp4" || extension == "m4v")
+		mime = "video/mp4";
+	
+	//Audio MIME's
 	else if (extension == "wav")
 		mime = "audio/wav";
+	//	MPEG 1 & 2
+	else if (extension == "mpg" || extension == "mpeg" || extension == "mp1" || extension == "mp2")
+		mime = "audio/mpeg"
+	//	MPEG-3
 	else if (extension == "mp3")
 		mime = "audio/mpeg";
-	else if (extension == "jpg" || extension == "jpeg")
+	else if (extension == "ogg")
+		mime = "audio/ogg";
+	else if (extension == "m4a")
+		mime = "audio/mp4";
+	
+	//Image MIME's
+	else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
+			 extension == "jif" || extension == "jfif" || extension == "jfi")
 		mime = "image/jpeg";
 	else if (extension == "png")
 		mime = "image/png";
-	else
-		mime = "none/none"; //prevent errors
+	else if (extension == "gif")
+		mime = "image/gif";
+		
+	//Media type not supported
+	else {
+		navigator.notification.alert('Media type .' + extension + ' not supported.', function(){}, 'Error', 'Okay');
+		mime = "null/null"
+	}
 		
 	return mime;
+}
+
+function getFileExtension(_filepath) {
+	var extIndex = _filepath.lastIndexOf('.');
+	return _filepath.substr(extIndex+1).toLowerCase();
+}
+
+function getFileMimeType(_filepath) {
+	return mimeTypeFromExt(_filepath);	//Keep existing code working
+}
+
+function getFileType(_filepath) {
+	var mime = getFileMimeType(_filepath);
+	return mime.substr(0, mime.indexOf('/'));
 }
 
 function uploadFileToS3(filepath, photoguid) {
@@ -570,6 +605,7 @@ function createLocationPopup(_feature) {
 		var $locationDate = $('#locationDate');
 		var $locationLonlat = $('#locationLonlat');
 		
+		var stacked = false;
 		//If there are not multiple status for this location
 		if(featureSize <= 1) {
 			$('#locationImageStack').hide();	//hide ALL the things
@@ -578,33 +614,52 @@ function createLocationPopup(_feature) {
 		else {
 			$('#locationImageStack').show();	//Otherwise show ALL the things
 			$locationImage.attr('class', 'locImageMultiple');
+			stacked = true;
 		}
 		
 		//Check to see the media type
 		var mime = mimeTypeFromExt(locMedia);
 
 		if (mime) {
-			var fileType = mime.substr(0, mime.indexOf('/'));
+			var fileType = getFileType(locMedia);
 		
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
 				if(fileType == "video") {
-					$locationImage.hide();
-					$('#embedded-audio').hide();
+				
+					if(!stacked) {
+						$locationImage.hide();
+						$('#embedded-audio').hide();
 
-					var $div = $('#embedded-video');
-					var $video = $div.find('video');
-					$video.attr('src', locMedia);
-					$div.show();
+						var $div = $('#embedded-video');
+						var $video = $div.find('video');
+						$video.attr('src', locMedia);
+						$div.show();
+					} else {
+						$('#embedded-audio').hide();
+						$('#embedded-video').hide();
+						
+						$locationImage.attr('src', "Popup/Video.png");
+						$locationImage.attr('alt', "Video of " + locName + ".").show();
+					}
 				}
 				else if(fileType == "audio") {
-					$locationImage.hide();
-					$('#embedded-video').hide();
+				
+					if(!stacked) {
+						$locationImage.hide();
+						$('#embedded-video').hide();
 					
-					var $div = $('#embedded-audio');
-					var $audio = $div.find('audio');
-					$audio.attr('src', locMedia);
-					$div.show();
+						var $div = $('#embedded-audio');
+						var $audio = $div.find('audio');
+						$audio.attr('src', locMedia);
+						$div.show();
+					} else {
+						$('#embedded-audio').hide();
+						$('#embedded-video').hide();
+						
+						$locationImage.attr('src', "css/images/speaker.png");
+						$locationImage.attr('alt', "Audio recorded at " + locName + ".").show();
+					}
 				}
 				else if(fileType ==  "image") {
 					$('#embedded-audio').hide();
@@ -621,15 +676,15 @@ function createLocationPopup(_feature) {
 			
 				if(fileType == "video") {
 					$locationImage.attr('src', "Popup/Video_Offline.png");
-					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.");
+					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.").show();
 				}
 				else if(fileType == "audio") {
 					$locationImage.attr('src', "Popup/Audio_Offline.png");
-					$locationImage.attr('alt', "Audio recorded at "+locName+", currently unavailable.");
+					$locationImage.attr('alt', "Audio recorded at "+locName+", currently unavailable.").show();
 				}
 				else if(fileType ==  "image") {
 					$locationImage.attr('src', "Popup/Image_Offline.png");
-					$locationImage.attr('alt', "Image taken of "+locName+", currently unavailable.");
+					$locationImage.attr('alt', "Image taken of "+locName+", currently unavailable.").show();
 				}
 				$locationImage.show();
 			}
@@ -664,7 +719,6 @@ function createLocationPopup(_feature) {
 
 function destroyLocationPopup(_feature) {
 	// Stop playing any audio or video
-	console.log("destroy");
 	var $audio = LocationPopup.find('audio');
 	var $video = LocationPopup.find('video');
 	if ($video.is(':visible')) {
@@ -691,8 +745,7 @@ function showStatusesDialog() {
 		var $clone = $('#multiStatus-list-item-archetype').clone();	
 		$clone.removeAttr('id');
 	
-		var type = mimeTypeFromExt(popupFeature[i].media);
-		type = type.substr(0, type.indexOf('/'));
+		type = getFileType(popupFeature[i].media);
 	
 		if (type == "image") {
 			$clone.find('img').attr('src', popupFeature[i].media);
@@ -729,10 +782,43 @@ function showStatusesDialog() {
 }
 
 function closeAllPopups() {
-	if(selectedFeature)
+	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
-	cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
-	$('#filterPopup').hide();
+		wasPopupClosed = true;
+	}
+	if(cameraORvideoPopup.is(':visible')) {
+		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+		wasPopupClosed = true;
+	}
+	if($('#filterPopup').is(':visible')) {
+		$('#filterPopup').hide();
+		wasPopupClosed = true;
+	}
+}
+
+function closeAllPopups_NoToggle() {
+	if(selectedFeature) {
+		selectControl.unselect(selectedFeature); //Removes the LocationPopup
+	}
+	if(cameraORvideoPopup.is(':visible')) {
+		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
+	}
+	if($('#filterPopup').is(':visible')) {
+		$('#filterPopup').hide();
+	}
+}
+
+function arePopupsOpen() {
+	var open = false;
+	
+	if(selectedFeature)
+		open = true;
+	if(cameraORvideoPopup.is(':visible'))
+		open = true;
+	if($('#filterPopup').is(':visible'))
+		open = true;
+	
+	return open;
 }
 
 function hideStatusesDialog() {
@@ -754,8 +840,7 @@ function locationPopup_onImageClick() {
 	//  1) Image 2) Video file, open it for the user.
 	
 	//Check to see the media type
-	var fileType = mimeTypeFromExt(locMedia);
-	fileType = fileType.substr(0, fileType.indexOf('/'));
+	fileType = getFileType(locMedia);
 
 	//Now that we know what type we have, open a new window for the user to view
 	if(fileType == "video") {
@@ -914,6 +999,30 @@ var SEARCHSTATUS = {
 	NONOPERATIONAL	: {value: 4, name: "Non-Operational", color: "Red", checked: true}
 };
 
+function getStatusColor(_status) {
+	switch(_status) {
+		case 1:
+			return SEARCHSTATUS.OPERATIONAL.color;
+			break;
+		case 2:
+			return SEARCHSTATUS.LIMITED.color;
+			break;
+		case 3:
+			return SEARCHSTATUS.INTACT.color;
+			break;
+		case 4:
+			return SEARCHSTATUS.NONOPERATIONAL.color;
+			break;
+		default:
+			return SEARCHSTATUS.ALL.color;
+			break;
+	}
+}
+
+function getStatusIcon(_status) {
+	return "Buildings/3D_" + getStatusColor(_status) + ".png";
+}
+
 var SEARCHMEDIA = {
 	ALL 	: {value: 0, name: "All", checked: false},
 	IMAGE 	: {value: 1, name: "image", checked: true},
@@ -963,11 +1072,12 @@ function filterUpdated() {
 function toggleFilterPopup() {
 	filterPopup = $('#filterPopup');
 	
-	if(filterPopup.is(':visible'))
+	if(filterPopup.is(':visible')) {
 		filterPopup.hide();
-	else {
+	} else {
 		closeAllPopups();
 		filterPopup.show();
+		wasPopupOpen = true;
 	}
 }
 
@@ -994,8 +1104,7 @@ function shouldAddToLayer(_location) {
 		shouldI_Status = false;
 	
 	//Now check to see if the media type is correct
-	var fileType = mimeTypeFromExt(_location.media);
-	fileType = fileType.substr(0, fileType.indexOf('/'));
+	fileType = getFileType(_location.media);
 		
 	if(SEARCHMEDIA.IMAGE.name == fileType && SEARCHMEDIA.IMAGE.checked)
 		shouldI_Media = true;
@@ -1115,7 +1224,10 @@ function getVideo(lonlat) {
 function togglePhotoVideoDialog(){
 
 	//Move B, get out the way: JIC the other popup is open
-	closeAllPopups();
+	if(selectedFeature)
+		selectControl.unselect(selectedFeature); //Removes the LocationPopup
+	if($('#filterPopup').is(':visible'))
+		$('#filterPopup').hide();
 
 	cameraORvideoPopup.toggle();
 	
@@ -1125,31 +1237,11 @@ function togglePhotoVideoDialog(){
 			at:	'center',
 			of:	$('#mapContainer')
 		});
+		
+		wasPopupOpen = true;
 	}
-}
-
-function getStatusColor(_status) {
-	switch(_status) {
-		case 1:
-			return "Green";
-			break;
-		case 2:
-			return "Yellow";
-			break;
-		case 3:
-			return "Orange";
-			break;
-		case 4:
-			return "Red";
-			break;
-		default:
-			return "Black";
-			break;
-	}
-}
-
-function getStatusIcon(_status) {
-	return "Buildings/" + getStatusColor(_status) + ".png";
+	else
+		wasPopupClosed = true;
 }
 
 function hideAddressSearchList(){
@@ -1236,15 +1328,7 @@ function onDeviceReady()
 
 	mapContainer = $("#mapContainer");
 	mapDiv = $("#map");
-
-	/*if(windowHeight > windowWidth)
-	{
-		deviceMaxSize = windowHeight;
-		deviceMinSize = windowWidth;
-	}else{
-		deviceMaxSize = windowWidth;
-		deviceMinSize = windowHeight;
-	}*/
+	
 	setMaxAndMinSizes([windowHeight, windowWidth, windowMinHeight]);
 	console.log("maxSize: " + deviceMaxSize);
 	console.log("minSize: "  + deviceMinSize);
@@ -1302,24 +1386,15 @@ function onDeviceReady()
 			console.log('Orientation issue: ' + window.orientation);
 			break;
 	}
-	
-	// Set up NativeControls
-	//nativeControls = window.plugins.nativeControls;
-	//setupTabBar();
-	//selectTabBarItem('Map');
-        //setupNavBar();
-    
-	// do your thing!
-	var windowHeight = $(window).height();
-	var windowWidth = $(window).width();
 
 	if(windowHeight > windowWidth)
-		docHeight = windowHeight;
+		docHeight = deviceMaxSize;
 	else
-		docHeight = windowWidth;
+		docHeight = deviceMinSize;
 	
 	var footerHeight = $("#map-footer").height();
-	var mapHeight = docHeight - footerHeight - 20;
+	console.log("footerHeight: " + footerHeight);
+	var mapHeight = docHeight - footerHeight;
 	
 	mapContainer.height(mapHeight +"px");
 	
@@ -1331,7 +1406,7 @@ function onDeviceReady()
 	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
 	mapDiv.css('top', mapTopPosition);
 	mapDiv.css('left', mapLeftPosition);
-	
+	$.mobile.fixedToolbars.show();
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
 	var mapLayerOSM = new OpenLayers.Layer.OSM();	
@@ -1368,21 +1443,33 @@ function onDeviceReady()
 		},
 		trigger : function (e) 
 		{
-			if(wasFeatureSelected == false && wasFeatureUnselected == false &&
-					!$('#addressSearchDiv').is(":focus"))
+			//First thing we need to do is check if the search bar was focused before you
+			// clicked the map. If so, unfocus it and close that popup
+			if($('#addressSearchDiv .ui-input-text').is(":focus")) {
+				$('#addressSearchDiv .ui-input-text').blur();
+				wasPopupClosed = true;
+			}
+												
+			//Now check to make sure that no popups are open and one wasn't just closed
+			if(!arePopupsOpen() && !wasPopupClosed)
 			{
-				if(!cameraORvideoPopup.is(":visible"))
-				{
-					var lonlat = map.getLonLatFromViewPortPx(e.xy);
-					clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-					togglePhotoVideoDialog();
-				}else
+				//If not, open the PhotoVideo dialog
+				var lonlat = map.getLonLatFromViewPortPx(e.xy);
+				clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+				togglePhotoVideoDialog();
+			}
+			else {
+				//A popup was open, close em all!
+				//	cant call closeAllPopups, feature pop up cant be closed here =(
+				if($('#filterPopup').is(':visible'))
+					toggleFilterPopup();
+				if(cameraORvideoPopup.is(':visible'))
 					togglePhotoVideoDialog();
 			}
 			
-			wasFeatureSelected = false;
-			wasFeatureUnselected = false;
-			$('#addressSearchDiv .ui-input-text').blur();
+			//Reset these
+			wasPopupOpen = false;
+			wasPopupClosed = false;
 		}
 	});
 	
@@ -1397,12 +1484,12 @@ function onDeviceReady()
 
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
-			wasFeatureSelected = true;
+			wasPopupOpen = true;
 			createLocationPopup(_event.feature);
 		},
 		"featureunselected": function(_event) {
 			destroyLocationPopup(_event.feature);
-			wasFeatureUnselected = true;
+			wasPopupClosed = true;
 		}
 	});
 
@@ -1436,7 +1523,7 @@ function onDeviceReady()
 					  var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
 					  mapDiv.css('top', mapTopPosition);
 					  mapDiv.css('left', mapLeftPosition);
-					//  $.mobile.fixedToolbars.show();
+					 $.mobile.fixedToolbars.show();
 	});
 	
 	$('#map-page').live('pagehide', function() {
@@ -1515,8 +1602,7 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	
-	var type = mimeTypeFromExt(locRow.media);
-	type = type.substr(0, type.indexOf('/'));
+	type = getFileType(locRow.media);
 
 	if (type == "image") {
 		$clone.find('img').attr('src', locRow.media);
@@ -1590,8 +1676,7 @@ function populateGallery(parent, items, options) {
 		return;
 
 	var makeGalleryItem = function (item, index) {
-		var type = mimeTypeFromExt(item.media);
-		type = type.substr(0, type.indexOf('/'));
+		type = getFileType(item.media);
 
 		// 2 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
 		var itemwidth = $(window).width() / 2 - 8 * 5 - 4;
@@ -1628,8 +1713,7 @@ function populateGallery(parent, items, options) {
 	for (var i = 0; i < items.length; ++i) {
 		parent.append(makeGalleryItem(items[i], i));
 
-		var type = mimeTypeFromExt(items[i].media);
-		type = type.substr(0, type.indexOf('/'));
+		type = getFileType(items[i].media);
 		
 		if (type == 'video') {
 			// Initialize video-js on the video element
@@ -1863,7 +1947,6 @@ $(document).ready(function () {
 	});
 	
 	$('#addressSearchDiv .ui-listview-filter').submit(function(){
-													  console.log("hi friend");
 		var address = $('#addressSearchDiv .ui-input-text').val();
 		searchForAddress(address);
 	});
@@ -1894,10 +1977,12 @@ $(document).ready(function () {
 	});
 				  
 	$('#plus').click(function(){
+		closeAllPopups_NoToggle();
 		map.zoomIn();
 	});
 						
 	$('#minus').click(function(){
+		closeAllPopups_NoToggle();
 		map.zoomOut();
 	});
 	
