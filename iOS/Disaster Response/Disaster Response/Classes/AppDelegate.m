@@ -28,13 +28,7 @@
 #import "AppDelegate.h"
 #import "MainViewController.h"
 
-#ifdef PHONEGAP_FRAMEWORK
-    #import <PhoneGap/PGPlugin.h>
-    #import <PhoneGap/PGURLProtocol.h>
-#else
-    #import "PGPlugin.h"
-    #import "PGURLProtocol.h"
-#endif
+#import "CDVDeprecated.h"
 
 
 @implementation AppDelegate
@@ -49,7 +43,7 @@
     NSHTTPCookieStorage *cookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage]; 
     [cookieStorage setCookieAcceptPolicy:NSHTTPCookieAcceptPolicyAlways];
     
-    [PGURLProtocol registerPGHttpURLProtocol];
+    [CDVURLProtocol registerPGHttpURLProtocol];
     
     return [super init];
 }

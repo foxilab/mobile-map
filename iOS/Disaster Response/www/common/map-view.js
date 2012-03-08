@@ -183,7 +183,7 @@ var options = {
 
 //Fusion Layer Variables (Building Icons) 
 var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 15,
+		pointRadius : 25,
 		externalGraphic : "${image}",
 		fillOpacity: 1,
 		rotation: 0
@@ -385,7 +385,7 @@ function mimeTypeFromExt(filepath) {
 	//Media type not supported
 	else {
 		navigator.notification.alert('Media type .' + extension + ' not supported.', function(){}, 'Error', 'Okay');
-		mime = "none/none"
+		mime = "null/null"
 	}
 		
 	return mime;
@@ -999,6 +999,30 @@ var SEARCHSTATUS = {
 	NONOPERATIONAL	: {value: 4, name: "Non-Operational", color: "Red", checked: true}
 };
 
+function getStatusColor(_status) {
+	switch(_status) {
+		case 1:
+			return SEARCHSTATUS.OPERATIONAL.color;
+			break;
+		case 2:
+			return SEARCHSTATUS.LIMITED.color;
+			break;
+		case 3:
+			return SEARCHSTATUS.INTACT.color;
+			break;
+		case 4:
+			return SEARCHSTATUS.NONOPERATIONAL.color;
+			break;
+		default:
+			return SEARCHSTATUS.ALL.color;
+			break;
+	}
+}
+
+function getStatusIcon(_status) {
+	return "Buildings/3D_" + getStatusColor(_status) + ".png";
+}
+
 var SEARCHMEDIA = {
 	ALL 	: {value: 0, name: "All", checked: false},
 	IMAGE 	: {value: 1, name: "image", checked: true},
@@ -1218,30 +1242,6 @@ function togglePhotoVideoDialog(){
 	}
 	else
 		wasPopupClosed = true;
-}
-
-function getStatusColor(_status) {
-	switch(_status) {
-		case 1:
-			return "Green";
-			break;
-		case 2:
-			return "Yellow";
-			break;
-		case 3:
-			return "Orange";
-			break;
-		case 4:
-			return "Red";
-			break;
-		default:
-			return "Black";
-			break;
-	}
-}
-
-function getStatusIcon(_status) {
-	return "Buildings/" + getStatusColor(_status) + ".png";
 }
 
 function hideAddressSearchList(){

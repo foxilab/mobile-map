@@ -1,7 +1,8 @@
 package com.lmn.DisasterResponse;
 
+import org.apache.cordova.DroidGap;
+
 import android.os.Bundle;
-import com.phonegap.*;
 
 public class App extends DroidGap {
     /** Called when the activity is first created. */
