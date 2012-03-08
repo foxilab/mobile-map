@@ -24,8 +24,6 @@
 	</array>
 	<key>Plugins</key>
 	<dict>
-		<key>ChildBrowserCommand</key>
-		<string>ChildBrowserCommand</string>
 		<key>Badge</key>
 		<string>Badge</string>
 		<key>com.phonegap.accelerometer</key>
