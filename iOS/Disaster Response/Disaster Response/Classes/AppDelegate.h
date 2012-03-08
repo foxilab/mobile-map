@@ -27,14 +27,10 @@
 
 #import <UIKit/UIKit.h>
 
-#ifdef PHONEGAP_FRAMEWORK
-    #import <PhoneGap/PGViewController.h>
-#else
-    #import "PGViewController.h"
-#endif
+#import "CDVDeprecated.h"
 
 
-@interface AppDelegate : NSObject < UIApplicationDelegate, UIWebViewDelegate, PGCommandDelegate > {
+@interface AppDelegate : NSObject < UIApplicationDelegate, UIWebViewDelegate, CDVCommandDelegate > {
 
 	NSString* invokeString;
 }
@@ -46,7 +42,7 @@
 
 @property (nonatomic, copy)  NSString* invokeString;
 @property (nonatomic, retain) IBOutlet UIWindow* window;
-@property (nonatomic, retain) IBOutlet PGViewController* viewController;
+@property (nonatomic, retain) IBOutlet CDVViewController* viewController;
 
 @end
 

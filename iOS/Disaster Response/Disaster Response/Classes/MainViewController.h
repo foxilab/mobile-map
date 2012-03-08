@@ -6,12 +6,8 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifdef PHONEGAP_FRAMEWORK
-    #import <PhoneGap/PGViewController.h>
-#else
-    #import "PGViewController.h"
-#endif
+#import "CDVDeprecated.h"
 
-@interface MainViewController : PGViewController
+@interface MainViewController : CDVViewController
 
 @end
