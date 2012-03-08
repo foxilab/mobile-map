@@ -8,6 +8,7 @@ public class App extends DroidGap {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        super.setIntegerProperty("loadUrlTimeoutValue", 60000); 
         super.loadUrl("file:///android_asset/www/common/index.html");
     }
 }
