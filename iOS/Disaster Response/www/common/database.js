@@ -1,4 +1,5 @@
 function errorSql(e) {
+	alert("errorsql")
 	navigator.notification.alert('Error processing SQL: ' + e.code + ' in function ' + arguments.callee.caller.toString());
 }
 
@@ -247,6 +248,8 @@ function insertToLocationQueueTable(db, lon, lat, name, media, status) {
 		
 		tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
 			key = results.insertId;
+			updateQueueSize();
+			showQueueTab();
 		});
 	};
 

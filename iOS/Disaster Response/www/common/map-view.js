@@ -356,6 +356,8 @@ function mimeTypeFromExt(filepath) {
 
 	if (extension == "mov")
 		mime = "video/quicktime";
+	else if(extension == "mp4")
+		mime = "video/mp4";
 	else if (extension == "wav")
 		mime = "audio/wav";
 	else if (extension == "mp3")
@@ -693,7 +695,7 @@ function showStatusesDialog() {
 	
 		var type = mimeTypeFromExt(popupFeature[i].media);
 		type = type.substr(0, type.indexOf('/'));
-	
+		console.log("type: " + type);
 		if (type == "image") {
 			$clone.find('img').attr('src', popupFeature[i].media);
 		}
@@ -1106,8 +1108,8 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//updateQueueSize();
+			//showQueueTab();
 		});
 	}
 }
@@ -1500,7 +1502,7 @@ function addToQueueDialog(locRow) {
 	
 	var type = mimeTypeFromExt(locRow.media);
 	type = type.substr(0, type.indexOf('/'));
-
+	console.log("type: " + type);
 	if (type == "image") {
 		$clone.find('img').attr('src', locRow.media);
 	}
@@ -1530,6 +1532,7 @@ function addToQueueDialog(locRow) {
 	$clone.attr('rowid', locRow.id);
 	$('#queue-list').append($clone);
 	$clone.trigger('create').show();
+	console.log("add to queue Dialog");
 }
 
 function addToAddressList(){
@@ -1618,7 +1621,7 @@ function populateGallery(parent, items, options) {
 			// Initialize video-js on the video element
 			// TODO: bug here - fullscreen mode only works the first time with VideoJS.
 			// Commented out for now, but that means no Flash fallback if no HTML5 video support.
-			//_V_('video-thumb-' + i);
+			_V_('video-thumb-' + i);
 		}
 	}
 	parent.trigger('create');
