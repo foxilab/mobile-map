@@ -5,6 +5,8 @@
 //  Copyright 2010 The Angry Robot Zombie Factory.
 //  MIT licensed
 //
+//  Converted to Cordova by Joseph Stuhr.
+//
 
 #import <Foundation/Foundation.h>
 

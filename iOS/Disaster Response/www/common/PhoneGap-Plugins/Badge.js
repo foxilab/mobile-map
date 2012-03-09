@@ -3,6 +3,8 @@
  *  by Simon Madine of The Angry Robot Zombie Factory
  *  2010-05-04
  *  MIT licensed
+ *
+ *  Converted to Cordova by Joseph Stuhr.
 */
 
 /**
@@ -26,8 +28,6 @@ Badge.prototype.set = function(options) {
 Badge.prototype.clear = function() {
     Cordova.exec("Badge.setBadge", 0);
 };
-
-Badge.install = 
 
 Cordova.addConstructor(function() {
 	if(!window.plugins) {
