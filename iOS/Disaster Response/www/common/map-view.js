@@ -1222,8 +1222,8 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//updateQueueSize();
+			//showQueueTab();
 		});
 	}
 }
@@ -1640,6 +1640,7 @@ function addToQueueDialog(locRow) {
 	$clone.attr('rowid', locRow.id);
 	$('#queue-list').append($clone);
 	$clone.trigger('create').show();
+	console.log("add to queue Dialog");
 }
 
 function addToAddressList(){
