@@ -2260,7 +2260,7 @@ function hideTabItemBadge(_tabName) {
     if(_amount >= 1) {
         //console.log('App: Badge added with the value ' + _amount + '.');
 		//#BADGEPLUGIN
-        //window.plugins.badge.set(_amount);
+        window.plugins.badge.set(_amount);
     }
     else
         hideAppBadge();
@@ -2269,7 +2269,7 @@ function hideTabItemBadge(_tabName) {
 function hideAppBadge() {
     //console.log('App: Badge removed from App.');
 	//#BADGEPLUGIN
-    //window.plugins.badge.clear();
+    window.plugins.badge.clear();
 }/*
 
 function showTabBar() {

@@ -8,7 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-
 #ifdef CORDOVA_FRAMEWORK
     #import <Cordova/CDVPlugin.h>
 #else
@@ -17,5 +16,7 @@
 
 @interface Badge : CDVPlugin {
 }
+
 - (void)setBadge:(NSMutableArray*)badgeNumber withDict:(NSMutableDictionary*)options;
+
 @end

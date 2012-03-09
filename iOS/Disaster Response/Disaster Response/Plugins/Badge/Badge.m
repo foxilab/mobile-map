@@ -8,10 +8,10 @@
 
 #import "Badge.h"
 
-
 @implementation Badge
-- (void)setBadge:(NSMutableArray*)badgeNumber withDict:(NSMutableDictionary*)options
-{
+
+- (void)setBadge:(NSMutableArray*)badgeNumber withDict:(NSMutableDictionary*)options {
 	[[UIApplication sharedApplication] setApplicationIconBadgeNumber:[[ badgeNumber objectAtIndex:0] intValue]];
 }
+
 @end
