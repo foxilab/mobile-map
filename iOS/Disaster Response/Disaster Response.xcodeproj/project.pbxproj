@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C5DB81E150A5E1D004D9F1D /* Default-Portrait.png in Resources */ = {isa = PBXBuildFile; fileRef = 0C5DB81D150A5E1D004D9F1D /* Default-Portrait.png */; };
+		0C5DB820150A5FE6004D9F1D /* Default-Landscape.png in Resources */ = {isa = PBXBuildFile; fileRef = 0C5DB81F150A5FE6004D9F1D /* Default-Landscape.png */; };
 		D37250E114EC1BB400AE2504 /* Badge.m in Sources */ = {isa = PBXBuildFile; fileRef = D37250D314EC1BB400AE2504 /* Badge.m */; };
 		D37D1C2714EC152300F871E0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37D1C2614EC152300F871E0 /* Foundation.framework */; };
 		D37D1C2914EC152300F871E0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D37D1C2814EC152300F871E0 /* UIKit.framework */; };
@@ -41,6 +43,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0C5DB81D150A5E1D004D9F1D /* Default-Portrait.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Portrait.png"; path = "Resources/splash/Default-Portrait.png"; sourceTree = "<group>"; };
+		0C5DB81F150A5FE6004D9F1D /* Default-Landscape.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Landscape.png"; path = "Resources/splash/Default-Landscape.png"; sourceTree = "<group>"; };
 		D37250D214EC1BB400AE2504 /* Badge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Badge.h; sourceTree = "<group>"; };
 		D37250D314EC1BB400AE2504 /* Badge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Badge.m; sourceTree = "<group>"; };
 		D37D1C2214EC152300F871E0 /* Disaster Response.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disaster Response.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -229,6 +233,8 @@
 		D37D1C5B14EC152300F871E0 /* splash */ = {
 			isa = PBXGroup;
 			children = (
+				0C5DB81D150A5E1D004D9F1D /* Default-Portrait.png */,
+				0C5DB81F150A5FE6004D9F1D /* Default-Landscape.png */,
 				D37D1C5C14EC152300F871E0 /* Default.png */,
 				D37D1C5E14EC152300F871E0 /* Default@2x.png */,
 			);
@@ -331,6 +337,8 @@
 				D37D1C6314EC152300F871E0 /* Cordova.plist in Resources */,
 				D37D1C6C14EC152300F871E0 /* MainViewController.xib in Resources */,
 				D37D1C7514EC163B00F871E0 /* www in Resources */,
+				0C5DB81E150A5E1D004D9F1D /* Default-Portrait.png in Resources */,
+				0C5DB820150A5FE6004D9F1D /* Default-Landscape.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
