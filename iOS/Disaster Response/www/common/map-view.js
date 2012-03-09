@@ -94,7 +94,7 @@ var iconMaxResolution = 4.777314266967774;
 //var photoguid;
 var cameraORvideoPopup;
 var LocationPopup;
-var clickedLonLat;
+var clickedLonLat = null;
 
 var positionUnlockedImage = "css/images/PositionUnlocked.png";
 var positionLockedImage = "css/images/PositionLocked.png";
@@ -1036,6 +1036,8 @@ var SEARCHTIME = {
 	WEEK 	: {value: 2, name: "Week", checked: true}
 };
 
+var queueVisable = true;
+
 function initFilter() {
 	//#LOAD - If we offer to save data, load it here {
 	//	Reloading!
@@ -1051,6 +1053,8 @@ function initFilter() {
 	$("input[name=checkbox-FileTypeB]").attr("checked", SEARCHMEDIA.VIDEO.checked);
 	$("input[name=checkbox-FileTypeC]").attr("checked", SEARCHMEDIA.AUDIO.checked);
 	
+	$("input[name=checkbox-QueueA]").attr("checked", queueVisable);
+	
 	//refreash the checkboxes (jic)
 	$("input[type='checkbox']").checkboxradio("refresh");
 }
@@ -1064,6 +1068,9 @@ function filterUpdated() {
 	SEARCHMEDIA.IMAGE.checked = $("input[name=checkbox-FileTypeA]").is(':checked');
 	SEARCHMEDIA.VIDEO.checked = $("input[name=checkbox-FileTypeB]").is(':checked');
 	SEARCHMEDIA.AUDIO.checked = $("input[name=checkbox-FileTypeC]").is(':checked');
+
+	queueVisable = $("input[name=checkbox-QueueA]").is(':checked');
+	setStatusLayerVisibility(queueVisable);
 	
 	//New data, fake a move end
 	onMapMoveEnd();
@@ -1515,7 +1522,7 @@ function onDeviceReady()
 	$('#map-page').live('pageshow', function() {
 	//	selectTabBarItem('Map');
 						
-						var height = $('.queue-dialog').height();
+					  var height = $('.queue-dialog').height();
 					  var width = $('.queue-dialog').width();
 					  $(this).height(height);
 					  $(this).width(width);
@@ -1526,9 +1533,9 @@ function onDeviceReady()
 					 $.mobile.fixedToolbars.show();
 	});
 	
-	$('#map-page').live('pagehide', function() {
-		closeAllPopups();
-		clickedLonLat = null;		  
+	$('#map-page').live('pagebeforehide', function() {
+		closeAllPopups_NoToggle();		
+		clickedLonLat = null;  
 	});
 
 	/*$('#map-page').live('pagebeforehide', function(){
@@ -2032,6 +2039,8 @@ $(document).ready(function () {
 	$('input[name="checkbox-FileTypeA"]').live('change',filterUpdated);
 	$('input[name="checkbox-FileTypeB"]').live('change',filterUpdated);
 	$('input[name="checkbox-FileTypeC"]').live('change',filterUpdated);
+	
+	$('input[name="checkbox-QueueA"]').live('change',filterUpdated);
 });
 
 function submitToServer() {
@@ -2154,6 +2163,26 @@ function clearStatusPoints() {
 	statusLayer.redraw();
 }
 
+function showStatusLayer() {
+	if(!statusLayer.getVisibility()) {
+		statusLayer.setVisibility(true);
+	}
+}
+
+function hideStatusLayer() {
+	if(statusLayer.getVisibility()) {
+		statusLayer.setVisibility(false);;
+	}
+}
+
+function setStatusLayerVisibility(_visible) {
+	if(_visible) {
+		showStatusLayer();
+	} else {
+		hideStatusLayer();
+	}
+}
+
 /*
         ==============================================
                   NativeControls Functions
@@ -2229,7 +2258,8 @@ function hideTabItemBadge(_tabName) {
 */function updateAppBadge(_amount) {
     if(_amount >= 1) {
         //console.log('App: Badge added with the value ' + _amount + '.');
-        window.plugins.badge.set(_amount);
+		//#BADGEPLUGIN
+        //window.plugins.badge.set(_amount);
     }
     else
         hideAppBadge();
@@ -2237,7 +2267,8 @@ function hideTabItemBadge(_tabName) {
 
 function hideAppBadge() {
     //console.log('App: Badge removed from App.');
-    window.plugins.badge.clear();
+	//#BADGEPLUGIN
+    //window.plugins.badge.clear();
 }/*
 
 function showTabBar() {
