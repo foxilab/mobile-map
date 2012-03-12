@@ -62,6 +62,9 @@ var locatedSuccess = true;
 var wasPopupOpen = false;
 var wasPopupClosed = false;
 
+var screenWidth;
+var screenHeight;
+
 // ============================
 //    Resolution per level
 // ============================
@@ -480,6 +483,10 @@ function onMapMoveEnd(_event) {
 			
 	//With the bounds and SQL, query the Fusion Table for the features.
 	googleSQL(sql, 'GET', fusionSQLSuccess);
+}
+
+function onMapMoveStart(_event) {
+	
 }
 
 //----------------------------------------------------
@@ -1293,12 +1300,12 @@ function showMapToolDivs(){
 }*/
 
 var selectControl;
-var docHeight = 0;
-var deviceMaxSize = 0;
-var deviceMinSize = 0;
+//var deviceMaxSize = 0;
+//var deviceMinSize = 0;
 var mapContainer;
 var mapDiv;
 
+/*
 function setMaxAndMinSizes(sizes){
 	deviceMaxSize = sizes[0];
 	deviceMinSize = sizes[0];
@@ -1310,7 +1317,7 @@ function setMaxAndMinSizes(sizes){
 		else if(sizes[i] < deviceMinSize)
 			deviceMinSize = sizes[i];
 	}
-}
+}*/
 
 /*
 		 ==============================================
@@ -1320,25 +1327,7 @@ function setMaxAndMinSizes(sizes){
 function onDeviceReady()
 {
 	console.log("ready");
-
-	audiojs.events.ready(function() {
-		var as = audiojs.createAll();
-	});
-
-	//photoguid = device.uuid;
-	cameraORvideoPopup = $("#cameraORvideoPopup");
-	LocationPopup = $("#locationPopup");
-	var windowHeight = $(window).height();
-	var windowWidth = $(window).width();
-	var windowMinHeight = $('#map-page').css('min-height');
-	windowMinHeight = windowMinHeight.substr(0, windowMinHeight.length-2);
-
-	mapContainer = $("#mapContainer");
-	mapDiv = $("#map");
 	
-	setMaxAndMinSizes([windowHeight, windowWidth, windowMinHeight]);
-	console.log("maxSize: " + deviceMaxSize);
-	console.log("minSize: "  + deviceMinSize);
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
@@ -1347,10 +1336,45 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	  window.addEventListener("orientationchange", onOrientationChange,  true);
+	  window.addEventListener("orientationchange", onOrientationChange, false);
 	  
-	initFilter();
+	//This gives us line numbers for our errors! Yeah!
+	//  except it doesn't work all the time =/
+	window.onerror = function myErrorHandler(msg,url,line) {
+		console.log("window.onerror: message: " + msg + ", line: " + line + ", url: " + url);
+		return true;
+    };
+	
+	//Lets get the devices current screen size
+	// this will always return the correct screenWidth and screenHeight
+	// other methods return false values.
+	//   - screenWidth  = window.innerWidth;
+	//   - screenHeight = window.innerHeight;
+	updateScreenSize();
+	
+	//Update the oridentation
+	updateOrientationHeading();
+	
+	//Initalize variables
+	cameraORvideoPopup = $("#cameraORvideoPopup");
+	LocationPopup = $("#locationPopup");
+	mapContainer = $("#mapContainer");
+	mapDiv = $("#map");
 
+	audiojs.events.ready(function() {
+		var as = audiojs.createAll();
+	});
+
+	//photoguid = device.uuid;
+	
+	//var windowHeight = screenHeight;
+	//var windowWidth = screenWidth;
+	//var windowMinHeight = $('#map-page').css('min-height');
+	//windowMinHeight = windowMinHeight.substr(0, windowMinHeight.length-2);
+	
+	//setMaxAndMinSizes([windowHeight, windowWidth, windowMinHeight]);
+	//console.log("maxSize: " + deviceMaxSize);
+	//console.log("minSize: "  + deviceMinSize);
 
 	// The Local Database (global for a reason)
 	try {
@@ -1371,49 +1395,34 @@ function onDeviceReady()
 		// Do we need to handle this?
 		navigator.notification.alert('Error opening database: ' + e);
 	}
+	
+	initFilter();
 
-	switch (window.orientation) {
-		case -90:   //Landscape with the screen turned to the left.
-			orientationHeadingOffset = -90;
-			break;
-			
-		case 0:     //Default view
-			orientationHeadingOffset = 0;
-			break;
-			
-		case 90:    //Landscape with the screen turned to the right.
-			orientationHeadingOffset = 90;
-			break;
-			
-		case 180:   //Upside down.
-			orientationHeadingOffset = 180;
-			break;
-			
-		default: 
-			console.log('Orientation issue: ' + window.orientation);
-			break;
-	}
 
+	/* deviceMinSize is always 10, this is not what we want.
 	if(windowHeight > windowWidth)
 		docHeight = deviceMaxSize;
 	else
 		docHeight = deviceMinSize;
+	*/
 	
 	var footerHeight = $("#map-footer").height();
 	console.log("footerHeight: " + footerHeight);
-	var mapHeight = docHeight - footerHeight;
+	var mapHeight = screenHeight - footerHeight;
 	
 	mapContainer.height(mapHeight +"px");
 	
-	mapHeight = mapHeight*1.7;
+	//mapHeight = mapHeight*1.7;
 	mapDiv.height(mapHeight+"px");
-	mapDiv.width(mapHeight+"px");
+	mapDiv.width(screenWidth+"px");
 
 	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
 	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
 	mapDiv.css('top', mapTopPosition);
 	mapDiv.css('left', mapLeftPosition);
 	$.mobile.fixedToolbars.show();
+	
+	//With the mapDiv setup. Create the map!
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
 	var mapLayerOSM = new OpenLayers.Layer.OSM();	
@@ -1422,6 +1431,7 @@ function onDeviceReady()
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
 	
+	map.events.register("movestart", map, onMapMoveStart);
 	map.events.register("moveend", map, onMapMoveEnd);
 	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
 		
@@ -1487,7 +1497,7 @@ function onDeviceReady()
 	);
 														 
 	map.addControl(selectControl);
-	selectControl.activate();
+		selectControl.activate();
 
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
@@ -2462,76 +2472,143 @@ function onAppOffline() {
     #QUIRK: Triggered twice on 1 rotation.
  */
 var orDirtyToggle = false;
-function onOrientationChange(_error) {  
+function onOrientationChange(_event) {  
 	//Prevent the function from running multiple times.
-	/*orDirtyToggle = !orDirtyToggle;
+	orDirtyToggle = !orDirtyToggle;
 						  
-	if (orDirtyToggle) {*/
-		switch (window.orientation) {
-			case -90:   //Landscape with the screen turned to the left.
-				onOrientationLandscape(window.orientation);
-						   orientationHeadingOffset = -90;
-				break;
-
-			case 0:     //Default view
-				onOrientationPortrait(window.orientation);
-						   orientationHeadingOffset = 0;
-				break;
-
-			case 90:    //Landscape with the screen turned to the right.
-				onOrientationLandscape(window.orientation);
-						   orientationHeadingOffset = 90;
-				break;
-
-			case 180:   //Upside down.
-				onOrientationPortrait(window.orientation);
-						   orientationHeadingOffset = 180;
-				break;
-
-			default: 
-				console.log('Orientation issue: ' + window.orientation);
-				break;
+	if (orDirtyToggle) {
+		//Update the heading!
+		updateOrientationHeading();
+		
+		//Update the screen size
+		updateScreenSize();
+	
+		//Check to see if the device is in Landscape or Portrait
+		if(isOrientationLandscape()) {
+			onOrientationLandscape();
+			isLandscape = true;
 		}
-	//}
+		else if(isOrientationPortrait()) {
+			onOrientationPortrait();
+			isLandscape = false;
+		}
+		else {
+			console.log('Orientation issue: ' + getOrientation());
+		}
+	}
 }
 
-function resizeMapContainer(orientation){
-	if((orientation == -90) || (orientation == 90)) //landscape
-	{
-	   $('.mypage').height(deviceMinSize);
-	   $('.mypage').width(deviceMaxSize);
+function updateScreenSize() {
+	screenWidth  = window.innerWidth;
+	screenHeight = window.innerHeight;
+}
+
+function getOrientation() {
+	return window.orientation;
+}
+
+function getOrientationHeadingOffset() {
+	return orientationHeadingOffset;
+}
+
+function updateOrientationHeading() {
+	switch (getOrientation()) {
+		case -90:   //Landscape with the screen turned to the left.
+			orientationHeadingOffset = -90;
+			break;
 						   
-	}else{
-	   $('.mypage').height(deviceMaxSize);
-	   $('.mypage').width(deviceMinSize);
+		case 0:     //Default view
+			 orientationHeadingOffset = 0;
+			break;
+						   
+		case 90:    //Landscape with the screen turned to the right.
+			orientationHeadingOffset = 90;
+			break;
+						   
+		case 180:   //Upside down.
+			orientationHeadingOffset = 180;
+			break;
+						   
+		default: 
+			console.log('Orientation issue: ' + window.orientation);
+			break;
 	}
-						   
-   var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-   var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-   mapDiv.css('top', mapTopPosition);
-   mapDiv.css('left', mapLeftPosition);
+}
+
+/*
+	Returns true if the application is in Landscape mode.
+*/
+function isOrientationLandscape() {
+	if(orientationHeadingOffset == 90 || orientationHeadingOffset == -90)
+		return true;
+	else
+		return false;
+}
+
+/*
+	Returns true if the application is in Portrait mode.
+*/
+function isOrientationPortrait() {
+	if(orientationHeadingOffset == 0 || orientationHeadingOffset == 180)
+		return true;
+	else
+		return false;
+}
+
+function resizeMapContainer(){
+	//Close all popups if any are open
+	closeAllPopups_NoToggle();
+
+	//Update the screen size (it is different now).
+	updateScreenSize();
+	
+	//Update the page size.
+	$('.mypage').height(screenHeight);
+	$('.mypage').width(screenWidth);
+	
+	//Get the size of the footer and adjust the mapHeight
+	var footerHeight = $("#map-footer").height();
+	var mapHeight = screenHeight - footerHeight;
+		
+	//Update the mapContainer size
+	mapContainer.height(mapHeight +"px");
+	mapContainer.width(screenWidth +"px");
+		
+	//Update the map size
+	mapDiv.height(mapHeight+"px");
+	mapDiv.width(screenWidth+"px");
+		
+	//Place the map where it should be.
+	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
+	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
+	mapDiv.css('top', mapTopPosition);
+	mapDiv.css('left', mapLeftPosition);
    
-   $.mobile.fixedToolbars.show();
+   	//Update the map and force a refresh
+   	map.updateSize();
+	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
+	map.zoomOut(); map.zoomIn();	// or out
+	
+	//Show the toolbar
+	$.mobile.fixedToolbars.show();
 }
 
 /*
     This function is called whenever the device is switched over to landscape mode. Here we can do things like resize our viewport.
  */
-function onOrientationLandscape(_orientation) {
-    console.log('Listener: App has changed orientation to Landscape ' + _orientation + '.');
-    isLandscape = true;
+function onOrientationLandscape() {
+    console.log('Listener: App has changed orientation to Landscape ' + getOrientation() + '.');
 						   
-	resizeMapContainer(_orientation);
+	resizeMapContainer();
 }
 
 /*
  This function is called whenever the device is switched over to portrait mode. Here we can do things like resize our viewport.
  */
-function onOrientationPortrait(_orientation) {
-    console.log('Listener: App has changed orientation to Portrait ' + _orientation + '.');
-    isLandscape = false;
+function onOrientationPortrait() {
+    console.log('Listener: App has changed orientation to Portrait ' + getOrientation() + '.');
 						   
-	resizeMapContainer(_orientation);
+	resizeMapContainer();
 }
 
 /*
