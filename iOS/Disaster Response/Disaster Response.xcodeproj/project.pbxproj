@@ -125,8 +125,8 @@
 				0CE88CCF150AA07100624CA0 /* CDVDeprecated.m */,
 			);
 			name = deprecated;
-			path = "/Users/jpdeathblade/Documents/SourceTree/Disaster Response/iOS/Disaster Response/../../../../CordovaLib/Classes/deprecated";
-			sourceTree = "<absolute>";
+			path = Classes/deprecated;
+			sourceTree = CORDOVALIB;
 		};
 		D37250D114EC1BB400AE2504 /* Badge */ = {
 			isa = PBXGroup;
