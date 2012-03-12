@@ -33,7 +33,7 @@ import com.google.api.client.util.Strings;
 
 // The browser requests per default the HTML MIME type.
 
-//Sets the path to base URL + /hello
+//Sets the path to base URL + /fusion
 @Path("/fusion")
 public class Fusion {
 
