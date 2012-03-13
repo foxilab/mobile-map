@@ -1721,7 +1721,7 @@ function populateGallery(parent, items, options) {
 		}
 
 		// Metadata overlay (this probably has a bug when name is so long that it takes up more than one line)
-		div += '<div style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;bottom:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time class="timeago" style="" datetime="' + $.format.date(item.date, "yyyy-MM-dd hh:mm:ss a") + '"></time></p>' + '</div></div>';
+		div += '<div style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time class="timeago" style="" datetime="' + $.format.date(item.date, "yyyy-MM-dd hh:mm:ss a") + '"></time></p>' + '</div></div>';
 
 		div += '</div>';
 		var $nrv = $(div);
