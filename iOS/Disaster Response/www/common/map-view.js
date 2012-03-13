@@ -1337,7 +1337,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	  window.addEventListener("orientationchange", onOrientationChange, false);
+	window.addEventListener("orientationchange", onOrientationChange, false);
 	  
 	//This gives us line numbers for our errors! Yeah!
 	//  except it doesn't work all the time =/
@@ -1396,9 +1396,8 @@ function onDeviceReady()
 		// Do we need to handle this?
 		navigator.notification.alert('Error opening database: ' + e);
 	}
-	
-	initFilter();
 
+	initFilter();
 
 	/* deviceMinSize is always 10, this is not what we want.
 	if(windowHeight > windowWidth)
@@ -1406,36 +1405,35 @@ function onDeviceReady()
 	else
 		docHeight = deviceMinSize;
 	*/
-	
+
 	var footerHeight = $("#map-footer").height();
 	console.log("footerHeight: " + footerHeight);
 	var mapHeight = screenHeight - footerHeight;
-	
+
 	mapContainer.height(mapHeight +"px");
-	
-	//mapHeight = mapHeight*1.7;
+
 	mapDiv.height(mapHeight+"px");
 	mapDiv.width(screenWidth+"px");
 
-	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-	mapDiv.css('top', mapTopPosition);
-	mapDiv.css('left', mapLeftPosition);
 	$.mobile.fixedToolbars.show();
-	
+
 	//With the mapDiv setup. Create the map!
 	map = new OpenLayers.Map(options);
-	map.events.mapSideLength = mapHeight;
 	mapLayerOSM = new OpenLayers.Layer.OSM();	
-	
+
+	map.updateSize();
+	console.log('initial size');
+	console.log(map.getSize().w);
+	console.log(map.getSize().h);
+
 	//Set up the HeatMap
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
 	initHeatmap();
-	
+
 	map.events.register("movestart", map, onMapMoveStart);
 	map.events.register("moveend", map, onMapMoveEnd);
 	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
-		
+
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
 		enableHighAccuracy: true,
 		maximumAge: 3000
@@ -1595,7 +1593,7 @@ function onDeviceReady()
 	$('#multiStatus-dialog').live('pagehide', function() {
 		hideStatusesDialog();
 	});
-	
+
 	//Clear the queue when the user is done with the page,
 	// fixes double queue on when you get over 20 items
 	// blinks when you leave the page =/
@@ -2562,33 +2560,33 @@ function resizeMapContainer(){
 
 	//Update the screen size (it is different now).
 	updateScreenSize();
-	
+
 	//Update the page size.
 	$('.mypage').height(screenHeight);
 	$('.mypage').width(screenWidth);
-	
+
 	//Get the size of the footer and adjust the mapHeight
 	var footerHeight = $("#map-footer").height();
 	var mapHeight = screenHeight - footerHeight;
-		
+
+	console.log('resizing map container');
+
 	//Update the mapContainer size
 	mapContainer.height(mapHeight +"px");
 	mapContainer.width(screenWidth +"px");
-		
+
 	//Update the map size
 	mapDiv.height(mapHeight+"px");
 	mapDiv.width(screenWidth+"px");
 		
-	//Place the map where it should be.
-	var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-	var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-	mapDiv.css('top', mapTopPosition);
-	mapDiv.css('left', mapLeftPosition);
-   
-   	//Update the map and force a refresh
-   	map.updateSize();
-	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
-	map.zoomOut(); map.zoomIn();	// or out
+  	//Update the map and force a refresh
+ 	map.updateSize();
+	
+	console.log(map.getSize().w);
+	console.log(map.getSize().h);
+	
+//	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
+//	map.zoomOut(); map.zoomIn();	// or out
 	
 	//Show the toolbar
 	$.mobile.fixedToolbars.show();
