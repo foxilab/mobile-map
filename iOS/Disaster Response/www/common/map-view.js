@@ -1304,6 +1304,7 @@ var selectControl;
 //var deviceMinSize = 0;
 var mapContainer;
 var mapDiv;
+var mapLayerOSM;
 
 /*
 function setMaxAndMinSizes(sizes){
@@ -1425,7 +1426,7 @@ function onDeviceReady()
 	//With the mapDiv setup. Create the map!
 	map = new OpenLayers.Map(options);
 	map.events.mapSideLength = mapHeight;
-	var mapLayerOSM = new OpenLayers.Layer.OSM();	
+	mapLayerOSM = new OpenLayers.Layer.OSM();	
 	
 	//Set up the HeatMap
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
@@ -2099,7 +2100,8 @@ function submitToServer() {
 					updateQueueSize();
 					
 					//Hack to refesh the map icons, problem OpenLayers?
-					map.zoomOut(); map.zoomIn();
+					//map.zoomOut(); map.zoomIn();
+					fusionLayer.refresh();
 				}
 			});
 		});
@@ -2586,8 +2588,9 @@ function resizeMapContainer(){
    
    	//Update the map and force a refresh
    	map.updateSize();
-	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
-	map.zoomOut(); map.zoomIn();	// or out
+	mapLayerOSM.refresh();
+	//map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
+	//map.zoomOut(); map.zoomIn();	// or out
 	
 	//Show the toolbar
 	$.mobile.fixedToolbars.show();
