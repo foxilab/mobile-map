@@ -2100,8 +2100,7 @@ function submitToServer() {
 					updateQueueSize();
 					
 					//Hack to refesh the map icons, problem OpenLayers?
-					//map.zoomOut(); map.zoomIn();
-					fusionLayer.refresh();
+					map.zoomOut(); map.zoomIn();
 				}
 			});
 		});
@@ -2588,9 +2587,8 @@ function resizeMapContainer(){
    
    	//Update the map and force a refresh
    	map.updateSize();
-	mapLayerOSM.refresh();
-	//map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
-	//map.zoomOut(); map.zoomIn();	// or out
+	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
+	map.zoomOut(); map.zoomIn();	// or out
 	
 	//Show the toolbar
 	$.mobile.fixedToolbars.show();
