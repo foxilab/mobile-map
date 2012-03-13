@@ -2589,6 +2589,7 @@ function resizeMapContainer(){
    	map.updateSize();
 	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
 	map.zoomOut(); map.zoomIn();	// or out
+	//map.moveByPx(1,0);
 	
 	//Show the toolbar
 	$.mobile.fixedToolbars.show();
