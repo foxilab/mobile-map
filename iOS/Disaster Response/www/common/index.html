@@ -147,22 +147,22 @@
 
 	<body onload="onBodyLoad()">
 		<div data-role="page" id='map-page' class="mypage" data-theme='a'> 
-			<div data-role="content" id="map-content" style="padding: 0px !important;"> 
-				<div id="mapContainer" style="position:relative;width:100%;overflow:hidden;background-color:white;">
-					<div id="map" style="position:absolute;"></div>
+			<div data-role="content" id="map-content" style="padding: 0px!important"> 
+				<div id="mapContainer" style="background-color:white;">
+					<div id="map" style=""></div>
 					<!--<div id="zoomPanel"></div>-->
 					<!--<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
 						<image src="css/images/Reflect_Vertical.png" alt="north"/>
 					</div>-->
-                    <div id="navigation" data-role="controlgroup" data-type="vertical">
-                        <a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
-                        <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
-                    </div>
-					
+					<div id="navigation" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
+						<a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
+					</div>
+
 					<div id="heatmapLockButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="heatmapLock" data-icon="plus" data-iconpos="notext"></a>
 					</div>
-					
+
 					<div id="filterButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="filterToggle">Filter</a>
 					</div>
@@ -171,17 +171,17 @@
 							<legend>Statuses</legend>
 							<input type="checkbox" name="checkbox-StatusA" id="checkbox-StatusA" class="checkBox_Status_Operational" data-mini="true"/>
 							<label for="checkbox-StatusA">Operational</label>
-							
+
 							<input type="checkbox" name="checkbox-StatusB" id="checkbox-StatusB" class="checkBox_Status_Limited" data-mini="true"/>
 							<label for="checkbox-StatusB">Limited Capabilities</label>
-							
+
 							<input type="checkbox" name="checkbox-StatusC" id="checkbox-StatusC" class="checkBox_Status_Intact" data-mini="true"/>
 							<label for="checkbox-StatusC">Intact, but Uninhabited</label>
-							
+
 							<input type="checkbox" name="checkbox-StatusD" id="checkbox-StatusD" class="checkBox_Status_NonOperational" data-mini="true"/>
 							<label for="checkbox-StatusD">Non-Operational</label>
 						</fieldset>
-						
+
 						<fieldset data-role="controlgroup">
 							<legend>File Types</legend>
 							<input type="checkbox" name="checkbox-FileTypeA" id="checkbox-FileTypeA" class="checkBox_FileType_Image" data-mini="true"/>
@@ -408,7 +408,6 @@
 	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false" defer="defer"></script>
 	<script type="text/javascript" charset="utf-8" src="../cordova-1.5.0.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.18.custom.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
@@ -429,5 +428,7 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+
+	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
 </html>
