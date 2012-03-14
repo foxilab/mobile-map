@@ -408,6 +408,26 @@ function getFileType(_filepath) {
 	return mime.substr(0, mime.indexOf('/'));
 }
 
+function uploadFileToServer(filepath, photoguid){
+	var url = "http://localhost:8080/DRServer/rest/youtube/upload";
+	var ft = new FileTransfer();
+	var mimeType = mimeTypeFromExt(filepath);
+	var extensionIndex = filepath.lastIndexOf(".");
+	var extension = filepath.substr(extensionIndex).toLowerCase();
+	
+	var params = {
+		mimeType: mimeType
+	};
+	
+	var options = new FileUploadOptions();
+	options.fileName = photoguid + extension; 
+	options.params = params;
+	
+	ft.upload(filepath, url, function(response){
+		console.log(response.response);
+	}, function(response){console.log(response);}, options);
+}
+
 function uploadFileToS3(filepath, photoguid) {
 	var mimeType = mimeTypeFromExt(filepath);
 
@@ -2082,6 +2102,7 @@ function submitToServer() {
 					sql += ';';
 				}
 
+				uploadFileToServer(row.media, photoguid);
 				uploadFileToS3(row.media, photoguid);
 			}
 
