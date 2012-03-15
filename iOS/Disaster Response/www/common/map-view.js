@@ -720,7 +720,7 @@ function createLocationPopup(_feature) {
 	LocationPopup.position({
 		my:	'center',
 		at:	'center',
-		of:	$(div_Map)
+		of:	$(window)
 	});
 }
 
@@ -1249,7 +1249,7 @@ function togglePhotoVideoDialog(){
 		cameraORvideoPopup.position({
 			my:	'center',
 			at:	'center',
-			of:	$(div_MapContainer)
+			of:	$(window)
 		});
 		
 		wasPopupOpen = true;
