@@ -1441,6 +1441,7 @@ function onDeviceReady()
 
 	// fix height of content to allow for header & footer
 	function fixContentHeight() {
+		console.log('fixContentHeight');
 		
 		if ($.mobile.activePage.attr('id') == "map-page") {
 			var footer = $("#map-footer");
@@ -1450,7 +1451,7 @@ function onDeviceReady()
 			var contentHeight = viewHeight - footer.outerHeight();
 			if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
 				contentHeight -= (content.outerHeight() - content.height());
-				contentHeight += map.tileSize.h;
+//				contentHeight += map.tileSize.h;
 				content.height(contentHeight);
 				div_Map.height(contentHeight+"px");
 				div_Map.width($(window).width()+"px");
@@ -1460,7 +1461,6 @@ function onDeviceReady()
 			}
 
 			if (map) {
-				console.log('fixContentHeight');
 				map.updateSize();
 			}
 		}
@@ -2203,7 +2203,7 @@ function addStatusPoints(_location, _status) {
 	var location = new OpenLayers.Feature.Vector(point, {
 		status: statusColor
 	});
-						   
+
 	statusLayer.addFeatures([location]);
 	statusLayer.redraw();
 }
