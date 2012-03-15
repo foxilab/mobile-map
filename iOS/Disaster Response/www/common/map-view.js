@@ -2135,8 +2135,8 @@ function submitToServer() {
 					//The sqlDb has changed, update the queue size.
 					updateQueueSize();
 					
-					//Hack to refesh the map icons, problem OpenLayers?
-					map.zoomOut(); map.zoomIn();
+					//Update the fusion layer with the new data.
+					onMapMoveEnd();
 				}
 			});
 		});
