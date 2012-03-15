@@ -1442,25 +1442,27 @@ function onDeviceReady()
 	// fix height of content to allow for header & footer
 	function fixContentHeight() {
 		
-		var footer = $("div[data-role='footer']:visible");
-		var content = $("#map-content");
-		var viewHeight = $(window).height();
+		if ($.mobile.activePage.attr('id') == "map-page") {
+			var footer = $("#map-footer");
+			var content = $("#map-content");
+			var viewHeight = $(window).height();
 
-		var contentHeight = viewHeight - footer.outerHeight();
-		if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
-			console.log('heyo!');
-			contentHeight -= (content.outerHeight() - content.height());
-			contentHeight += map.tileSize.h;
-			content.height(contentHeight);
-			div_Map.height(contentHeight+"px");
-			div_Map.width($(window).width()+"px");
+			var contentHeight = viewHeight - footer.outerHeight();
+			if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
+				contentHeight -= (content.outerHeight() - content.height());
+				contentHeight += map.tileSize.h;
+				content.height(contentHeight);
+				div_Map.height(contentHeight+"px");
+				div_Map.width($(window).width()+"px");
 
-			console.log(contentHeight);
-			console.log($(window).width());
-		}
-		if (map) {
-			console.log('fixContentHeight');
-			map.updateSize();
+				console.log(contentHeight);
+				console.log($(window).width());
+			}
+
+			if (map) {
+				console.log('fixContentHeight');
+				map.updateSize();
+			}
 		}
 	}
 	$(window).bind("orientationchange resize pageshow", fixContentHeight);
