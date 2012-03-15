@@ -408,15 +408,16 @@ function getFileType(_filepath) {
 	return mime.substr(0, mime.indexOf('/'));
 }
 
-function uploadFileToServer(filepath, photoguid){
-	var url = "http://localhost:8080/DRServer/rest/youtube/upload";
+function uploadFileToServer(filepath, photoguid, name){
+	var url = "http://192.168.10.179:8080/DRServer/rest/youtube/upload";
 	var ft = new FileTransfer();
 	var mimeType = mimeTypeFromExt(filepath);
 	var extensionIndex = filepath.lastIndexOf(".");
 	var extension = filepath.substr(extensionIndex).toLowerCase();
 	
 	var params = {
-		mimeType: mimeType
+		mimeType: mimeType,
+		name: name
 	};
 	
 	var options = new FileUploadOptions();
@@ -2101,8 +2102,8 @@ function submitToServer() {
 					sql += ';';
 				}
 
-				uploadFileToServer(row.media, photoguid);
-				uploadFileToS3(row.media, photoguid);
+				uploadFileToServer(row.media, photoguid, row.name);
+			//	uploadFileToS3(row.media, photoguid);
 			}
 
 			googleSQL(sql, 'POST', function(data) {
