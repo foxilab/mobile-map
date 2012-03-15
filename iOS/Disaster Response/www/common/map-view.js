@@ -2181,7 +2181,7 @@ function getQueueSize(_tx) {
 
 function getQueueSizeSuccessCB() {
 	//Now itemsInQueue is at the current count, update everything
-	appNotifications += itemsInQueue;
+	appNotifications = itemsInQueue;
 	//updateTabItemBadge('Queue', itemsInQueue);
 	updateAppBadge(appNotifications);
 }
