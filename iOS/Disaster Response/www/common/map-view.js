@@ -1327,7 +1327,7 @@ function setMaxAndMinSizes(sizes){
 */
 function onDeviceReady()
 {
-	console.log("ready");
+	console.log("onDeviceReady");
 	
 	//Now that the device is ready, lets set up our event listeners.
 	document.addEventListener("pause"            , onAppPause         , false);
@@ -1337,7 +1337,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-	window.addEventListener("orientationchange", onOrientationChange, false);
+//	window.addEventListener("orientationchange", onOrientationChange, false);
 	  
 	//This gives us line numbers for our errors! Yeah!
 	//  except it doesn't work all the time =/
@@ -1410,21 +1410,16 @@ function onDeviceReady()
 	console.log("footerHeight: " + footerHeight);
 	var mapHeight = screenHeight - footerHeight;
 
-	mapContainer.height(mapHeight +"px");
+//	mapContainer.height(mapHeight +"px");
 
-	mapDiv.height(mapHeight+"px");
-	mapDiv.width(screenWidth+"px");
+//	mapDiv.height(mapHeight+"px");
+//	mapDiv.width(screenWidth+"px");
 
 	$.mobile.fixedToolbars.show();
 
 	//With the mapDiv setup. Create the map!
 	map = new OpenLayers.Map(options);
 	mapLayerOSM = new OpenLayers.Layer.OSM();	
-
-	map.updateSize();
-	console.log('initial size');
-	console.log(map.getSize().w);
-	console.log(map.getSize().h);
 
 	//Set up the HeatMap
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
@@ -1433,6 +1428,37 @@ function onDeviceReady()
 	map.events.register("movestart", map, onMapMoveStart);
 	map.events.register("moveend", map, onMapMoveEnd);
 	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
+
+	// fix height of content to allow for header & footer
+	function fixContentHeight() {
+		
+		var footer = $("div[data-role='footer']:visible");
+		var content = $("#map-content");
+		var viewHeight = $(window).height();
+
+		var contentHeight = viewHeight - footer.outerHeight();
+		if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
+			console.log('heyo!');
+			contentHeight -= (content.outerHeight() - content.height());
+			contentHeight += map.tileSize.h;
+			content.height(contentHeight);
+			mapDiv.height(contentHeight+"px");
+			mapDiv.width($(window).width()+"px");
+
+			console.log(contentHeight);
+			console.log($(window).width());
+		}
+		if (map) {
+			console.log('fixContentHeight');
+			map.updateSize();
+		}
+	}
+	$(window).bind("orientationchange resize pageshow", fixContentHeight);
+	fixContentHeight();
+
+	console.log('initial size');
+	console.log(map.getSize().w);
+	console.log(map.getSize().h);
 
 	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
 		enableHighAccuracy: true,
@@ -1743,6 +1769,8 @@ function populateGallery(parent, items, options) {
 }
 
 $(document).ready(function () {
+	console.log('document ready');
+
 	$(document).click(function () {
 		hideQueueItemDelete();
 	});
@@ -2471,7 +2499,8 @@ function onAppOffline() {
     #QUIRK: Triggered twice on 1 rotation.
  */
 var orDirtyToggle = false;
-function onOrientationChange(_event) {  
+function onOrientationChange(_event) {
+/*
 	//Prevent the function from running multiple times.
 	orDirtyToggle = !orDirtyToggle;
 						  
@@ -2494,7 +2523,7 @@ function onOrientationChange(_event) {
 		else {
 			console.log('Orientation issue: ' + getOrientation());
 		}
-	}
+	}*/
 }
 
 function updateScreenSize() {
@@ -2598,7 +2627,7 @@ function resizeMapContainer(){
 function onOrientationLandscape() {
     console.log('Listener: App has changed orientation to Landscape ' + getOrientation() + '.');
 						   
-	resizeMapContainer();
+//	resizeMapContainer();
 }
 
 /*
@@ -2607,7 +2636,7 @@ function onOrientationLandscape() {
 function onOrientationPortrait() {
     console.log('Listener: App has changed orientation to Portrait ' + getOrientation() + '.');
 						   
-	resizeMapContainer();
+//	resizeMapContainer();
 }
 
 /*
