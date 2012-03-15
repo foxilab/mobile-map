@@ -751,7 +751,9 @@ function showStatusesDialog() {
 		//clone the archetype
 		var $clone = $('#multiStatus-list-item-archetype').clone();	
 		$clone.removeAttr('id');
-	
+
+		console.log(popupFeature[i].media);
+
 		type = getFileType(popupFeature[i].media);
 	
 		if (type == "image") {
@@ -1656,6 +1658,7 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	
+	console.log(locRow.media);
 	type = getFileType(locRow.media);
 
 	if (type == "image") {
