@@ -720,7 +720,7 @@ function createLocationPopup(_feature) {
 	LocationPopup.position({
 		my:	'center',
 		at:	'center',
-		of:	$(div_Map)
+		of:	$(window)
 	});
 }
 
@@ -1249,7 +1249,7 @@ function togglePhotoVideoDialog(){
 		cameraORvideoPopup.position({
 			my:	'center',
 			at:	'center',
-			of:	$(div_MapContainer)
+			of:	$(window)
 		});
 		
 		wasPopupOpen = true;
@@ -2181,7 +2181,7 @@ function getQueueSize(_tx) {
 
 function getQueueSizeSuccessCB() {
 	//Now itemsInQueue is at the current count, update everything
-	appNotifications += itemsInQueue;
+	appNotifications = itemsInQueue;
 	//updateTabItemBadge('Queue', itemsInQueue);
 	updateAppBadge(appNotifications);
 }
