@@ -48,6 +48,17 @@
 				padding: 7px 6px 7px 8px;
 			}
 			
+			#centerButton {
+				position: fixed;
+				bottom: 45px;
+				right: 10px;
+				z-index: 1000;
+			}
+			#centerButton .ui-btn-icon-notext {
+				display: block;
+				padding: 7px 6px 7px 8px;
+			}
+			
 			#filterButton {
 				position: absolute;
 				top: 0px;
@@ -161,6 +172,10 @@
 
 					<div id="heatmapLockButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="heatmapLock" data-icon="plus" data-iconpos="notext"></a>
+					</div>
+					
+					<div id="centerButton" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" id="center" data-icon="home" data-iconpos="notext"></a>
 					</div>
 
 					<div id="filterButton" data-role="controlgroup" data-type="vertical">

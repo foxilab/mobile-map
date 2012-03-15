@@ -226,9 +226,22 @@ function onBodyLoad() {
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
+var user_CurrentPosition;
+function centerMap() {
+	map.setCenter(new OpenLayers.LonLat(user_CurrentPosition.lon, user_CurrentPosition.lat).transform(WGS84, WGS84_google_mercator));
+}
+
 var geolocationSuccess = function(position) {
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
+	
+	user_CurrentPosition = { 
+		lon: lon,
+		lat: lat
+	};
+	
+	console.log("Current Positon. lat: " + user_CurrentPosition.lat);
+	console.log("Current Positon. lon: " + user_CurrentPosition.lon);
 	
     if(map) {
         var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
@@ -2047,6 +2060,8 @@ $(document).ready(function () {
 	});
 	
 	$('#heatmapLockButton').live('click', heatMapToggleButton_Click);
+	
+	$('#centerButton').live('click', centerMap);
 				  
 	$('#audioButton').click(function(){
 		getAudio(clickedLonLat);
