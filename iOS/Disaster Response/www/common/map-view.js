@@ -1473,6 +1473,8 @@ function onDeviceReady()
 			}
 
 			if (map) {
+				closeAllPopups_NoToggle();
+			
 				console.log('fixContentHeight');
 				map.updateSize();
 			}
