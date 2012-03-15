@@ -764,7 +764,9 @@ function showStatusesDialog() {
 		//clone the archetype
 		var $clone = $('#multiStatus-list-item-archetype').clone();	
 		$clone.removeAttr('id');
-	
+
+		console.log(popupFeature[i].media);
+
 		type = getFileType(popupFeature[i].media);
 	
 		if (type == "image") {
@@ -1454,6 +1456,7 @@ function onDeviceReady()
 
 	// fix height of content to allow for header & footer
 	function fixContentHeight() {
+		console.log('fixContentHeight');
 		
 		if ($.mobile.activePage.attr('id') == "map-page") {
 			var footer = $("#map-footer");
@@ -1463,7 +1466,7 @@ function onDeviceReady()
 			var contentHeight = viewHeight - footer.outerHeight();
 			if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
 				contentHeight -= (content.outerHeight() - content.height());
-				contentHeight += map.tileSize.h;
+//				contentHeight += map.tileSize.h;
 				content.height(contentHeight);
 				div_Map.height(contentHeight+"px");
 				div_Map.width($(window).width()+"px");
@@ -1474,8 +1477,6 @@ function onDeviceReady()
 
 			if (map) {
 				closeAllPopups_NoToggle();
-			
-				console.log('fixContentHeight');
 				map.updateSize();
 			}
 		}
@@ -1671,6 +1672,7 @@ function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
 	
+	console.log(locRow.media);
 	type = getFileType(locRow.media);
 
 	if (type == "image") {
@@ -2220,7 +2222,7 @@ function addStatusPoints(_location, _status) {
 	var location = new OpenLayers.Feature.Vector(point, {
 		status: statusColor
 	});
-						   
+
 	statusLayer.addFeatures([location]);
 	statusLayer.redraw();
 }

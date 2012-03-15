@@ -206,55 +206,53 @@ function dropAddressSeachTable(db) {
 }
 
 function insertToAddressSearchTable(db, lon, lat, address){
-	var key = -1;
-	
 	var insert = function(tx){
 		var values = 'VALUES(';
 		values += quote(lat + ',' + lon) + ',';
 		values += quote(address) + ')';
 		
 		tx.executeSql('INSERT INTO searchAddresses (coordinates, address) ' + values, [], function(t, results){
-			key = results.insertId;
 		});
 	};
 	
 	db.transaction(insert, errorSql);
-	return key;
 }
 
 function insertToLocationQueueTable(db, lon, lat, name, media, status) {
-	var key = -1;
-	var insert = function (tx) {
-		var values = 'VALUES(';
-		values += quote(lat + ',' + lon) + ',';
-		if (name) {
-			values += quote(name) + ',';
-		}
-		else {
-			values += 'NULL,';
-		}
+	console.log(media);
 
-		values += quote(media) + ',';
-		values += "datetime('now'),";
-		
-		if (status) {
-			values += status;
-		}
-		else {
-			values += 'NULL'
-		}
+	window.resolveLocalFileSystemURI(media, function(fileObj) {
+		console.log(fileObj);
+		var insert = function (tx) {
+			var values = 'VALUES(';
+			values += quote(lat + ',' + lon) + ',';
+			if (name) {
+				values += quote(name) + ',';
+			}
+			else {
+				values += 'NULL,';
+			}
 
-		values += ')';
-		
-		tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
-			key = results.insertId;
-			updateQueueSize();
-			showQueueTab();
-		});
-	};
+			values += quote(fileObj.fullPath) + ',';
+			values += "datetime('now'),";
+			
+			if (status) {
+				values += status;
+			}
+			else {
+				values += 'NULL'
+			}
 
-	db.transaction(insert, errorSql);
-	return key;
+			values += ')';
+			
+			tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
+				updateQueueSize();
+				showQueueTab();
+			});
+		};
+
+		db.transaction(insert, errorSql);
+	});
 }
 
 function deleteLocation(db, rowid) {
