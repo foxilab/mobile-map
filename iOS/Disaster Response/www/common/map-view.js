@@ -44,7 +44,7 @@ var orientationHeadingOffset = 0;
 
 //PLUGIN VARIABLES
 //  NativeControl Variables
-var nativeControls;
+//var nativeControls;
 
 //PHONE VARIABLES
 var isAppPaused = false;
@@ -170,8 +170,8 @@ var touchNavOptions = {
 var oldRotation = 0;
 var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
 
-var options = {
-	div: "map",
+var mapOptions = {
+	div: "OpenLayersMap",
 	projection: WGS84_google_mercator,
 	displayProjection: WGS84,
 	numZoomLevels : 20,
@@ -291,7 +291,7 @@ var compassSuccess = function(heading) {
 	
 	//Rotate map
 	if(!screenLocked) {
-		$("#map").animate({rotate: mapRotation + 'deg'}, 1000);
+		$(div_Map).animate({rotate: mapRotation + 'deg'}, 1000);
 		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
 		
 		map.events.rotationAngle = -1 * mapRotation;
@@ -720,7 +720,7 @@ function createLocationPopup(_feature) {
 	LocationPopup.position({
 		my:	'center',
 		at:	'center',
-		of:	$('#map')
+		of:	$(div_Map)
 	});
 }
 
@@ -1249,7 +1249,7 @@ function togglePhotoVideoDialog(){
 		cameraORvideoPopup.position({
 			my:	'center',
 			at:	'center',
-			of:	$('#mapContainer')
+			of:	$(div_MapContainer)
 		});
 		
 		wasPopupOpen = true;
@@ -1302,8 +1302,6 @@ function showMapToolDivs(){
 var selectControl;
 //var deviceMaxSize = 0;
 //var deviceMinSize = 0;
-var mapContainer;
-var mapDiv;
 var mapLayerOSM;
 
 /*
@@ -1320,6 +1318,9 @@ function setMaxAndMinSizes(sizes){
 	}
 }*/
 
+var div_Map;
+var div_MapContainer;
+
 /*
 		 ==============================================
  						 onDeviceReady
@@ -1329,7 +1330,10 @@ function onDeviceReady()
 {
 	console.log("onDeviceReady");
 	
-	//Now that the device is ready, lets set up our event listeners.
+	/*
+		The device is ready! First lets set up our listeners so we can tell
+		when certian things, like rotation, happen.
+	*/
 	document.addEventListener("pause"            , onAppPause         , false);
 	document.addEventListener("resume"           , onAppResume        , false);
 	document.addEventListener("online"           , onAppOnline        , false);
@@ -1339,12 +1343,20 @@ function onDeviceReady()
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
 //	window.addEventListener("orientationchange", onOrientationChange, false);
 	  
-	//This gives us line numbers for our errors! Yeah!
-	//  except it doesn't work all the time =/
+	/*
+		Overwrite the error handler so we can get more information about the error.
+		We could also log this to a file.
+	*/
 	window.onerror = function myErrorHandler(msg,url,line) {
 		console.log("window.onerror: message: " + msg + ", line: " + line + ", url: " + url);
 		return true;
     };
+	
+	/*
+		Store variables to commonly used divs.
+	*/
+	div_Map 					= $("#OpenLayersMap");
+	div_MapContainer 			= $("#mapContainer");
 	
 	//Lets get the devices current screen size
 	// this will always return the correct screenWidth and screenHeight
@@ -1359,8 +1371,6 @@ function onDeviceReady()
 	//Initalize variables
 	cameraORvideoPopup = $("#cameraORvideoPopup");
 	LocationPopup = $("#locationPopup");
-	mapContainer = $("#mapContainer");
-	mapDiv = $("#map");
 
 	audiojs.events.ready(function() {
 		var as = audiojs.createAll();
@@ -1410,23 +1420,23 @@ function onDeviceReady()
 	console.log("footerHeight: " + footerHeight);
 	var mapHeight = screenHeight - footerHeight;
 
-//	mapContainer.height(mapHeight +"px");
+//	div_MapContainer.height(mapHeight +"px");
 
-//	mapDiv.height(mapHeight+"px");
-//	mapDiv.width(screenWidth+"px");
+//	div_Map.height(mapHeight+"px");
+//	div_Map.width(screenWidth+"px");
 
 	$.mobile.fixedToolbars.show();
 
 	//With the mapDiv setup. Create the map!
-	map = new OpenLayers.Map(options);
+	map = new OpenLayers.Map(mapOptions);
 	mapLayerOSM = new OpenLayers.Layer.OSM();	
 
 	//Set up the HeatMap
-	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: new OpenLayers.Projection("EPSG:4326")});
+	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: WGS84});
 	initHeatmap();
 
-	map.events.register("movestart", map, onMapMoveStart);
-	map.events.register("moveend", map, onMapMoveEnd);
+	map.events.register("movestart", map, onMapMoveStart);	/* Hide popups on drag */
+	map.events.register("moveend", map, onMapMoveEnd);		/* Refresh map layers. */
 	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
 
 	// fix height of content to allow for header & footer
@@ -1442,8 +1452,8 @@ function onDeviceReady()
 			contentHeight -= (content.outerHeight() - content.height());
 			contentHeight += map.tileSize.h;
 			content.height(contentHeight);
-			mapDiv.height(contentHeight+"px");
-			mapDiv.width($(window).width()+"px");
+			div_Map.height(contentHeight+"px");
+			div_Map.width($(window).width()+"px");
 
 			console.log(contentHeight);
 			console.log($(window).width());
@@ -1561,10 +1571,10 @@ function onDeviceReady()
 					  var width = $('.queue-dialog').width();
 					  $(this).height(height);
 					  $(this).width(width);
-					  var mapLeftPosition = -1 * (mapDiv.width()-mapContainer.width()) / 2;
-					  var mapTopPosition = -1 * (mapDiv.height()-mapContainer.height()) / 2;
-					  mapDiv.css('top', mapTopPosition);
-					  mapDiv.css('left', mapLeftPosition);
+					  var mapLeftPosition = -1 * (div_Map.width()-div_MapContainer.width()) / 2;
+					  var mapTopPosition = -1 * (div_Map.height()-div_MapContainer.height()) / 2;
+					  div_Map.css('top', mapTopPosition);
+					  div_Map.css('left', mapLeftPosition);
 					 $.mobile.fixedToolbars.show();
 	});
 	
@@ -1985,7 +1995,7 @@ $(document).ready(function () {
 			navigationLayer.redraw();
 		}
 		
-		$("#map").animate({rotate: '0deg'}, 1000);
+		$(div_Map).animate({rotate: '0deg'}, 1000);
 		$("#northIndicator").animate({rotate: '0deg'}, 1000);
 	
 		map.events.rotationAngle = 0;
@@ -2601,12 +2611,12 @@ function resizeMapContainer(){
 	console.log('resizing map container');
 
 	//Update the mapContainer size
-	mapContainer.height(mapHeight +"px");
-	mapContainer.width(screenWidth +"px");
+	div_MapContainer.height(mapHeight +"px");
+	div_MapContainer.width(screenWidth +"px");
 
 	//Update the map size
-	mapDiv.height(mapHeight+"px");
-	mapDiv.width(screenWidth+"px");
+	div_Map.height(mapHeight+"px");
+	div_Map.width(screenWidth+"px");
 		
   	//Update the map and force a refresh
  	map.updateSize();
