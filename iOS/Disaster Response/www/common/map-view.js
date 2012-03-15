@@ -1417,6 +1417,9 @@ function onDeviceReady()
 			if (map) {
 				closeAllPopups_NoToggle();
 				map.updateSize();
+				
+				map.zoomIn(); map.zoomOut();
+				map.zoomOut(); map.zoomIn();
 			}
 		}
 	}
