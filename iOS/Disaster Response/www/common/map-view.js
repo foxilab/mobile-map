@@ -39,13 +39,6 @@ var heatmapLayer;
 var screenLocked = true;
 var orientationHeadingOffset = 0;
 
-//var fusionLayer_Locations_Icons;
-//var fusionLayer_Locations_HeatMap;
-
-//PLUGIN VARIABLES
-//  NativeControl Variables
-//var nativeControls;
-
 //PHONE VARIABLES
 var isAppPaused = false;
 var isInternetConnection = false;
@@ -94,7 +87,6 @@ var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
 var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
-//var photoguid;
 var cameraORvideoPopup;
 var LocationPopup;
 var clickedLonLat = null;
@@ -1300,38 +1292,8 @@ function searchForAddress(address){
 	});
 }
 
-/*function hideMapToolDivs(){
-	$('#northIndicator').hide();
-	$('#navigation').hide();
-	$('#addressSearchDiv').hide();
-	$('#screenLock').hide();
-}
-
-function showMapToolDivs(){
-	$('#northIndicator').show();
-	$('#navigation').show();
-	$('#addressSearchDiv').show();
-	$('#screenLock').show();
-}*/
-
 var selectControl;
-//var deviceMaxSize = 0;
-//var deviceMinSize = 0;
 var mapLayerOSM;
-
-/*
-function setMaxAndMinSizes(sizes){
-	deviceMaxSize = sizes[0];
-	deviceMinSize = sizes[0];
-
-	for(var i = 1; i < sizes.length; i++)
-	{
-		if(sizes[i] > deviceMaxSize)
-			deviceMaxSize = sizes[i];
-		else if(sizes[i] < deviceMinSize)
-			deviceMinSize = sizes[i];
-	}
-}*/
 
 var div_Map;
 var div_MapContainer;
@@ -1391,17 +1353,6 @@ function onDeviceReady()
 		var as = audiojs.createAll();
 	});
 
-	//photoguid = device.uuid;
-	
-	//var windowHeight = screenHeight;
-	//var windowWidth = screenWidth;
-	//var windowMinHeight = $('#map-page').css('min-height');
-	//windowMinHeight = windowMinHeight.substr(0, windowMinHeight.length-2);
-	
-	//setMaxAndMinSizes([windowHeight, windowWidth, windowMinHeight]);
-	//console.log("maxSize: " + deviceMaxSize);
-	//console.log("minSize: "  + deviceMinSize);
-
 	// The Local Database (global for a reason)
 	try {
 		if (!window.openDatabase) {
@@ -1424,21 +1375,9 @@ function onDeviceReady()
 
 	initFilter();
 
-	/* deviceMinSize is always 10, this is not what we want.
-	if(windowHeight > windowWidth)
-		docHeight = deviceMaxSize;
-	else
-		docHeight = deviceMinSize;
-	*/
-
 	var footerHeight = $("#map-footer").height();
 	console.log("footerHeight: " + footerHeight);
 	var mapHeight = screenHeight - footerHeight;
-
-//	div_MapContainer.height(mapHeight +"px");
-
-//	div_Map.height(mapHeight+"px");
-//	div_Map.width(screenWidth+"px");
 
 	$.mobile.fixedToolbars.show();
 
@@ -1563,19 +1502,9 @@ function onDeviceReady()
 		}
 	});
 
-	/*var zoomPanel = new OpenLayers.Control.ZoomPanel({div: document.getElementById("zoomPanel")});
-	map.addControl(zoomPanel);
-	var zoomRight = .05 * mapHeight;
-	$("#zoomPanel").css("right", "5%");
-	$("#zoomPanel").css("bottom", zoomRight + "px");*/
-
 	var click = new OpenLayers.Control.Click();
 	map.addControl(click);
 	click.activate();
-
-	/*$('#map-page').live('pagebeforeshow', function(){
-		showMapToolDivs();
-	});*/
 
 	$('#map-page').live('pagebeforeshow', function(){
 		$('.map-tab-button').children().addClass('ui-btn-active');
@@ -1600,10 +1529,6 @@ function onDeviceReady()
 		closeAllPopups_NoToggle();		
 		clickedLonLat = null;  
 	});
-
-	/*$('#map-page').live('pagebeforehide', function(){
-		hideMapToolDivs();
-	});*/
 	
 	$('#map-page').live('pagebeforehide', function(){
 		$('.map-tab-button').children().removeClass('ui-btn-active');
@@ -2252,79 +2177,8 @@ function setStatusLayerVisibility(_visible) {
 	}
 }
 
-/*
-        ==============================================
-                  NativeControls Functions
-        ==============================================
- 
-    This array contains all the information about the buttons that we are going to have in the tab bar. It contains the name of the tab, the image used for the tab and what function to call when that tab is selected. 
- */
-/*var tabBarItems = { tabs: [
-      {'name': 'Map'  , 'image': '/www/common/TabImages/Map.png'  	, 'onSelect': onClick_MapTab},
-      {'name': 'Queue', 'image': '/www/common/TabImages/Queue.png'	, 'onSelect': onClick_QueueTab},
-      {'name': 'User' , 'image': '/www/common/TabImages/User.png' 	, 'onSelect': onClick_UserTab},
-      {'name': 'Debug', 'image': '/www/common/TabImages/Debug.png'	, 'onSelect': onClick_DebugTab},
-      {'name': 'More' , 'image': 'tabButton:More'					, 'onSelect': onClick_MoreTab}]
-};*/
 
-/*
-    This function loops though the array and sets up the buttons for us. Then we add them to the tab bar and show the bar.
- */
-/*function setupTabBar() {
-    nativeControls.createTabBar();
-        var _length = tabBarItems.tabs.length;
-        for (var i = 0; i < _length; i++) {
-            setUpButton(tabBarItems.tabs[i]);
-        }
-    nativeControls.showTabBarItems('Map', 'Queue', 'User', 'More', 'Debug');
-    selectTabBarItem('Map');
-    showTabBar();
-}*/
-
-/*
-    Called by setupTabBar, this function creates the TabBarItems with the given params from our array.
- */
-/*function setUpButton(_tabItem) {
-    var options = new Object();
-        options.onSelect = _tabItem.onSelect;
-    nativeControls.createTabBarItem(_tabItem.name, _tabItem.name, _tabItem.image, options);
-}*/
-
-/*
-    This function creates the Nav bar, sets up the buttons and their callbacks and then displays the nav bar.
- */
-/*function setupNavBar() {
-	nativeControls.createNavBar();
-	nativeControls.setupLeftNavButton('Left','', 'onClick_LeftNavBarButton');
-	nativeControls.setupRightNavButton('Right','', 'onClick_RightNavBarButton');
-	nativeControls.setNavBarTitle('Disaster Response');
-	nativeControls.setNavBarLogo('');
-	hideLeftNavButton();
-	hideRightNavButton();
-	showNavBar();
-}
-
-function selectTabBarItem(_tabItem) {
-	nativeControls.selectTabBarItem(_tabItem);
-}
-
-function updateTabItemBadge(_tabName, _amount) {
-    if(_amount >= 1) {
-        //console.log('TabBar: Badge with the value ' + _amount + ' added to ' + _tabName + '.');
-        var object = new Object();
-            object.badge = _amount.toString();
-        nativeControls.updateTabBarItem(_tabName, object);
-    }
-    else
-        hideTabItemBadge(_tabName);
-}
-
-function hideTabItemBadge(_tabName) {
-    //console.log('TabBar: Badge removed from ' + _tabName + '.');
-    nativeControls.updateTabBarItem(_tabName, null);
-}
-
-*/function updateAppBadge(_amount) {
+function updateAppBadge(_amount) {
     if(_amount >= 1) {
         //console.log('App: Badge added with the value ' + _amount + '.');
 		//#BADGEPLUGIN
@@ -2338,106 +2192,13 @@ function hideAppBadge() {
     //console.log('App: Badge removed from App.');
 	//#BADGEPLUGIN
     window.plugins.badge.clear();
-}/*
-
-function showTabBar() {
-    var options = new Object();
-    options.position = 'bottom';
-    nativeControls.showTabBar(options);
 }
 
-function hideTabBar() {
-    nativeControls.hideTabBar();
-}
-
-function showNavBar() {
-    nativeControls.showNavBar();
-}
-
-function hideNavBar() {
-    nativeControls.hideNavBar();
-}
-
-function showLeftNavButton() {
-    nativeControls.showLeftNavButton();
-}
-
-function hideLeftNavButton() {
-    nativeControls.hideLeftNavButton();
-}
-
-function showRightNavButton() {
-    nativeControls.showRightNavButton();
-}
-
-function hideRightNavButton() {
-    nativeControls.hideRightNavButton();
-}*/
-
-/*
-        ==============================================
-            NativeControls Nav onClick Functions
-        ==============================================
- */
-
-/*function onClick_LeftNavBarButton() {
-    //console.log('onClick: LeftNavBarButton');
-    navigator.notification.alert('Left NavBar button was selected.', function(){}, 'Debug', 'Okay');
-}
-
-function onClick_RightNavBarButton() {
-    //console.log('onClick: RightNavBarButton');
-    navigator.notification.alert('Right NavBar button was selected.', function(){}, 'Debug', 'Okay');
-}*/
-
-/*
-        ==============================================
-             NativeControls Tab onClick Functions
-        ==============================================
- */
-/*var selectedTabBarItem = 'Map';
-function onClick_MapTab() {
-	//console.log('onClick: MapTab');
-	selectTabBarItem('Map');
-	selectedTabBarItem = 'Map';
-	$.mobile.changePage('#map-page', 'pop');
-}
-*/
 function showQueueTab() {
 	//selectTabBarItem('Queue');
 	//selectedTabBarItem = 'Queue';
 	$.mobile.changePage('#queue-dialog', 'pop');
 }
-/*
-function onClick_QueueTab() {
-	if (itemsInQueue > 0) {
-		showQueueTab();
-	}
-	else {
-		nativeControls.selectTabBarItem(selectedTabBarItem);
-	}
-}
-
-function onClick_UserTab() {
-	selectTabBarItem('User');
-	selectedTabBarItem = 'User';
-	$.mobile.changePage('#user-dialog', 'pop');
-}
-
-function onClick_MoreTab() {
-	selectTabBarItem('More');
-	selectedTabBarItem = 'More';
-	$.mobile.changePage('#more-dialog', 'pop');
-}
-
-//Temporary option to allow us to open a different tab and access debug information
-// like Device, iOS version, current location, etc.
-function onClick_DebugTab() {
-	//console.log('onClick: DebugTab');
-	selectTabBarItem('Debug');
-	selectedTabBarItem = 'Debug';
-	window.open ('Debug.html','_self',false);
-}*/
 
 /*
         ==============================================
@@ -2697,38 +2458,3 @@ function onBatteryStatus(_info) {
     //_info.level = % of battery (0-100).
     //_info.isPlugged = true if the device is plugged in.
 }
-
-/*
-	 ==============================================
-	 					Old Code
-	 ==============================================
-	 
-	 No longer used but held onto just in case
-*/
-/*
-var fusionLayerOptions_Heat = {
-		displayProjection: WGS84,
-		projection: WGS84_google_mercator,
-		maxResolution: maxResolution,
-		maxExtent: maxExtent,
-		restrictedExtent: restrictedExtent,
-};
-						   
-var fusionLayerOptions_Icon = {
-		displayProjection: WGS84,
-		projection: WGS84_google_mercator,
-		maxResolution: 38.21851413574219,
-		minResolution: "auto",
-};
-						   
-var fLayer_heatMap = true;
-function initializeFusionLayer_Icons() {
-	fusionLayer_Locations_Icons = new OpenLayers.Layer.OSM("Fusion Table - locations",
-		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + !fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Icon);
-}
-						   
-function initializeFusionLayer_HeatMap() {
-	fusionLayer_Locations_HeatMap = new OpenLayers.Layer.OSM("Fusion Table - locations",
-		"http://mt0.googleapis.com/mapslt?hl=en-US&lyrs=ft:"+FusionTableId.locationsID()+"|h:" + fLayer_heatMap + "&x=${x}&y=${y}&z=${z}&w=256&h=256&source=maps_api",fusionLayerOptions_Heat);
-}
-*/
