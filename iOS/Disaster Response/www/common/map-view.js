@@ -18,12 +18,16 @@ var FusionTableId = new function () {
 /* ============================ *
  *  	   Common divs
  * ============================ */
-var div_MapPage;
-var div_MapContainer;
-var div_MapContent;
-var div_Map;
+var div_MapPage;		// The Map page div.
+var div_MapContainer;	// The div that houses the map, popups, and other controls.
+var div_MapContent;		// The div that stores the content for the MapPage.
+var div_Map;			// The div that stores the Openlayers map.
 
-var div_PageFooter;
+var div_PageFooter;		// The div that stores the footer for every page.
+
+var cameraORvideoPopup;	// The div that stores the cameraOrVideo popup.
+var LocationPopup;		// The div that stores the Location popup.
+var div_FilterPopup;
  
 /* ============================ *
  *   Projections and Extents
@@ -64,8 +68,8 @@ var iconMaxResolution 		= 4.777314266967774;
 var selectControl;
 var touchNavOptions = {
 	dragPanOptions: {
-		interval: 0, //non-zero kills performance on some mobile phones
-		enableKinetic: true
+		interval: 		0, //non-zero kills performance on some mobile phones
+		enableKinetic:	true
 	}
 };
 var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
@@ -75,14 +79,14 @@ var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
  * ============================ */
 var map;
 var mapOptions = {
-	div: "OpenLayersMap",
-	projection: WGS84_google_mercator,
-	displayProjection: WGS84,
-	numZoomLevels : 20,
-	maxResolution: maxResolution,
-	maxExtent: maxExtent,
-	allOverlays: true,
-	restrictedExtent: restrictedExtent,
+	div: 				"OpenLayersMap",
+	projection: 		WGS84_google_mercator,
+	displayProjection:	WGS84,
+	numZoomLevels:	 	20,
+	maxResolution: 		maxResolution,
+	maxExtent: 			maxExtent,
+	allOverlays: 		true,
+	restrictedExtent: 	restrictedExtent,
 	controls: [
 		rotatingTouchNav
 	]
@@ -94,25 +98,25 @@ var mapOptions = {
 var positionUnlockedImage	= "css/images/PositionUnlocked.png";
 var positionLockedImage		= "css/images/PositionLocked.png";
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 25,
-    	externalGraphic : positionUnlockedImage,
-		fillOpacity: 1,
-		rotation: 0
+		pointRadius: 		25,
+    	externalGraphic:	positionUnlockedImage,
+		fillOpacity: 		1,
+		rotation: 			0
 });
 
 var statusSymbolizer = new OpenLayers.Symbolizer.Point({
-    	pointRadius : 10,
-    	fillColor: "${status}",
-    	strokeColor: "${status}",
-    	fillOpacity: 0.4,
-    	rotation: 0
+    	pointRadius: 	10,
+    	fillColor: 		"${status}",
+    	strokeColor:	"${status}",
+    	fillOpacity: 	0.4,
+    	rotation: 		0
 });
 
 var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 25,
-		externalGraphic : "${image}",
-		fillOpacity: 1,
-		rotation: 0
+		pointRadius: 		25,
+		externalGraphic: 	"${image}",
+		fillOpacity: 		1,
+		rotation: 			0
 });
 
 /* ============================ *
@@ -149,23 +153,23 @@ var heatmapLayer;
 var mapLayerOSM;
 
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
-    	styleMap: navStyle
+    	styleMap: 			navStyle
 });
 
 var statusLayer = new OpenLayers.Layer.Vector("Status Layer", {
-    	styleMap: statusStyle,
-		displayProjection: WGS84,
-		projection: WGS84_google_mercator,
-		maxResolution: iconMaxResolution,
-		minResolution: "auto"
+    	styleMap: 			statusStyle,
+		displayProjection:	WGS84,
+		projection: 		WGS84_google_mercator,
+		maxResolution: 		iconMaxResolution,
+		minResolution: 		"auto"
 });
 
 var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
-		styleMap: fusionStyle,
-		displayProjection: WGS84,
-		projection: WGS84_google_mercator,
-		maxResolution: iconMaxResolution,
-		minResolution: "auto"
+		styleMap: 			fusionStyle,
+		displayProjection:	WGS84,
+		projection: 		WGS84_google_mercator,
+		maxResolution: 		iconMaxResolution,
+		minResolution: 		"auto"
 });
 
 /* ============================ *
@@ -175,13 +179,14 @@ var statusSaveStrategy = new OpenLayers.Strategy.Save();
 var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     strategies: [new OpenLayers.Strategy.BBOX(), statusSaveStrategy],
     protocol: new OpenLayers.Protocol.WFS({
-       version: "1.1.0",
-       srsName: "EPSG:4326",
-       url: "findplango.com:8080/geoserver/wfs",
-       featureNS: "http://lmnsolutions.com/DisasterResponse",
-       featureType: "location_statuses",
-       geometryName: "the_geom",
-       schema: "http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0&typename=DisasterResponse:location_statuses"
+       version: 		"1.1.0",
+       srsName: 		"EPSG:4326",
+       url: 			"findplango.com:8080/geoserver/wfs",
+       featureNS: 		"http://lmnsolutions.com/DisasterResponse",
+       featureType: 	"location_statuses",
+       geometryName:	"the_geom",
+       schema:			"http://findplango.com:8080/geoserver/wfs/DescribeFeatureType?version=1.1.0" + 
+	   					"&typename=DisasterResponse:location_statuses"
     }),
     visibility: false
 });
@@ -189,35 +194,35 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
 /* ============================ *
  *  	 	 Popups
  * ============================ */
-var cameraORvideoPopup;	// The div that stores the cameraOrVideo popup.
-var LocationPopup;		// The div that stores the Location popup.
-
 var clickedLonLat 		= null;	// When the cameraOrVideo popup is toggled, store the LonLat of the click.
 var popupFeature 		= null;	// The current location displayed in the Location popup.
 var popupFeatureMain	= null;	// The main feature that holds all the locations in the Location popup.
 var selectedFeature 	= null;	// The feature that is currently selected.
 var queueVisable 		= true;	// Used in the filter popup to display the local queued locations.
 
+var wasPopupOpen		= false; //True if a popup was just opened.
+var wasPopupClosed		= false; //True if a popup was just closed.
+
 // Used for sorting in the filter popup, also holds if an item is checked or not
 var SEARCHSTATUS = {
-	ALL 			: {value: 0, name: "All", color: "Black", checked: false},
-	OPERATIONAL		: {value: 1, name: "Operational", color: "Green", checked: true},
-	LIMITED 		: {value: 2, name: "Limited Capabilities", color: "Yellow", checked: true},
-	INTACT 			: {value: 3, name: "Intact, but Uninhabited", color: "Orange", checked: true},
-	NONOPERATIONAL	: {value: 4, name: "Non-Operational", color: "Red", checked: true}
+	ALL 			: {value: 0, name: "All", 						color: "Black",  checked: false},
+	OPERATIONAL		: {value: 1, name: "Operational", 				color: "Green",  checked: true },
+	LIMITED 		: {value: 2, name: "Limited Capabilities", 		color: "Yellow", checked: true },
+	INTACT 			: {value: 3, name: "Intact, but Uninhabited", 	color: "Orange", checked: true },
+	NONOPERATIONAL	: {value: 4, name: "Non-Operational", 			color: "Red",    checked: true }
 };
 
 var SEARCHMEDIA = {
-	ALL 	: {value: 0, name: "All", checked: false},
-	IMAGE 	: {value: 1, name: "image", checked: true},
-	VIDEO 	: {value: 2, name: "video", checked: true},
-	AUDIO 	: {value: 3, name: "audio", checked: true}
+	ALL 	: {value: 0, name: "All",   checked: false},
+	IMAGE 	: {value: 1, name: "image", checked: true },
+	VIDEO 	: {value: 2, name: "video", checked: true },
+	AUDIO 	: {value: 3, name: "audio", checked: true }
 };
 
 var SEARCHTIME = {
-	ALL 	: {value: 0, name: "All", checked: false},
-	DAY 	: {value: 1, name: "Day", checked: true},
-	WEEK 	: {value: 2, name: "Week", checked: true}
+	ALL 	: {value: 0, name: "All",  checked: false},
+	DAY 	: {value: 1, name: "Day",  checked: true },
+	WEEK 	: {value: 2, name: "Week", checked: true }
 };
 
 /* ============================ *
@@ -234,11 +239,9 @@ var screenWidth;
 var screenHeight;
 
 //App
-var isAutoPush 			= false; 
-var centered 			= false;
-var locatedSuccess 		= true;
-var wasPopupOpen		= false;
-var wasPopupClosed		= false;
+var isAutoPush 			= false; //If set to true, the app will try and push your local queue when you get internet.
+var centered 			= false; //If set to true, the map is centered on the users location. For initalization only.
+var locatedSuccess 		= true;	 //If set to true, the app successfully found your location. For initalization only.
 var user_CurrentPosition;			// Stores the users current position.
 									//	- user_CurrentPosition.lat and user_CurrentPosition.lon
 
@@ -698,7 +701,6 @@ function setFusionLayerVisibility(_visible) {
 							PopUps
  		==============================================
  */
-
 function createLocationPopup(_feature) {
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
 	closeAllPopups();
@@ -914,8 +916,8 @@ function closeAllPopups() {
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
 		wasPopupClosed = true;
 	}
-	if($('#filterPopup').is(':visible')) {
-		$('#filterPopup').hide();
+	if(div_FilterPopup.is(':visible')) {
+		div_FilterPopup.hide();
 		wasPopupClosed = true;
 	}
 }
@@ -927,8 +929,8 @@ function closeAllPopups_NoToggle() {
 	if(cameraORvideoPopup.is(':visible')) {
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
 	}
-	if($('#filterPopup').is(':visible')) {
-		$('#filterPopup').hide();
+	if(div_FilterPopup.is(':visible')) {
+		div_FilterPopup.hide();
 	}
 }
 
@@ -939,7 +941,7 @@ function arePopupsOpen() {
 		open = true;
 	if(cameraORvideoPopup.is(':visible'))
 		open = true;
-	if($('#filterPopup').is(':visible'))
+	if(div_FilterPopup.is(':visible'))
 		open = true;
 	
 	return open;
@@ -1115,6 +1117,9 @@ function parseSQLSuccess_Heatmap(_locationArray) {
 		heatmapLayer.setDataSet(transformedTestData);
 }
 
+/*
+	Returns a color based on the status provided.
+ */
 function getStatusColor(_status) {
 	switch(_status) {
 		case 1:
@@ -1135,12 +1140,18 @@ function getStatusColor(_status) {
 	}
 }
 
+/*
+	Returns the URL to an image for a location based on the status provided.
+ */
 function getStatusIcon(_status) {
 	return "Buildings/3D_" + getStatusColor(_status) + ".png";
 }
 
+/*
+	Initalize the Filter popup.
+ */
 function initFilter() {
-	//#LOAD - If we offer to save data, load it here {
+	//#TODO - If we offer to save data, load it here {
 	//	Reloading!
 	//}
 	
@@ -1156,50 +1167,52 @@ function initFilter() {
 	
 	$("input[name=checkbox-QueueA]").attr("checked", queueVisable);
 	
-	//refreash the checkboxes (jic)
+	//Refreash the checkboxes
 	$("input[type='checkbox']").checkboxradio("refresh");
 }
 
+/*
+	Whenever a filter checkbox is changed update the filter status and reload the data.
+ */
 function filterUpdated() {
-	SEARCHSTATUS.OPERATIONAL.checked = $("input[name=checkbox-StatusA]").is(':checked');
-	SEARCHSTATUS.LIMITED.checked = $("input[name=checkbox-StatusB]").is(':checked');
-	SEARCHSTATUS.INTACT.checked = $("input[name=checkbox-StatusC]").is(':checked');
-	SEARCHSTATUS.NONOPERATIONAL.checked = $("input[name=checkbox-StatusD]").is(':checked');
+	SEARCHSTATUS.OPERATIONAL.checked 	= $("input[name=checkbox-StatusA]").is(':checked');
+	SEARCHSTATUS.LIMITED.checked 		= $("input[name=checkbox-StatusB]").is(':checked');
+	SEARCHSTATUS.INTACT.checked 		= $("input[name=checkbox-StatusC]").is(':checked');
+	SEARCHSTATUS.NONOPERATIONAL.checked	= $("input[name=checkbox-StatusD]").is(':checked');
 	
-	SEARCHMEDIA.IMAGE.checked = $("input[name=checkbox-FileTypeA]").is(':checked');
-	SEARCHMEDIA.VIDEO.checked = $("input[name=checkbox-FileTypeB]").is(':checked');
-	SEARCHMEDIA.AUDIO.checked = $("input[name=checkbox-FileTypeC]").is(':checked');
+	SEARCHMEDIA.IMAGE.checked 			= $("input[name=checkbox-FileTypeA]").is(':checked');
+	SEARCHMEDIA.VIDEO.checked			= $("input[name=checkbox-FileTypeB]").is(':checked');
+	SEARCHMEDIA.AUDIO.checked 			= $("input[name=checkbox-FileTypeC]").is(':checked');
 
-	queueVisable = $("input[name=checkbox-QueueA]").is(':checked');
+	queueVisable 						= $("input[name=checkbox-QueueA]").is(':checked');
 	setStatusLayerVisibility(queueVisable);
 	
-	//New data, fake a move end
+	//Now that there is a new filter, face a moveend to reload the fustion layer.
 	onMapMoveEnd();
 }
 
 function toggleFilterPopup() {
-	filterPopup = $('#filterPopup');
-	
-	if(filterPopup.is(':visible')) {
-		filterPopup.hide();
+	if(div_FilterPopup.is(':visible')) {
+		div_FilterPopup.hide();
 	} else {
 		closeAllPopups();
-		filterPopup.show();
+		div_FilterPopup.show();
 		wasPopupOpen = true;
 	}
 }
 
-//Allows the customization of the heatmap: e.g.,
-// - show only Operational buildings
-// - only locations in the last 3 days
-// - only pictures
-// - or a combination of the three
+/*
+	Checks a location against the current filter options and returns true if
+		the building passes and should be shown.
+ */
 function shouldAddToLayer(_location) {
 	
-	var shouldI_Status	= false;	//can you?
-	var shouldI_Media 	= false;
-	var shouldI_Time 	= false;
+	var shouldI_Status	= false;	// True if the buildings status passes the filter.
+	var shouldI_Media 	= false;	// True if the buildings media type passes the filter.
+	var shouldI_Time 	= false;	// #TODO filter by time.
 		
+	// Check to see if the buildings status meets the filter requirements.
+	//   Set up this way because multiple options can be true at once.
 	if(SEARCHSTATUS.OPERATIONAL.value == _location.status && SEARCHSTATUS.OPERATIONAL.checked)
 		shouldI_Status = true;
 	else if(SEARCHSTATUS.LIMITED.value == _location.status && SEARCHSTATUS.LIMITED.checked)
@@ -1211,7 +1224,7 @@ function shouldAddToLayer(_location) {
 	else
 		shouldI_Status = false;
 	
-	//Now check to see if the media type is correct
+	// Now check to see if the locations media type meets the filter requirements.
 	fileType = getFileType(_location.media);
 		
 	if(SEARCHMEDIA.IMAGE.name == fileType && SEARCHMEDIA.IMAGE.checked)
@@ -1222,19 +1235,8 @@ function shouldAddToLayer(_location) {
 		shouldI_Media = true;
 	else
 		shouldI_Media = false;
-		
-	/*
-	console.log(" - current    : " + _location.status);
-	console.log(" - current    : " + fileType);
-	console.log("--------------");
-	console.log(" - Should You? Status : " + shouldI_Status);
-	console.log(" - Should You? Media  : " + shouldI_Media);
-	console.log(" - Should You? Time   : " + shouldI_Time);
-	console.log("     - return " + (shouldI_Status && shouldI_Media));
-	console.log("0===========================================0");
-	*/
 	
-	//Return true if the item meets all filters
+	// Return true if the location meets all filters requirements.
 	return (shouldI_Status && shouldI_Media);
 }
 
@@ -1334,8 +1336,8 @@ function togglePhotoVideoDialog(){
 	//Move B, get out the way: JIC the other popup is open
 	if(selectedFeature)
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
-	if($('#filterPopup').is(':visible'))
-		$('#filterPopup').hide();
+	if(div_FilterPopup.is(':visible'))
+		div_FilterPopup.hide();
 
 	cameraORvideoPopup.toggle();
 	
@@ -1422,6 +1424,7 @@ function onDeviceReady()
 	
 	cameraORvideoPopup 			= $("#cameraORvideoPopup");
 	LocationPopup 				= $("#locationPopup");
+	div_FilterPopup				= $("#filterPopup");
 	
 	/*
 		Update the screens size and the orientation heading.
@@ -1553,7 +1556,7 @@ function onDeviceReady()
 			else {
 				//A popup was open, close em all!
 				//	cant call closeAllPopups, feature pop up cant be closed here =(
-				if($('#filterPopup').is(':visible'))
+				if(div_FilterPopup.is(':visible'))
 					toggleFilterPopup();
 				if(cameraORvideoPopup.is(':visible'))
 					togglePhotoVideoDialog();
