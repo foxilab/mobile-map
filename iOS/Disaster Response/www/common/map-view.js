@@ -6,41 +6,14 @@ var GoogleApi = new function() {
 }
 // Fusion Table Stuff
 var FusionServer = new function () {
-	// TODO: point this to the hosted web server
+	// #TODO: point this to the hosted web server
 	this.url = function () { return 'http://findplango.com:8080/DSI/rest/fusion'; }
 };
 var FusionTableId = new function () {
-	this.statusref = function () { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
-	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
-	this.locationsID = function() { return '2749284'; };
+	this.statusref		= function() { return '1IhAYlY58q5VxSSzGQdd7PyGpKSf0fhjm7nSetWQ'; };
+	this.locations		= function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
+	this.locationsID	= function() { return '2749284'; };
 }
-
-/*
- * OpenLayers.Map
- */
-var map;
-var heatmapLayer;
-var screenLocked = true;
-var orientationHeadingOffset = 0;
-
-//PHONE VARIABLES
-var isAppPaused = false;
-var isInternetConnection = false;
-var isLandscape = false;
-//Badges
-var itemsInQueue = 0;
-var appNotifications = 0;
-//App
-var isAutoPush = false; 
-
-var centered = false;
-var locatedSuccess = true;
-
-var wasPopupOpen = false;
-var wasPopupClosed = false;
-
-var screenWidth;
-var screenHeight;
 
 /* ============================ *
  *  	   Common divs
@@ -51,86 +24,153 @@ var div_MapContent;
 var div_Map;
 
 var div_PageFooter;
-
+ 
 /* ============================ *
- *    Resolution per level
- * ============================ *
- *  01 .... 78271.51695 
- *  02 .... 39135.758475 
- *  03 .... 19567.8792375 
- *  04 .... 9783.93961875 
- *  05 .... 4891.969809375 
- *  06 .... 2445.9849046875 
- *  07 .... 1222.99245234375 
- *  08 .... 611.496226171875 
- *  09 .... 305.7481103859375 
- *  10 .... 152.87405654296876 
- *  11 .... 76.43702827148438 
- *  12 .... 38.21851413574219 
- *  13 .... 19.109257067871095 
- *  14 .... 9.554628533935547 
- *  15 .... 4.777314266967774 
- *  16 .... 2.388657133483887 
- *  17 .... 1.1943285667419434 
- *  18 .... 0.5971642833709717
+ *   Projections and Extents
  * ============================ */
-
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
 var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
 var restrictedExtent = maxExtent.clone();
 var maxResolution = 78271.51695;
 var iconMaxResolution = 4.777314266967774;
-var cameraORvideoPopup;
-var LocationPopup;
-var clickedLonLat = null;
 
-var positionUnlockedImage = "css/images/PositionUnlocked.png";
-var positionLockedImage = "css/images/PositionLocked.png";
+	/* ============================ *
+	 *    Resolution per level
+	 * ============================ *
+	 *  01 .... 78271.51695 
+	 *  02 .... 39135.758475 
+	 *  03 .... 19567.8792375 
+	 *  04 .... 9783.93961875 
+	 *  05 .... 4891.969809375 
+	 *  06 .... 2445.9849046875 
+	 *  07 .... 1222.99245234375 
+	 *  08 .... 611.496226171875 
+	 *  09 .... 305.7481103859375 
+	 *  10 .... 152.87405654296876 
+	 *  11 .... 76.43702827148438 
+	 *  12 .... 38.21851413574219 
+	 *  13 .... 19.109257067871095 
+	 *  14 .... 9.554628533935547 
+	 *  15 .... 4.777314266967774 
+	 *  16 .... 2.388657133483887 
+ 	*  17 .... 1.1943285667419434 
+	 *  18 .... 0.5971642833709717
+ 	* ============================ */
 
+/* ============================ *
+ * 			Controls
+ * ============================ */
+var selectControl;
+var touchNavOptions = {
+	dragPanOptions: {
+		interval: 0, //non-zero kills performance on some mobile phones
+		enableKinetic: true
+	}
+};
+var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
+
+/* ============================ *
+ * 			   Map
+ * ============================ */
+var map;
+var mapOptions = {
+	div: "OpenLayersMap",
+	projection: WGS84_google_mercator,
+	displayProjection: WGS84,
+	numZoomLevels : 20,
+	maxResolution: maxResolution,
+	maxExtent: maxExtent,
+	allOverlays: true,
+	restrictedExtent: restrictedExtent,
+	controls: [
+		rotatingTouchNav
+	]
+};
+
+/* ============================ *
+ * 		   Symbolizers
+ * ============================ */
+var positionUnlockedImage	= "css/images/PositionUnlocked.png";
+var positionLockedImage		= "css/images/PositionLocked.png";
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-	pointRadius : 25,
-    externalGraphic : positionUnlockedImage,
-	fillOpacity: 1,
-	rotation: 0
+		pointRadius : 25,
+    	externalGraphic : positionUnlockedImage,
+		fillOpacity: 1,
+		rotation: 0
 });
 
 var statusSymbolizer = new OpenLayers.Symbolizer.Point({
-    pointRadius : 10,
-    fillColor: "${status}",
-    strokeColor: "${status}",
-    fillOpacity: 0.4,
-    rotation: 0
+    	pointRadius : 10,
+    	fillColor: "${status}",
+    	strokeColor: "${status}",
+    	fillOpacity: 0.4,
+    	rotation: 0
 });
 
+var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
+		pointRadius : 25,
+		externalGraphic : "${image}",
+		fillOpacity: 1,
+		rotation: 0
+});
+
+/* ============================ *
+ * 		   	  Styles
+ * ============================ */
 var navStyle = new OpenLayers.StyleMap({
 	"default" : new OpenLayers.Style(null, {
 		rules : [ new OpenLayers.Rule({
-					symbolizer : navSymbolizer
-				})]
+			symbolizer : navSymbolizer
+		})]
 	})
 });
 
 var statusStyle = new OpenLayers.StyleMap({
     "default" : new OpenLayers.Style(null, {
-       rules : [ new OpenLayers.Rule({
-                    symbolizer : statusSymbolizer
-               })]
+    	rules : [ new OpenLayers.Rule({
+        	symbolizer : statusSymbolizer
+		})]
     })
 });
 
+var fusionStyle = new OpenLayers.StyleMap({
+	"default" : new OpenLayers.Style(null, {
+		rules : [ new OpenLayers.Rule({
+			symbolizer : fusionSymbolizer
+		})]
+	})
+});
+
+/* ============================ *
+ *  	 	 Layers
+ * ============================ */
+var heatmapLayer;
+var mapLayerOSM;
+
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
-    styleMap: navStyle
+    	styleMap: navStyle
 });
 
 var statusLayer = new OpenLayers.Layer.Vector("Status Layer", {
-    styleMap: statusStyle,
-	displayProjection: WGS84,
-	projection: WGS84_google_mercator,
-	maxResolution: iconMaxResolution,
-	minResolution: "auto"
+    	styleMap: statusStyle,
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: iconMaxResolution,
+		minResolution: "auto"
 });
 
+var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
+		styleMap: fusionStyle,
+		displayProjection: WGS84,
+		projection: WGS84_google_mercator,
+		maxResolution: iconMaxResolution,
+		minResolution: "auto"
+});
+
+/* ============================ *
+ *  	    Strategies
+ * ============================ */
 var statusSaveStrategy = new OpenLayers.Strategy.Save();
 var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     strategies: [new OpenLayers.Strategy.BBOX(), statusSaveStrategy],
@@ -146,56 +186,39 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
     visibility: false
 });
 
-var touchNavOptions = {
-	dragPanOptions: {
-		interval: 0, //non-zero kills performance on some mobile phones
-		enableKinetic: true
-	}
-};
+/* ============================ *
+ *  	 	 Popups
+ * ============================ */
+var cameraORvideoPopup;
+var clickedLonLat = null;
+var LocationPopup;
 
-var oldRotation = 0;
-var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
+/* ============================ *
+ *  	 Other Variables
+ * ============================ */
+//PHONE VARIABLES
+var isAppPaused 				= false;
+var isInternetConnection 		= false;
+var isLandscape 				= false;
+var screenLocked 				= true;
+var orientationHeadingOffset	= 0;
+var oldRotation 				= 0;
+var screenWidth;
+var screenHeight;
 
-var mapOptions = {
-	div: "OpenLayersMap",
-	projection: WGS84_google_mercator,
-	displayProjection: WGS84,
-	numZoomLevels : 20,
-	maxResolution: maxResolution,
-	maxExtent: maxExtent,
-	allOverlays: true,
-	restrictedExtent: restrictedExtent,
-	controls: [
-		   rotatingTouchNav
-	]
-};
+//App
+var isAutoPush 			= false; 
+var centered 			= false;
+var locatedSuccess 		= true;
+var wasPopupOpen		= false;
+var wasPopupClosed		= false;
+var user_CurrentPosition;
 
-//Fusion Layer Variables (Building Icons) 
-var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius : 25,
-		externalGraphic : "${image}",
-		fillOpacity: 1,
-		rotation: 0
-});
-													   
-var fusionStyle = new OpenLayers.StyleMap({
-		"default" : new OpenLayers.Style(null, {
-			rules : [ new OpenLayers.Rule({
-				symbolizer : fusionSymbolizer})]
-			})
-});
+//Badges
+var itemsInQueue		= 0;
+var appNotifications	= 0;
 
-var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
-		styleMap: fusionStyle,
-		displayProjection: WGS84,
-		projection: WGS84_google_mercator,
-		maxResolution: iconMaxResolution,
-		minResolution: "auto"
-});
-
-var fusionLayer_IsVisible = true;
-
-//Heatmap Variables
+//Heatmap
 var heatmapGradient = {
 	0.05: "rgb(128,128,128)", 
 	0.25: "rgb(0,255,0)", 
@@ -204,9 +227,10 @@ var heatmapGradient = {
 	1.00: "rgb(255,0,0)"
 };
 
-var heatmap_IsVisible = true;
-var heatmapLayer_IsVisible = false;
-var heatmapToggle_IsVisible = false;
+var heatmap_IsVisible 		= true;
+var heatmapLayer_IsVisible	= false;
+var heatmapToggle_IsVisible	= false;
+var fusionLayer_IsVisible	= true;
 
 /*
  		==============================================
@@ -220,7 +244,6 @@ function onBodyLoad() {
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
-var user_CurrentPosition;
 function centerMap() {
 	map.setCenter(new OpenLayers.LonLat(user_CurrentPosition.lon, user_CurrentPosition.lat).transform(WGS84, WGS84_google_mercator));
 }
@@ -343,11 +366,6 @@ function googleSQL(sql, type, success, error) {
 		}
 	});
 }
-
-/* When this function is called, PhoneGap has been initialized and is ready to roll */
-/* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
- see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
- for more details -jm */
 
 function mediaUploadSuccess(response) {
 	console.log('media upload success');
@@ -1358,11 +1376,6 @@ function searchForAddress(address){
 	  }
 	});
 }
-
-var selectControl;
-var mapLayerOSM;
-
-
 
 /*
 		 ==============================================
