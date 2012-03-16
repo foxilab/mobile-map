@@ -121,7 +121,6 @@
 				display:none;
 				position:relative;
 				z-index:1000;
-				/*top:20%;  #BUGFIX 38: This causes it to not center.*/
 				margin:auto;
 				background-color:#505050;
 				min-width:300px;
@@ -148,23 +147,20 @@
 			}
 			
 	</style>
-		<!-- iPad/iPhone specific css below, add after your main css >
-		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
-		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
-		-->
-		<!-- If your application is targeting iOS BEFORE 4.0 you MUST put json2.js from http://www.JSON.org/json2.js into your www directory and include it here -->
 		<script type="text/javascript" charset="utf-8" src="json2.js"></script>
 	</head>
 
 	<body onload="onBodyLoad()">
-		<div data-role="page" id='map-page' class="mypage" data-theme='a'> 
-			<div data-role="content" id="map-content" style="padding: 0px!important"> 
+	
+		<!-- Map Page -->
+		<div data-role="page" id='map-page' class="mypage" data-theme='a'>
+			<!-- Map Page: Content -->
+			<div data-role="content" id="map-content" style="padding: 0px!important">
+				<!-- Map Page: Map Container -->
 				<div id="mapContainer" style="background-color:white;">
+					<!-- Map Page: OpenLayers Map -->
 					<div id="OpenLayersMap"></div>
-					<!--<div id="zoomPanel"></div>-->
-					<!--<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
-						<image src="css/images/Reflect_Vertical.png" alt="north"/>
-					</div>-->
+
 					<div id="navigation" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
 						<a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
@@ -248,9 +244,11 @@
 							</audio>
 						</div>
 					</div>
-				</div>
-			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+				</div> <!-- /Map Page: Map Container -->
+			</div> <!-- /Map Page: Content -->
+			
+			<!-- Page Footer -->
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li class='map-tab-button'><a href="#map-page" data-icon="home" class="ui-btn-active ui-state-persist">Map</a></li>
@@ -259,8 +257,8 @@
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
 					</ul>
 				</div>
-			</div>
-		</div>
+			</div> <!-- /Page Footer -->
+		</div> <!-- /Map Page -->
 
 		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
 			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
@@ -342,7 +340,7 @@
 				<h3>User</h3>
 				<p>User data and variables go here.</p>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -364,7 +362,7 @@
 				<li><img src="Buildings/3D_Red.png" class="ui-li-icon">&nbsp; - Non-Operational</li>
 				</ul>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -388,7 +386,7 @@
 					</audio>
 				</div>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -405,7 +403,7 @@
 				<div id='gallery'>
 				</div>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -441,7 +439,7 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
 	<!--<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>-->
 
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>

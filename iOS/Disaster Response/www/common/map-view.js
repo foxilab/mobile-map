@@ -1,3 +1,6 @@
+/* ============================ *
+ *    		 API Keys
+ * ============================ */
 var GoogleApi = new function() {
 	this.key = function () { return 'AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0'; }
 }
@@ -11,25 +14,6 @@ var FusionTableId = new function () {
 	this.locations  = function() { return '1G4GCjQ21U-feTOoGcfWV9ITk4khKZECbVCVWS2E'; };
 	this.locationsID = function() { return '2749284'; };
 }
-
-// If you want to prevent dragging, uncomment this section
-/*
- function preventBehavior(e) 
- { 
- e.preventDefault(); 
- };
- document.addEventListener("touchmove", preventBehavior, false);
- */
-
-/* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
- see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
- for more details -jm */
-/*
- function handleOpenURL(url)
- {
- // TODO: do something with the url passed in.
- }
- */
 
 /*
  * OpenLayers.Map
@@ -58,28 +42,38 @@ var wasPopupClosed = false;
 var screenWidth;
 var screenHeight;
 
-// ============================
-//    Resolution per level
-// ============================
-//  01 .... 78271.51695 
-//  02 .... 39135.758475 
-//  03 .... 19567.8792375 
-//  04 .... 9783.93961875 
-//  05 .... 4891.969809375 
-//  06 .... 2445.9849046875 
-//  07 .... 1222.99245234375 
-//  08 .... 611.496226171875 
-//  09 .... 305.7481103859375 
-//  10 .... 152.87405654296876 
-//  11 .... 76.43702827148438 
-//  12 .... 38.21851413574219 
-//  13 .... 19.109257067871095 
-//  14 .... 9.554628533935547 
-//  15 .... 4.777314266967774 
-//  16 .... 2.388657133483887 
-//  17 .... 1.1943285667419434 
-//  18 .... 0.5971642833709717
-// ============================
+/* ============================ *
+ *  	   Common divs
+ * ============================ */
+var div_MapPage;
+var div_MapContainer;
+var div_MapContent;
+var div_Map;
+
+var div_PageFooter;
+
+/* ============================ *
+ *    Resolution per level
+ * ============================ *
+ *  01 .... 78271.51695 
+ *  02 .... 39135.758475 
+ *  03 .... 19567.8792375 
+ *  04 .... 9783.93961875 
+ *  05 .... 4891.969809375 
+ *  06 .... 2445.9849046875 
+ *  07 .... 1222.99245234375 
+ *  08 .... 611.496226171875 
+ *  09 .... 305.7481103859375 
+ *  10 .... 152.87405654296876 
+ *  11 .... 76.43702827148438 
+ *  12 .... 38.21851413574219 
+ *  13 .... 19.109257067871095 
+ *  14 .... 9.554628533935547 
+ *  15 .... 4.777314266967774 
+ *  16 .... 2.388657133483887 
+ *  17 .... 1.1943285667419434 
+ *  18 .... 0.5971642833709717
+ * ============================ */
 
 var WGS84 = new OpenLayers.Projection("EPSG:4326");
 var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
@@ -214,6 +208,14 @@ var heatmap_IsVisible = true;
 var heatmapLayer_IsVisible = false;
 var heatmapToggle_IsVisible = false;
 
+/*
+ 		==============================================
+ 						onBodyLoad
+ 		==============================================
+		
+	This is the main entry point into the application. When the app loads we check to see if
+	PhoneGap is ready. The moment it is we call onDeviceReady and can safely do what we want.
+ */
 function onBodyLoad() {
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
@@ -434,7 +436,7 @@ function callGoogleSQL(sql, id){
 			updateQueueSize();
 			
 			//Hack to refesh the map icons, problem OpenLayers?
-			map.zoomOut(); map.zoomIn();
+			onMapMoveEnd();
 		}
 	});
 }
@@ -478,7 +480,7 @@ function uploadFileToS3(row, photoguid, sql) {
 		"expiration": "2012-12-01T12:00:00.000Z",
 		"conditions": [
 			{"bucket":			"mobileresponse"},
-			["starts-with",	"$key", "user/kzusy/"],
+			["starts-with",		"$key", "user/kzusy/"],
 			{"acl":				"public-read" },
 			{"Content-Type":	mimeType}
 		]
@@ -492,14 +494,14 @@ function uploadFileToS3(row, photoguid, sql) {
 	var extension = filepath.substr(extensionIndex).toLowerCase();
 	
 	var params = {
-		key:					"user/kzusy/" + photoguid + extension,
+		key:				"user/kzusy/" + photoguid + extension,
 		bucket:				"mobileresponse",
-		AWSAccessKeyId:	"AKIAJPZTPJETTBZ5A5IA",
+		AWSAccessKeyId:		"AKIAJPZTPJETTBZ5A5IA",
 		policy:				encodedPolicy,
-		acl:					"private",
+		acl:				"private",
 		signature:			signature,
-		acl:					"public-read",
-		"Content-Type":	mimeType
+		acl:				"public-read",
+		"Content-Type":		mimeType
 	};
 
 	var options = new FileUploadOptions();
@@ -1360,18 +1362,18 @@ function searchForAddress(address){
 var selectControl;
 var mapLayerOSM;
 
-var div_Map;
-var div_MapContainer;
+
 
 /*
 		 ==============================================
  						 onDeviceReady
  		 ==============================================
+		 
+	Now that PhoneGap is initalized we can begin the application. This function
+	sets up all the variables and listeners.
 */
 function onDeviceReady()
 {
-	console.log("onDeviceReady");
-	
 	/*
 		The device is ready! First lets set up our listeners so we can tell
 		when certian things, like rotation, happen.
@@ -1383,7 +1385,7 @@ function onDeviceReady()
 	document.addEventListener("batterycritical"  , onBatteryCritical  , false);
 	document.addEventListener("batterylow"       , onBatteryLow       , false);
 	document.addEventListener("batterystatus"    , onBatteryStatus    , false);
-//	window.addEventListener("orientationchange", onOrientationChange, false);
+	//window.addEventListener("orientationchange", onOrientationChange, false);
 	  
 	/*
 		Overwrite the error handler so we can get more information about the error.
@@ -1395,30 +1397,26 @@ function onDeviceReady()
     };
 	
 	/*
-		Store variables to commonly used divs.
+		Store variables to some commonly used divs.
 	*/
-	div_Map 					= $("#OpenLayersMap");
+	div_MapPage					= $("#map-page");
 	div_MapContainer 			= $("#mapContainer");
+	div_MapContent				= $("#map-content");
+	div_Map 					= $("#OpenLayersMap");
+	div_PageFooter				= $("#Page_Footer");
 	
-	//Lets get the devices current screen size
-	// this will always return the correct screenWidth and screenHeight
-	// other methods return false values.
-	//   - screenWidth  = window.innerWidth;
-	//   - screenHeight = window.innerHeight;
+	cameraORvideoPopup 			= $("#cameraORvideoPopup");
+	LocationPopup 				= $("#locationPopup");
+	
+	/*
+		Update the screens size and the orientation heading.
+	*/
 	updateScreenSize();
-	
-	//Update the oridentation
 	updateOrientationHeading();
-	
-	//Initalize variables
-	cameraORvideoPopup = $("#cameraORvideoPopup");
-	LocationPopup = $("#locationPopup");
 
-	audiojs.events.ready(function() {
-		var as = audiojs.createAll();
-	});
-
-	// The Local Database (global for a reason)
+	/*
+		Initialize the local databases or create them if they don't exist.
+	*/
 	try {
 		if (!window.openDatabase) {
 			// Do we need to support this?
@@ -1439,8 +1437,12 @@ function onDeviceReady()
 	}
 
 	initFilter();
+	
+	audiojs.events.ready(function() {
+						 var as = audiojs.createAll();
+						 });
 
-	var footerHeight = $("#map-footer").height();
+	var footerHeight = div_PageFooter.height();
 	console.log("footerHeight: " + footerHeight);
 	var mapHeight = screenHeight - footerHeight;
 
@@ -1463,15 +1465,13 @@ function onDeviceReady()
 		console.log('fixContentHeight');
 		
 		if ($.mobile.activePage.attr('id') == "map-page") {
-			var footer = $("#map-footer");
-			var content = $("#map-content");
 			var viewHeight = $(window).height();
 
-			var contentHeight = viewHeight - footer.outerHeight();
-			if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
-				contentHeight -= (content.outerHeight() - content.height());
+			var contentHeight = viewHeight - div_PageFooter.outerHeight();
+			if ((div_MapContent.outerHeight() + div_PageFooter.outerHeight()) !== viewHeight) {
+				contentHeight -= (div_MapContent.outerHeight() - div_MapContent.height());
 //				contentHeight += map.tileSize.h;
-				content.height(contentHeight);
+				div_MapContent.height(contentHeight);
 				div_Map.height(contentHeight+"px");
 				div_Map.width($(window).width()+"px");
 
@@ -1853,7 +1853,7 @@ $(document).ready(function () {
 	});
 
 	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
-		$('#map-footer li').removeClass('ui-btn-active');
+		$('#Page_Footer li').removeClass('ui-btn-active');
 
 		if ($(popup.prevPage).attr('id') == 'map-page') {
 			$('#fs-audio').hide();
@@ -2099,7 +2099,6 @@ $(document).ready(function () {
 	$('input[name="checkbox-StatusB"]').live('change',filterUpdated);
 	$('input[name="checkbox-StatusC"]').live('change',filterUpdated);
 	$('input[name="checkbox-StatusD"]').live('change',filterUpdated);
-	
 	$('input[name="checkbox-FileTypeA"]').live('change',filterUpdated);
 	$('input[name="checkbox-FileTypeB"]').live('change',filterUpdated);
 	$('input[name="checkbox-FileTypeC"]').live('change',filterUpdated);
@@ -2119,8 +2118,8 @@ function submitToServer() {
 				//  DO NOT TOUCH! It may look wrong       +-Here
 				//    but this will run fine.             v
 					var name = row.name.replace(/\'/g, "\\'"); 
-					sql += squote(name) + ',';
-				//--------------------------------------------------				
+				//--------------------------------------------------
+				sql += squote(name) + ',';
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var photoguid = Math.uuid();
@@ -2182,7 +2181,6 @@ function getQueueSize(_tx) {
 function getQueueSizeSuccessCB() {
 	//Now itemsInQueue is at the current count, update everything
 	appNotifications = itemsInQueue;
-	//updateTabItemBadge('Queue', itemsInQueue);
 	updateAppBadge(appNotifications);
 }
 
@@ -2236,23 +2234,18 @@ function setStatusLayerVisibility(_visible) {
 
 function updateAppBadge(_amount) {
     if(_amount >= 1) {
-        //console.log('App: Badge added with the value ' + _amount + '.');
-		//#BADGEPLUGIN
         window.plugins.badge.set(_amount);
     }
-    else
+    else {
         hideAppBadge();
+	}
 }
 
 function hideAppBadge() {
-    //console.log('App: Badge removed from App.');
-	//#BADGEPLUGIN
     window.plugins.badge.clear();
 }
 
 function showQueueTab() {
-	//selectTabBarItem('Queue');
-	//selectedTabBarItem = 'Queue';
 	$.mobile.changePage('#queue-dialog', 'pop');
 }
 
@@ -2263,21 +2256,6 @@ function showQueueTab() {
 
     When the application is put into the background via the home button, phone call, app switch, etc. it is paused. Any Objective-C code or PhoneGap code (like alert()) will not run. This callback will allow us to pause anything we need to to avoid time based errors.
  
-*/
-/*
-function resizeImageViewer() {
-	var $imgviewer = $('#image-viewer');
-	if ($imgviewer.is(':visible')) {
-		console.log('resized');
-		var $img = $imgviewer.find('img');
-		$img.attr('max-width', $(window).width());
-		$img.position({
-			my:	'center',
-			at:	'center',
-			of:	$imgviewer
-		});
-	}
-}
 */
 function onAppPause() {
     console.log('Listener: App has been paused.');
@@ -2320,7 +2298,7 @@ function onAppResume() {
 	}
 }
 
-						   var reloadScript = false;
+var reloadScript = false;
 /*
     Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
@@ -2443,7 +2421,7 @@ function resizeMapContainer(){
 	$('.mypage').width(screenWidth);
 
 	//Get the size of the footer and adjust the mapHeight
-	var footerHeight = $("#map-footer").height();
+	var footerHeight = div_PageFooter.height();
 	var mapHeight = screenHeight - footerHeight;
 
 	console.log('resizing map container');
