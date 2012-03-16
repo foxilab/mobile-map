@@ -3,7 +3,7 @@
 	<head>
 		<title></title>
 
-		<meta name="viewport" content="height=device-height, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
 		<meta charset="utf-8">
 
 		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
@@ -38,12 +38,23 @@
 				width: 18px;
 			}
 			#heatmapLockButton {
-				position: absolute;
-				bottom: 10px;
+				position: fixed;
+				bottom: 45px;
 				left: 10px;
 				z-index: 1000;
 			}
 			#heatmapLockButton .ui-btn-icon-notext {
+				display: block;
+				padding: 7px 6px 7px 8px;
+			}
+			
+			#centerButton {
+				position: fixed;
+				bottom: 45px;
+				right: 10px;
+				z-index: 1000;
+			}
+			#centerButton .ui-btn-icon-notext {
 				display: block;
 				padding: 7px 6px 7px 8px;
 			}
@@ -72,8 +83,8 @@
 			}
 
 			#navigation {
-				position: absolute;
-				bottom: 70px;
+				position: fixed;
+				bottom: 95px;
 				left: 10px;
 				z-index: 1000;
 			}
@@ -149,7 +160,7 @@
 		<div data-role="page" id='map-page' class="mypage" data-theme='a'> 
 			<div data-role="content" id="map-content" style="padding: 0px!important"> 
 				<div id="mapContainer" style="background-color:white;">
-					<div id="OpenLayersMap" style=""></div>
+					<div id="OpenLayersMap"></div>
 					<!--<div id="zoomPanel"></div>-->
 					<!--<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
 						<image src="css/images/Reflect_Vertical.png" alt="north"/>
@@ -161,6 +172,10 @@
 
 					<div id="heatmapLockButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="heatmapLock" data-icon="plus" data-iconpos="notext"></a>
+					</div>
+					
+					<div id="centerButton" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" id="center" data-icon="home" data-iconpos="notext"></a>
 					</div>
 
 					<div id="filterButton" data-role="controlgroup" data-type="vertical">
@@ -425,9 +440,9 @@
 	<script type="text/javascript" charset="utf-8" src="heatmap-openlayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>
-	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>-->
-	<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>
+	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
+	<!--<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>-->
 
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
 </html>
