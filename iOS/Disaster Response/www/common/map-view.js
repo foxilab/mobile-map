@@ -6,7 +6,7 @@ var GoogleApi = new function() {
 }
 // Fusion Table Stuff
 var FusionServer = new function () {
-	// #TODO: point this to the hosted web server
+	/* #TODO: point this to the hosted web server */
 	this.url = function () { return 'http://findplango.com:8080/DSI/rest/fusion'; }
 };
 var FusionTableId = new function () {
@@ -18,16 +18,16 @@ var FusionTableId = new function () {
 /* ============================ *
  *  	   Common divs
  * ============================ */
-var div_MapPage;		// The Map page div.
-var div_MapContainer;	// The div that houses the map, popups, and other controls.
-var div_MapContent;		// The div that stores the content for the MapPage.
-var div_Map;			// The div that stores the Openlayers map.
+var div_MapPage;		/* The Map page div.  										*/
+var div_MapContainer;	/* The div that houses the map, popups, and other controls.	*/
+var div_MapContent;		/* The div that stores the content for the MapPage.  		*/
+var div_Map;			/* The div that stores the Openlayers map.  				*/
 
-var div_PageFooter;		// The div that stores the footer for every page.
+var div_PageFooter;		/* The div that stores the footer for every page.  			*/
 
-var cameraORvideoPopup;	// The div that stores the cameraOrVideo popup.
-var LocationPopup;		// The div that stores the Location popup.
-var div_FilterPopup;	// The div that stores the Filter popup.
+var cameraORvideoPopup;	/* The div that stores the cameraOrVideo popup.  			*/
+var LocationPopup;		/* The div that stores the Location popup.  				*/
+var div_FilterPopup;	/* The div that stores the Filter popup.  					*/
  
 /* ============================ *
  *   Projections and Extents
@@ -68,7 +68,7 @@ var iconMaxResolution 		= 4.777314266967774;
 var selectControl;
 var touchNavOptions = {
 	dragPanOptions: {
-		interval: 		0, //non-zero kills performance on some mobile phones
+		interval: 		0, /* non-zero kills performance on some mobile phones  */
 		enableKinetic:	true
 	}
 };
@@ -194,16 +194,16 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
 /* ============================ *
  *  	 	 Popups
  * ============================ */
-var clickedLonLat 		= null;	 // When the cameraOrVideo popup is toggled, store the LonLat of the click.
-var popupFeature 		= null;	 // The current location displayed in the Location popup.
-var popupFeatureMain	= null;	 // The main feature that holds all the locations in the Location popup.
-var selectedFeature 	= null;	 // The feature that is currently selected.
-var queueVisable 		= true;	 // Used in the filter popup to display the local queued locations.
+var clickedLonLat 		= null;	 /* When the cameraOrVideo popup is toggled, store the LonLat of the click.	 */
+var popupFeature 		= null;	 /* The current location displayed in the Location popup.					 */
+var popupFeatureMain	= null;	 /* The main feature that holds all the locations in the Location popup.	 */
+var selectedFeature 	= null;	 /* The feature that is currently selected.									 */
+var queueVisable 		= true;	 /* Used in the filter popup to display the local queued locations.			 */
 
-var wasPopupOpen		= false; //True if a popup was just opened.
-var wasPopupClosed		= false; //True if a popup was just closed.
+var wasPopupOpen		= false; /* True if a popup was just opened.	 */
+var wasPopupClosed		= false; /* True if a popup was just closed.	 */
 
-// Used for sorting in the filter popup, also holds if an item is checked or not
+/* Used for sorting in the filter popup, also holds if an item is checked or not  */
 var SEARCHSTATUS = {
 	ALL 			: {value: 0, name: "All", 						color: "Black",  checked: false},
 	OPERATIONAL		: {value: 1, name: "Operational", 				color: "Green",  checked: true },
@@ -228,28 +228,28 @@ var SEARCHTIME = {
 /* ============================ *
  *  	 Other Variables
  * ============================ */
-//PHONE VARIABLES
-var isAppPaused 				= false;	// True if the app is currently in the background.
-var isInternetConnection 		= false;	// True if the device is connected to the internet.
-var isLandscape 				= false;	// True if the device is in landscape mode.
+/* PHONE VARIABLES */
+var isAppPaused 				= false;	/* True if the app is currently in the background.  */
+var isInternetConnection 		= false;	/* True if the device is connected to the internet.	*/
+var isLandscape 				= false;	/* True if the device is in landscape mode.			*/
 var screenLocked 				= true;
 var orientationHeadingOffset	= 0;
 var oldRotation 				= 0;
 var screenWidth;
 var screenHeight;
 
-//App
-var isAutoPush 			= false; //If set to true, the app will try and push your local queue when you get internet.
-var centered 			= false; //If set to true, the map is centered on the users location. For initalization only.
-var locatedSuccess 		= true;	 //If set to true, the app successfully found your location. For initalization only.
-var user_CurrentPosition;			// Stores the users current position.
-									//	- user_CurrentPosition.lat and user_CurrentPosition.lon
+/* App */
+var isAutoPush 			= false;	/* If set to true, the app will try and push your local queue when you get internet.	 */
+var centered 			= false; 	/* If set to true, the map is centered on the users location. For initalization only.	 */
+var locatedSuccess 		= true;	 	/* If set to true, the app successfully found your location. For initalization only.	 */
+var user_CurrentPosition;			/* Stores the users current position.													 */
+									/*	- user_CurrentPosition.lat and user_CurrentPosition.lon								 */
 
-//Badges
-var itemsInQueue		= 0;		// Holds a current queue count.
-var appNotifications	= 0;		// The number to display on the apps notifacation badge (iOS only).
+/* Badges */
+var itemsInQueue		= 0;		/* Holds a current queue count.										 */
+var appNotifications	= 0;		/* The number to display on the apps notifacation badge (iOS only).	 */
 
-//Heatmap
+/* Heatmap */
 var heatmapGradient = {
 	0.05: "rgb(128,128,128)", 
 	0.25: "rgb(0,255,0)", 
@@ -275,6 +275,9 @@ function onBodyLoad() {
 	document.addEventListener("deviceready", onDeviceReady, false);
 }
 
+/*
+	Centers the map on the users current positon.
+ */
 function centerMap() {
 	map.setCenter(new OpenLayers.LonLat(user_CurrentPosition.lon, user_CurrentPosition.lat).transform(WGS84, WGS84_google_mercator));
 }
@@ -309,8 +312,8 @@ function geolocationSuccess(position) {
     }
     
     locatedSuccess = true;
-    //iPhone Quirks
-    //  position.timestamp returns seconds instead of milliseconds.
+    /* iPhone Quirks
+    /    position.timestamp returns seconds instead of milliseconds. */
 };
 
 function geolocationError(error) {
@@ -327,6 +330,11 @@ function geolocationError(error) {
         if(navigationLayer.features.length == 0) {
             var lon = -77.020000;
             var lat = 38.890000;
+			
+			user_CurrentPosition = { 
+				lon: lon,
+				lat: lat
+			};
             
             var currentPoint = new OpenLayers.Geometry.Point(lon, lat).transform(WGS84, WGS84_google_mercator);
             var currentPosition = new OpenLayers.Feature.Vector(currentPoint);
@@ -410,23 +418,23 @@ function mediaUploadFailure(response) {
 	Returns the mime type of a file based on the path provided. (ex: image/png, audio/mp3, video/mov)
  */
 function getFileMimeType(_filepath) {
-	var extension = getFileExtension(filepath);
-	var mime = null;
+	var extension = getFileExtension(_filepath);
+	var mime = "null/null";
 	
-	// Video MIME's
-	if(extension == "mov")
-		mime = "video/quicktime";
-	else if(extension == "mp4" || extension == "m4v")
-		mime = "video/mp4";
-	else if(filepath.substr(0, 22) == "http://www.youtube.com")
-		mime = "youtube";
-	// Audio MIME's
-	else if (extension == "wav")
-		mime = "audio/wav";
-	// MPEG 1 & 2
-	else if (extension == "mpg" || extension == "mpeg" || extension == "mp1" || extension == "mp2")
-		mime = "audio/mpeg"
-		// MPEG-3
+	/* Video MIME's */
+		if(extension == "mov")
+			mime = "video/quicktime";
+		else if(extension == "mp4" || extension == "m4v")
+			mime = "video/mp4";
+		else if(_filepath.substr(0, 22) == "http://www.youtube.com")
+			mime = "youtube";
+	
+	/* Audio MIME's */
+		else if (extension == "wav")
+			mime = "audio/wav";
+		else if (extension == "mpg" || extension == "mpeg" || extension == "mp1" || 
+				 extension == "mp2")
+			mime = "audio/mpeg"
 		else if (extension == "mp3")
 			mime = "audio/mpeg";
 		else if (extension == "ogg")
@@ -434,26 +442,24 @@ function getFileMimeType(_filepath) {
 		else if (extension == "m4a")
 			mime = "audio/mp4";
 	
-	// Image MIME's
+	/* Image MIME's */
 		else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
-				 extension == "jif" || extension == "jfif" || extension == "jfi")
+			 	 extension == "jif" || extension == "jfif" || extension == "jfi")
 			mime = "image/jpeg";
 		else if (extension == "png")
 			mime = "image/png";
 		else if (extension == "gif")
 			mime = "image/gif";
 	
-	// Media type not supported
-		else {
+	/* Media type not supported, this shouldn't happen so alert the user.  */
+		else
 			navigator.notification.alert('Media type .' + extension + ' not supported.', function(){}, 'Error', 'Okay');
-			mime = "null/null"
-		}
 	
 	return mime;
 }
 
 /*
- Returns the extension of a file based on the path provided. (ex: png, mp3, mov)
+ 	Returns the extension of a file based on the path provided. (ex: png, mp3, mov)
  */
 function getFileExtension(_filepath) {
 	var extIndex = _filepath.lastIndexOf('.');
@@ -485,10 +491,10 @@ function callGoogleSQL(sql, id){
 		if (rowid === 'rowid' && rows.length === 1) {
 			deleteLocation(sqlDb, id);
 			
-			//The sqlDb has changed, update the queue size.
+			// The sqlDb has changed, update the queue size.
 			updateQueueSize();
 			
-			//Hack to refesh the map icons, problem OpenLayers?
+			// Fake a moveend to update the fusion layer with the new data.
 			onMapMoveEnd();
 		}
 	});
@@ -498,36 +504,37 @@ function uploadFileToServer(row, photoguid, sql){
 	var filepath = row.media;
 	var name = row.name;
 	
-	var url = "http://findplango.com:8080/DSI/rest/youtube/upload";
-	var ft = new FileTransfer();
-	var mimeType = getFileMimeType(filepath);
-	var extensionIndex = filepath.lastIndexOf(".");
-	var extension = filepath.substr(extensionIndex).toLowerCase();
+	var url 			= "http://findplango.com:8080/DSI/rest/youtube/upload";
+	var ft 				= new FileTransfer();
+	var mimeType 		= getFileMimeType(filepath);
+	var extensionIndex	= filepath.lastIndexOf(".");
+	var extension 		= filepath.substr(extensionIndex).toLowerCase();
 	
 	var params = {
-		mimeType: mimeType,
-		name: name
+		mimeType:	mimeType,
+		name:		name
 	};
 	
-	var options = new FileUploadOptions();
-	options.fileName = photoguid + extension; 
-	options.params = params;
+	var options 		= new FileUploadOptions();
+		options.fileName	= photoguid + extension; 
+		options.params 		= params;
 	
 	ft.upload(filepath, url, function(response){
-		var videoId = response.response;
-		var url = "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
+		var videoId	= response.response;
+		var url 	= "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
+		var _sql 	= sql + squote(url) + ');';
 		console.log("videoId: " + videoId);
-		var _sql = sql + squote(url) + ');';
+		
 		callGoogleSQL(_sql, row.id);
 	}, function(response){console.log(response);}, options);
 }
 
 function uploadFileToS3(row, photoguid, sql) {
 	console.log("upload to s3");
-	var filepath = row.media;
-	var fileId = row.id;
+	var filepath	= row.media;
+	var fileId 		= row.id;
+	var mimeType 	= getFileMimeType(filepath);
 	console.log("fileId: " + fileId);
-	var mimeType = getFileMimeType(filepath);
 
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
@@ -539,12 +546,12 @@ function uploadFileToS3(row, photoguid, sql) {
 		]
 	};
 
-	var encodedPolicy = $.base64.encode(JSON.stringify(policy));
-	var secret = "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
-	var hmac = Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret, { asString: true });
-	var signature = $.base64.encode(hmac);
-	var extensionIndex = filepath.lastIndexOf(".");
-	var extension = filepath.substr(extensionIndex).toLowerCase();
+	var encodedPolicy 	= $.base64.encode(JSON.stringify(policy));
+	var secret 			= "snPtA2XuMhDBoJM9y0Sx8ILGnYAnPh5FfCwFpbIu";
+	var hmac 			= Crypto.HMAC(Crypto.SHA1, encodedPolicy, secret, { asString: true });
+	var signature		= $.base64.encode(hmac);
+	var extensionIndex	= filepath.lastIndexOf(".");
+	var extension 		= filepath.substr(extensionIndex).toLowerCase();
 	
 	var params = {
 		key:				"user/kzusy/" + photoguid + extension,
@@ -557,13 +564,13 @@ function uploadFileToS3(row, photoguid, sql) {
 		"Content-Type":		mimeType
 	};
 
-	var options = new FileUploadOptions();
-	options.mimeType = mimeType;
-	options.fileKey = "file";
-	options.fileName = filepath.substr(filepath.lastIndexOf('/')+1);
-	options.params = params;
+	var options 		= new FileUploadOptions();
+		options.mimeType 	= mimeType;
+		options.fileKey 	= "file";
+		options.fileName	= filepath.substr(filepath.lastIndexOf('/')+1);
+		options.params 		= params;
 
-	var ft = new FileTransfer();
+	var ft 	= new FileTransfer();
 	var url = 'http://mobileresponse.s3.amazonaws.com';
 	ft.upload(filepath, url, function(){
 		console.log("callgooglesql how many times?");
@@ -573,39 +580,45 @@ function uploadFileToS3(row, photoguid, sql) {
 
 /*
  		==============================================
-		 			HeatMap and Icons
+		 			Map Movement Callbacks
  		==============================================
+		
+	This function gets called whenever the map stops moving (either from a pan or a zoom).
  */
 function onMapMoveEnd(_event) {
-	//Close all popups or just some?
+	/* Close any open popups. */
+	/*    #TODO - Close all popups or just some? */
 	if(selectedFeature)
 		selectControl.unselect(selectedFeature);
 
-	//The map bounds has changed...get the bounds and convert it
+	/* Now that the map is done moving, get the new bounds and convert it. */
 	var bounds = map.getExtent();
 	var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
 	var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
 	
-	//Generate the SQL
+	/* Generate the SQL to get all location statuses within the current map bounds. */
 	var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
 		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
 		"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
 	
-	//Display the correct layer depending on the resolution
+	/* Display the correct layer based on the maps current resolution. */
 	if(map.getResolution() <= iconMaxResolution) {
-		//Display the icons, but hide the heatmap
+		/* Display the icons, but hide the heatmap */
 		turnFusionLayerOn();
 		turnHeatMapToggleButtonOff();
 	} else {
-		//STOP! Heatmap time!
+		/* STOP! Heatmap time! */
 		turnFusionLayerOff();
 		turnHeatMapToggleButtonOn();
 	}
 			
-	//With the bounds and SQL, query the Fusion Table for the features.
+	/* Query the Fusion Table for features with the new parameters. */
 	googleSQL(sql, 'GET', fusionSQLSuccess);
 }
 
+/*
+	This function gets called right before the map begins to move.
+ */
 function onMapMoveStart(_event) {
 	
 }
@@ -704,6 +717,8 @@ function setFusionLayerVisibility(_visible) {
  		==============================================
 							PopUps
  		==============================================
+		
+	Creates the popup you get for clicking on a feature on the map.
  */
 function createLocationPopup(_feature) {
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
@@ -1211,12 +1226,14 @@ function toggleFilterPopup() {
  */
 function shouldAddToLayer(_location) {
 	
-	var shouldI_Status	= false;	// True if the buildings status passes the filter.
-	var shouldI_Media 	= false;	// True if the buildings media type passes the filter.
-	var shouldI_Time 	= false;	// #TODO filter by time.
+	var shouldI_Status	= false;	/* True if the buildings status passes the filter. */
+	var shouldI_Media 	= false;	/* True if the buildings media type passes the filter. */
+	var shouldI_Time 	= false;	/* #TODO filter by time. */
 		
-	// Check to see if the buildings status meets the filter requirements.
-	//   Set up this way because multiple options can be true at once.
+	/* 
+		Check to see if the buildings status meets the filter requirements.
+		 - Set up this way because multiple options can be true at once.
+	*/
 	if(SEARCHSTATUS.OPERATIONAL.value == _location.status && SEARCHSTATUS.OPERATIONAL.checked)
 		shouldI_Status = true;
 	else if(SEARCHSTATUS.LIMITED.value == _location.status && SEARCHSTATUS.LIMITED.checked)
@@ -1228,7 +1245,9 @@ function shouldAddToLayer(_location) {
 	else
 		shouldI_Status = false;
 	
-	// Now check to see if the locations media type meets the filter requirements.
+	/*
+		Now check to see if the locations media type meets the filter requirements.
+	*/
 	fileType = getFileType(_location.media);
 		
 	if(SEARCHMEDIA.IMAGE.name == fileType && SEARCHMEDIA.IMAGE.checked)
@@ -1240,7 +1259,9 @@ function shouldAddToLayer(_location) {
 	else
 		shouldI_Media = false;
 	
-	// Return true if the location meets all filters requirements.
+	/*
+		Return true if the location meets all filters requirements.
+	*/
 	return (shouldI_Status && shouldI_Media);
 }
 
@@ -1596,31 +1617,29 @@ function onDeviceReady()
 	map.addControl(click);
 	click.activate();
 
-	$('#map-page').live('pagebeforeshow', function(){
+	div_MapPage.live('pagebeforeshow', function(){
 		$('.map-tab-button').children().addClass('ui-btn-active');
 	});
 	
 	//Hack to keep the Queue tab selected while in the status dialog.
-	$('#map-page').live('pageshow', function() {
-	//	selectTabBarItem('Map');
-						
-					  var height = $('.queue-dialog').height();
-					  var width = $('.queue-dialog').width();
-					  $(this).height(height);
-					  $(this).width(width);
-					  var mapLeftPosition = -1 * (div_Map.width()-div_MapContainer.width()) / 2;
-					  var mapTopPosition = -1 * (div_Map.height()-div_MapContainer.height()) / 2;
-					  div_Map.css('top', mapTopPosition);
-					  div_Map.css('left', mapLeftPosition);
-					 $.mobile.fixedToolbars.show();
+	div_MapPage.live('pageshow', function() {
+		var height = $('.queue-dialog').height();
+		var width = $('.queue-dialog').width();
+		$(this).height(height);
+		$(this).width(width);
+		var mapLeftPosition = -1 * (div_Map.width()-div_MapContainer.width()) / 2;
+		var mapTopPosition = -1 * (div_Map.height()-div_MapContainer.height()) / 2;
+		div_Map.css('top', mapTopPosition);
+		div_Map.css('left', mapLeftPosition);
+		$.mobile.fixedToolbars.show();
 	});
 	
-	$('#map-page').live('pagebeforehide', function() {
+	div_MapPage.live('pagebeforehide', function() {
 		closeAllPopups_NoToggle();		
 		clickedLonLat = null;  
 	});
 	
-	$('#map-page').live('pagebeforehide', function(){
+	div_MapPage.live('pagebeforehide', function(){
 		$('.map-tab-button').children().removeClass('ui-btn-active');
 	});
 	
