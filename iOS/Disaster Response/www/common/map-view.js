@@ -443,7 +443,7 @@ function uploadFileToServer(row, photoguid, sql){
 	var filepath = row.media;
 	var name = row.name;
 	
-	var url = "http://192.168.10.179:8080/DRServer/rest/youtube/upload";
+	var url = "http://findplango.com:8080/DSI/rest/youtube/upload";
 	var ft = new FileTransfer();
 	var mimeType = mimeTypeFromExt(filepath);
 	var extensionIndex = filepath.lastIndexOf(".");
