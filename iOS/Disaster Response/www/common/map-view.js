@@ -356,12 +356,14 @@ function mimeTypeFromExt(filepath) {
 	var extension = getFileExtension(filepath);
 	var mime = null;
 		
+	console.log("substring: " + filepath.substr(0, 22));	
 	//Video MIME's
 	if(extension == "mov")
 		mime = "video/quicktime";
 	else if(extension == "mp4" || extension == "m4v")
 		mime = "video/mp4";
-	
+	else if(filepath.substr(0, 22) == "http://www.youtube.com")
+		mime = "youtube";
 	//Audio MIME's
 	else if (extension == "wav")
 		mime = "audio/wav";
@@ -405,10 +407,37 @@ function getFileMimeType(_filepath) {
 
 function getFileType(_filepath) {
 	var mime = getFileMimeType(_filepath);
+	if(mime == "youtube")
+		return mime;
 	return mime.substr(0, mime.indexOf('/'));
 }
 
-function uploadFileToServer(filepath, photoguid, name){
+function callGoogleSQL(sql, id){
+	console.log("sql: " + sql);
+	googleSQL(sql, 'POST', function(data) {
+		var rows = $.trim(data).split('\n');
+		var rowid = rows.shift();
+		
+		console.log("callGoogleSql: " + rowid);
+		
+		// Just some sanity checking...response should be rowids from Google and
+		// the number of inserted rows should equal the number of inserts that we POSTed.
+		if (rowid === 'rowid' && rows.length === 1) {
+			deleteLocation(sqlDb, id);
+			
+			//The sqlDb has changed, update the queue size.
+			updateQueueSize();
+			
+			//Hack to refesh the map icons, problem OpenLayers?
+			map.zoomOut(); map.zoomIn();
+		}
+	});
+}
+
+function uploadFileToServer(row, photoguid, sql){
+	var filepath = row.media;
+	var name = row.name;
+	
 	var url = "http://192.168.10.179:8080/DRServer/rest/youtube/upload";
 	var ft = new FileTransfer();
 	var mimeType = mimeTypeFromExt(filepath);
@@ -425,11 +454,19 @@ function uploadFileToServer(filepath, photoguid, name){
 	options.params = params;
 	
 	ft.upload(filepath, url, function(response){
-		console.log(response.response);
+		var videoId = response.response;
+		var url = "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
+		console.log("videoId: " + videoId);
+		var _sql = sql + squote(url) + ');';
+		callGoogleSQL(_sql, row.id);
 	}, function(response){console.log(response);}, options);
 }
 
-function uploadFileToS3(filepath, photoguid) {
+function uploadFileToS3(row, photoguid, sql) {
+	console.log("upload to s3");
+	var filepath = row.media;
+	var fileId = row.id;
+	console.log("fileId: " + fileId);
 	var mimeType = mimeTypeFromExt(filepath);
 
 	var policy = {
@@ -468,7 +505,10 @@ function uploadFileToS3(filepath, photoguid) {
 
 	var ft = new FileTransfer();
 	var url = 'http://mobileresponse.s3.amazonaws.com';
-	ft.upload(filepath, url, mediaUploadSuccess, mediaUploadFailure, options);
+	ft.upload(filepath, url, function(){
+		console.log("callgooglesql how many times?");
+		callGoogleSQL(sql, fileId);
+	}, mediaUploadFailure, options);
 }
 
 /*
@@ -647,19 +687,23 @@ function createLocationPopup(_feature) {
 		
 		//Check to see the media type
 		var mime = mimeTypeFromExt(locMedia);
-
+		console.log("mime: " + mime);
 		if (mime) {
 			var fileType = getFileType(locMedia);
 		
+			console.log("fileType: " + fileType);
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
 				if(fileType == "video") {
-				
+					console.log("where is youtube");
 					if(!stacked) {
+						console.log("show me youtube ahhhhh");
 						$locationImage.hide();
 						$('#embedded-audio').hide();
 
 						var $div = $('#embedded-video');
+						//var params = { allowScriptAccess: "always" };
+						//swfobject.embedSWF(locMedia, "embedded-video", "350", "350", "10.1", null, null, params, {});
 						var $video = $div.find('video');
 						$video.attr('src', locMedia);
 						$div.show();
@@ -944,7 +988,7 @@ function fusionSQLSuccess(data) {
 		
 		//Before we add anything to the list, lets check to see if we it fits our
 		// search filters
-		if(shouldAddToLayer(location) == true) {
+		if(true) {
 			//Now that we have our location, loop through and find out if it already exists.
 			for(var locA = 0; locA < locationArray.length; locA++) {
 				for(var loc = 0; loc < locationArray[locA].length; loc++) {
@@ -1639,6 +1683,8 @@ function onDeviceReady()
 	//Now that we are done loading everything, read the queue and find the size
 	// then update all the badges accordingly.
 	updateQueueSize();
+	
+	$('#addressSearchDiv .ui-input-search').find('a').attr('data-theme', 'a');
 }
 
 function clearQueueDialog() {
@@ -2087,8 +2133,8 @@ $(document).ready(function () {
 function submitToServer() {
 	getValidLocationRowIds(sqlDb, function (rowids) {
 		forLocationQueueRows(sqlDb, rowids, function(rows) {
-			var sql = '';
 			for (var i = 0; i < rows.length; ++i) {
+				var sql = '';
 				var row = rows.item(i);
 				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,MediaURL) VALUES (';
 				sql += squote(row.location) + ',';
@@ -2101,38 +2147,23 @@ function submitToServer() {
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
 				var photoguid = Math.uuid();
-				var extensionIndex = row.media.lastIndexOf(".");
-				var extension = row.media.substr(extensionIndex).toLowerCase();
-				var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + extension;
 				
+				var type = getFileType(row.media);
 				
-				sql += squote(amazonURL) + ')';
-
-				if (rows.length > 1) {
-					sql += ';';
+				if(type == "video")
+				{
+					//gonna have to make the url with the videoId returned from the upload callback
+					uploadFileToServer(row, photoguid, sql);
+				}else
+				{
+					var extensionIndex = row.media.lastIndexOf(".");
+					var extension = row.media.substr(extensionIndex).toLowerCase();
+					var amazonURL = "http://s3.amazonaws.com/mobileresponse/user/kzusy/" + photoguid + extension;
+				
+					sql += squote(amazonURL) + ');';
+					uploadFileToS3(row, photoguid, sql);
 				}
-
-				uploadFileToServer(row.media, photoguid, row.name);
-			//	uploadFileToS3(row.media, photoguid);
 			}
-
-			googleSQL(sql, 'POST', function(data) {
-				var rows = $.trim(data).split('\n');
-				var rowid = rows.shift();
-				
-				// Just some sanity checking...response should be rowids from Google and
-				// the number of inserted rows should equal the number of inserts that we POSTed.
-				if (rowid === 'rowid' && rows.length === rowids.length) {
-					for (var i = 0; i < rowids.length; ++i) {
-						deleteLocation(sqlDb, rowids[i]);
-					}
-					//The sqlDb has changed, update the queue size.
-					updateQueueSize();
-					
-					//Hack to refesh the map icons, problem OpenLayers?
-					map.zoomOut(); map.zoomIn();
-				}
-			});
 		});
 	});
 }
