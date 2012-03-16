@@ -27,7 +27,7 @@ var div_PageFooter;		// The div that stores the footer for every page.
 
 var cameraORvideoPopup;	// The div that stores the cameraOrVideo popup.
 var LocationPopup;		// The div that stores the Location popup.
-var div_FilterPopup;
+var div_FilterPopup;	// The div that stores the Filter popup.
  
 /* ============================ *
  *   Projections and Extents
@@ -194,11 +194,11 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
 /* ============================ *
  *  	 	 Popups
  * ============================ */
-var clickedLonLat 		= null;	// When the cameraOrVideo popup is toggled, store the LonLat of the click.
-var popupFeature 		= null;	// The current location displayed in the Location popup.
-var popupFeatureMain	= null;	// The main feature that holds all the locations in the Location popup.
-var selectedFeature 	= null;	// The feature that is currently selected.
-var queueVisable 		= true;	// Used in the filter popup to display the local queued locations.
+var clickedLonLat 		= null;	 // When the cameraOrVideo popup is toggled, store the LonLat of the click.
+var popupFeature 		= null;	 // The current location displayed in the Location popup.
+var popupFeatureMain	= null;	 // The main feature that holds all the locations in the Location popup.
+var selectedFeature 	= null;	 // The feature that is currently selected.
+var queueVisable 		= true;	 // Used in the filter popup to display the local queued locations.
 
 var wasPopupOpen		= false; //True if a popup was just opened.
 var wasPopupClosed		= false; //True if a popup was just closed.
@@ -400,72 +400,76 @@ function googleSQL(sql, type, success, error) {
 
 function mediaUploadSuccess(response) {
 	console.log('media upload success');
-	//console.log(response.response);
 }
 
 function mediaUploadFailure(response) {
 	console.log('media upload error');
-	//console.log(response.response);
 }
 
-function mimeTypeFromExt(filepath) {
+/*
+	Returns the mime type of a file based on the path provided. (ex: image/png, audio/mp3, video/mov)
+ */
+function getFileMimeType(_filepath) {
 	var extension = getFileExtension(filepath);
 	var mime = null;
-		
-	console.log("substring: " + filepath.substr(0, 22));	
-	//Video MIME's
+	
+	// Video MIME's
 	if(extension == "mov")
 		mime = "video/quicktime";
 	else if(extension == "mp4" || extension == "m4v")
 		mime = "video/mp4";
 	else if(filepath.substr(0, 22) == "http://www.youtube.com")
 		mime = "youtube";
-	//Audio MIME's
+	// Audio MIME's
 	else if (extension == "wav")
 		mime = "audio/wav";
-	//	MPEG 1 & 2
+	// MPEG 1 & 2
 	else if (extension == "mpg" || extension == "mpeg" || extension == "mp1" || extension == "mp2")
 		mime = "audio/mpeg"
-	//	MPEG-3
-	else if (extension == "mp3")
-		mime = "audio/mpeg";
-	else if (extension == "ogg")
-		mime = "audio/ogg";
-	else if (extension == "m4a")
-		mime = "audio/mp4";
+		// MPEG-3
+		else if (extension == "mp3")
+			mime = "audio/mpeg";
+		else if (extension == "ogg")
+			mime = "audio/ogg";
+		else if (extension == "m4a")
+			mime = "audio/mp4";
 	
-	//Image MIME's
-	else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
-			 extension == "jif" || extension == "jfif" || extension == "jfi")
-		mime = "image/jpeg";
-	else if (extension == "png")
-		mime = "image/png";
-	else if (extension == "gif")
-		mime = "image/gif";
-		
-	//Media type not supported
-	else {
-		navigator.notification.alert('Media type .' + extension + ' not supported.', function(){}, 'Error', 'Okay');
-		mime = "null/null"
-	}
-		
+	// Image MIME's
+		else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
+				 extension == "jif" || extension == "jfif" || extension == "jfi")
+			mime = "image/jpeg";
+		else if (extension == "png")
+			mime = "image/png";
+		else if (extension == "gif")
+			mime = "image/gif";
+	
+	// Media type not supported
+		else {
+			navigator.notification.alert('Media type .' + extension + ' not supported.', function(){}, 'Error', 'Okay');
+			mime = "null/null"
+		}
+	
 	return mime;
 }
 
+/*
+ Returns the extension of a file based on the path provided. (ex: png, mp3, mov)
+ */
 function getFileExtension(_filepath) {
 	var extIndex = _filepath.lastIndexOf('.');
 	return _filepath.substr(extIndex+1).toLowerCase();
 }
 
-function getFileMimeType(_filepath) {
-	return mimeTypeFromExt(_filepath);	//Keep existing code working
-}
-
+/*
+	Returns the file type based on the path provided. (ex: image, audio, video)
+ */
 function getFileType(_filepath) {
 	var mime = getFileMimeType(_filepath);
-	if(mime == "youtube")
+	if(mime == "youtube") {
 		return mime;
-	return mime.substr(0, mime.indexOf('/'));
+	} else {
+		return mime.substr(0, mime.indexOf('/'));
+	}
 }
 
 function callGoogleSQL(sql, id){
@@ -496,7 +500,7 @@ function uploadFileToServer(row, photoguid, sql){
 	
 	var url = "http://findplango.com:8080/DSI/rest/youtube/upload";
 	var ft = new FileTransfer();
-	var mimeType = mimeTypeFromExt(filepath);
+	var mimeType = getFileMimeType(filepath);
 	var extensionIndex = filepath.lastIndexOf(".");
 	var extension = filepath.substr(extensionIndex).toLowerCase();
 	
@@ -523,7 +527,7 @@ function uploadFileToS3(row, photoguid, sql) {
 	var filepath = row.media;
 	var fileId = row.id;
 	console.log("fileId: " + fileId);
-	var mimeType = mimeTypeFromExt(filepath);
+	var mimeType = getFileMimeType(filepath);
 
 	var policy = {
 		"expiration": "2012-12-01T12:00:00.000Z",
@@ -738,7 +742,7 @@ function createLocationPopup(_feature) {
 		}
 		
 		//Check to see the media type
-		var mime = mimeTypeFromExt(locMedia);
+		var mime = getFileMimeType(locMedia);
 		console.log("mime: " + mime);
 		if (mime) {
 			var fileType = getFileType(locMedia);
@@ -1781,7 +1785,7 @@ function populateGallery(parent, items, options) {
 
 			case 'video':
 				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "' onclick='this.play();'>";
-				div += "<source src=" + squote(item.media) + "/>";// + " type=" + squote(mimeTypeFromExt(item.media)) + "/>";
+				div += "<source src=" + squote(item.media) + "/>";// + " type=" + squote(getFileMimeType(item.media)) + "/>";
 				div += "</video>";
 				break;
 		}
