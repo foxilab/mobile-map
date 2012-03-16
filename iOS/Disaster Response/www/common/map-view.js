@@ -28,12 +28,12 @@ var div_PageFooter;
 /* ============================ *
  *   Projections and Extents
  * ============================ */
-var WGS84 = new OpenLayers.Projection("EPSG:4326");
-var WGS84_google_mercator = new OpenLayers.Projection("EPSG:900913");
-var maxExtent = new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
-var restrictedExtent = maxExtent.clone();
-var maxResolution = 78271.51695;
-var iconMaxResolution = 4.777314266967774;
+var WGS84 					= new OpenLayers.Projection("EPSG:4326");
+var WGS84_google_mercator	= new OpenLayers.Projection("EPSG:900913");
+var maxExtent 				= new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508);
+var restrictedExtent 		= maxExtent.clone();
+var maxResolution 			= 78271.51695;
+var iconMaxResolution 		= 4.777314266967774;
 
 	/* ============================ *
 	 *    Resolution per level
@@ -54,7 +54,7 @@ var iconMaxResolution = 4.777314266967774;
 	 *  14 .... 9.554628533935547 
 	 *  15 .... 4.777314266967774 
 	 *  16 .... 2.388657133483887 
- 	*  17 .... 1.1943285667419434 
+ 	 *  17 .... 1.1943285667419434 
 	 *  18 .... 0.5971642833709717
  	* ============================ */
 
@@ -189,17 +189,44 @@ var statusWFSLayer = new OpenLayers.Layer.Vector("Status Layer", {
 /* ============================ *
  *  	 	 Popups
  * ============================ */
-var cameraORvideoPopup;
-var clickedLonLat = null;
-var LocationPopup;
+var cameraORvideoPopup;	// The div that stores the cameraOrVideo popup.
+var LocationPopup;		// The div that stores the Location popup.
+
+var clickedLonLat 		= null;	// When the cameraOrVideo popup is toggled, store the LonLat of the click.
+var popupFeature 		= null;	// The current location displayed in the Location popup.
+var popupFeatureMain	= null;	// The main feature that holds all the locations in the Location popup.
+var selectedFeature 	= null;	// The feature that is currently selected.
+var queueVisable 		= true;	// Used in the filter popup to display the local queued locations.
+
+// Used for sorting in the filter popup, also holds if an item is checked or not
+var SEARCHSTATUS = {
+	ALL 			: {value: 0, name: "All", color: "Black", checked: false},
+	OPERATIONAL		: {value: 1, name: "Operational", color: "Green", checked: true},
+	LIMITED 		: {value: 2, name: "Limited Capabilities", color: "Yellow", checked: true},
+	INTACT 			: {value: 3, name: "Intact, but Uninhabited", color: "Orange", checked: true},
+	NONOPERATIONAL	: {value: 4, name: "Non-Operational", color: "Red", checked: true}
+};
+
+var SEARCHMEDIA = {
+	ALL 	: {value: 0, name: "All", checked: false},
+	IMAGE 	: {value: 1, name: "image", checked: true},
+	VIDEO 	: {value: 2, name: "video", checked: true},
+	AUDIO 	: {value: 3, name: "audio", checked: true}
+};
+
+var SEARCHTIME = {
+	ALL 	: {value: 0, name: "All", checked: false},
+	DAY 	: {value: 1, name: "Day", checked: true},
+	WEEK 	: {value: 2, name: "Week", checked: true}
+};
 
 /* ============================ *
  *  	 Other Variables
  * ============================ */
 //PHONE VARIABLES
-var isAppPaused 				= false;
-var isInternetConnection 		= false;
-var isLandscape 				= false;
+var isAppPaused 				= false;	// True if the app is currently in the background.
+var isInternetConnection 		= false;	// True if the device is connected to the internet.
+var isLandscape 				= false;	// True if the device is in landscape mode.
 var screenLocked 				= true;
 var orientationHeadingOffset	= 0;
 var oldRotation 				= 0;
@@ -212,11 +239,12 @@ var centered 			= false;
 var locatedSuccess 		= true;
 var wasPopupOpen		= false;
 var wasPopupClosed		= false;
-var user_CurrentPosition;
+var user_CurrentPosition;			// Stores the users current position.
+									//	- user_CurrentPosition.lat and user_CurrentPosition.lon
 
 //Badges
-var itemsInQueue		= 0;
-var appNotifications	= 0;
+var itemsInQueue		= 0;		// Holds a current queue count.
+var appNotifications	= 0;		// The number to display on the apps notifacation badge (iOS only).
 
 //Heatmap
 var heatmapGradient = {
@@ -248,7 +276,7 @@ function centerMap() {
 	map.setCenter(new OpenLayers.LonLat(user_CurrentPosition.lon, user_CurrentPosition.lat).transform(WGS84, WGS84_google_mercator));
 }
 
-var geolocationSuccess = function(position) {
+function geolocationSuccess(position) {
 	var lon = position.coords.longitude;
 	var lat = position.coords.latitude;
 	
@@ -282,7 +310,7 @@ var geolocationSuccess = function(position) {
     //  position.timestamp returns seconds instead of milliseconds.
 };
 
-var geolocationError = function(error) {
+function geolocationError(error) {
     
     if(locatedSuccess) {
         //error handling
@@ -312,7 +340,7 @@ var geolocationError = function(error) {
     
 };
 
-var compassSuccess = function(heading) {
+function compassSuccess(heading) {
 	//Rotate arrow
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
@@ -332,7 +360,7 @@ var compassSuccess = function(heading) {
 	}
 };
 
-var compassError = function(error) {
+function compassError(error) {
 	//error handling
 /*	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
         navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
@@ -671,9 +699,6 @@ function setFusionLayerVisibility(_visible) {
  		==============================================
  */
 
-var popupFeature = null;
-var popupFeatureMain = null;
-var selectedFeature = null;
 function createLocationPopup(_feature) {
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
 	closeAllPopups();
@@ -1090,14 +1115,6 @@ function parseSQLSuccess_Heatmap(_locationArray) {
 		heatmapLayer.setDataSet(transformedTestData);
 }
 
-var SEARCHSTATUS = {
-	ALL 			: {value: 0, name: "All", color: "Black", checked: false},
-	OPERATIONAL		: {value: 1, name: "Operational", color: "Green", checked: true},
-	LIMITED 		: {value: 2, name: "Limited Capabilities", color: "Yellow", checked: true},
-	INTACT 			: {value: 3, name: "Intact, but Uninhabited", color: "Orange", checked: true},
-	NONOPERATIONAL	: {value: 4, name: "Non-Operational", color: "Red", checked: true}
-};
-
 function getStatusColor(_status) {
 	switch(_status) {
 		case 1:
@@ -1121,21 +1138,6 @@ function getStatusColor(_status) {
 function getStatusIcon(_status) {
 	return "Buildings/3D_" + getStatusColor(_status) + ".png";
 }
-
-var SEARCHMEDIA = {
-	ALL 	: {value: 0, name: "All", checked: false},
-	IMAGE 	: {value: 1, name: "image", checked: true},
-	VIDEO 	: {value: 2, name: "video", checked: true},
-	AUDIO 	: {value: 3, name: "audio", checked: true}
-};
-
-var SEARCHTIME = {
-	ALL 	: {value: 0, name: "All", checked: false},
-	DAY 	: {value: 1, name: "Day", checked: true},
-	WEEK 	: {value: 2, name: "Week", checked: true}
-};
-
-var queueVisable = true;
 
 function initFilter() {
 	//#LOAD - If we offer to save data, load it here {
@@ -2311,7 +2313,6 @@ function onAppResume() {
 	}
 }
 
-var reloadScript = false;
 /*
     Whenever the device connects to the internet this function will be called. This allows us to know when to update our fusion tables online as well as when to start updating the map again.
     #QUIRK: Durring the inital startup of the app, this will take at least a second to fire.
@@ -2337,32 +2338,8 @@ function onAppOffline() {
     Called when the orientation of the iDevice is changed.
     #QUIRK: Triggered twice on 1 rotation.
  */
-var orDirtyToggle = false;
 function onOrientationChange(_event) {
-/*
-	//Prevent the function from running multiple times.
-	orDirtyToggle = !orDirtyToggle;
-						  
-	if (orDirtyToggle) {
-		//Update the heading!
-		updateOrientationHeading();
-		
-		//Update the screen size
-		updateScreenSize();
-	
-		//Check to see if the device is in Landscape or Portrait
-		if(isOrientationLandscape()) {
-			onOrientationLandscape();
-			isLandscape = true;
-		}
-		else if(isOrientationPortrait()) {
-			onOrientationPortrait();
-			isLandscape = false;
-		}
-		else {
-			console.log('Orientation issue: ' + getOrientation());
-		}
-	}*/
+
 }
 
 function updateScreenSize() {
@@ -2422,51 +2399,11 @@ function isOrientationPortrait() {
 		return false;
 }
 
-function resizeMapContainer(){
-	//Close all popups if any are open
-	closeAllPopups_NoToggle();
-
-	//Update the screen size (it is different now).
-	updateScreenSize();
-
-	//Update the page size.
-	$('.mypage').height(screenHeight);
-	$('.mypage').width(screenWidth);
-
-	//Get the size of the footer and adjust the mapHeight
-	var footerHeight = div_PageFooter.height();
-	var mapHeight = screenHeight - footerHeight;
-
-	console.log('resizing map container');
-
-	//Update the mapContainer size
-	div_MapContainer.height(mapHeight +"px");
-	div_MapContainer.width(screenWidth +"px");
-
-	//Update the map size
-	div_Map.height(mapHeight+"px");
-	div_Map.width(screenWidth+"px");
-		
-  	//Update the map and force a refresh
- 	map.updateSize();
-	
-	console.log(map.getSize().w);
-	console.log(map.getSize().h);
-	
-//	map.zoomIn(); map.zoomOut();	//Theres two jic you are too far zoomed in
-//	map.zoomOut(); map.zoomIn();	// or out
-	
-	//Show the toolbar
-	$.mobile.fixedToolbars.show();
-}
-
 /*
     This function is called whenever the device is switched over to landscape mode. Here we can do things like resize our viewport.
  */
 function onOrientationLandscape() {
     console.log('Listener: App has changed orientation to Landscape ' + getOrientation() + '.');
-						   
-//	resizeMapContainer();
 }
 
 /*
@@ -2474,8 +2411,6 @@ function onOrientationLandscape() {
  */
 function onOrientationPortrait() {
     console.log('Listener: App has changed orientation to Portrait ' + getOrientation() + '.');
-						   
-//	resizeMapContainer();
 }
 
 /*
