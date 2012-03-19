@@ -1857,10 +1857,10 @@ $(document).ready(function () {
 		$.mobile.changePage('#gallery-page');
 	});
 
+	var $viewer = $('#image-viewer');
 	$('.gallery-item').live('click', function(e) {
 		var type = $(this).attr('media-type');
 		var src = $(this).attr('media-src');
-		var $viewer = $('#image-viewer');
 
 		switch (type) {
 /*			case 'audio':
@@ -1877,7 +1877,7 @@ $(document).ready(function () {
 				$('#fs-audio').hide();
 				
 				var $container = $('#fs-image');
-				var $img = $container.find('img');
+				var $img = $('#chosenImage');
 				$img.attr('max-height', $(window).height());
 				$img.attr('max-width', $(window).width());
 				$img.attr('src', src);
@@ -1897,31 +1897,32 @@ $(document).ready(function () {
 		}
 	});
 
+	// TODO: This is nearly identical to gallery-item click handler
+	$('#locationImage').click(function() {
+		$('#fs-audio').hide();
+
+		var src = $(this).attr('src');
+		var $container = $('#fs-image');
+		var $img = $('#chosenImage');
+		$img.attr('max-height', $(window).height());
+		$img.attr('max-width', $(window).width());
+		$img.attr('src', src);
+		$container.show();
+		$img.load(function() {
+			$(this).position({
+				my:	'center',
+				at:	'center',
+				of:	$viewer
+			});
+		});
+/*		var $overlay = $(this).find('.item-metadata').clone();
+		$('#image-metadata').replaceWith($overlay);
+		$overlay.attr('id', 'image-metadata');*/
+		$.mobile.changePage($viewer);
+	});
+
 	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
 		$('#Page_Footer li').removeClass('ui-btn-active');
-
-		if ($(popup.prevPage).attr('id') == 'map-page') {
-			$('#fs-audio').hide();
-		
-			var src = popup.prevPage.find('#locationImage').attr('src');
-			var $img = $('#chosenImage');
-			$img.attr('max-width', $(window).width());
-			$img.attr('src', src);
-			$img.show();
-			$img.load(function() {
-				$(this).position({
-					my:	'center',
-					at:	'center',
-					of:	$(this).parent()
-				});
-			});
-		}
-	});
-	$('#image-viewer').live('pagebeforehide', function() {
-		var $audio = $(this).find('audio');
-		if ($audio.is(':visible')) {
-			$audio.get(0).pause();
-		}
 	});
 
 	$('#image-viewer img').live('click', function() {
