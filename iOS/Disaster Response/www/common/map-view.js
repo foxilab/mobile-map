@@ -1793,8 +1793,8 @@ function populateGallery(parent, items, options) {
 
 		switch (type) {
 			case 'audio':
-				div += '<img src=' + quote('css/images/speaker.png');
-				div += ' style="vertical-align:middle;max-width:64px;max-height:64px;"></img>';
+				div += "<video controls preload='auto' src=" + squote(item.media) + " style='width:100%; height:100%;position:absolute;left:0px;bottom:0px'>";
+				div += "</video>";
 				break;
 
 			case 'image':
@@ -1803,19 +1803,20 @@ function populateGallery(parent, items, options) {
 				break;
 
 			case 'video':
+				// TODO: Once video playback starts working again, can we just do width/height like audio above as 100% using CSS?
 				div += "<video id='video-thumb-" + index + "'" + /*" class='video-js vjs-default-skin'" +*/ " controls preload='auto' data-setup='{}' width='" + itemwidth + "' height='" + itemwidth + "' onclick='this.play();'>";
+				// Note: commented out mime type since Internet searches say this causes it not to work on Android.  It doesn't appear to be necessary on iOS either.
 				div += "<source src=" + squote(item.media) + "/>";// + " type=" + squote(getFileMimeType(item.media)) + "/>";
 				div += "</video>";
 				break;
 		}
 
 		// Metadata overlay (this probably has a bug when name is so long that it takes up more than one line)
-		div += '<div style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time class="timeago" style="" datetime="' + $.format.date(item.date, "yyyy-MM-dd hh:mm:ss a") + '"></time></p>' + '</div></div>';
+		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
+		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
 
 		div += '</div>';
-		var $nrv = $(div);
-		$nrv.find('.timeago').timeago();
-		return $nrv;
+		return $(div);
 	};
 
 	for (var i = 0; i < items.length; ++i) {
@@ -1862,7 +1863,7 @@ $(document).ready(function () {
 		var $viewer = $('#image-viewer');
 
 		switch (type) {
-			case 'audio':
+/*			case 'audio':
 				$('#fs-image').hide();
 				
 				var $container = $('#fs-audio');
@@ -1871,7 +1872,7 @@ $(document).ready(function () {
 				$container.show();
 				$.mobile.changePage($viewer);
 				break;
-
+*/
 			case 'image':
 				$('#fs-audio').hide();
 				
@@ -1888,6 +1889,9 @@ $(document).ready(function () {
 						of:	$viewer
 					});
 				});
+				var $overlay = $(this).find('.item-metadata').clone();
+				$('#image-metadata').replaceWith($overlay);
+				$overlay.attr('id', 'image-metadata');
 				$.mobile.changePage($viewer);
 				break;
 		}
@@ -1900,7 +1904,7 @@ $(document).ready(function () {
 			$('#fs-audio').hide();
 		
 			var src = popup.prevPage.find('#locationImage').attr('src');
-			var $img = $(this).find('img');
+			var $img = $('#chosenImage');
 			$img.attr('max-width', $(window).width());
 			$img.attr('src', src);
 			$img.show();
