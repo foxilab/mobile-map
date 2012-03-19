@@ -1827,29 +1827,12 @@ function populateGallery(parent, items, options) {
 				div += "</video>";
 				break;
 		}
-/*
+
+		// TODO: This is nearly identical to item-metadata-base
 		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
 		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
 
 		div += '</div>';
-		return $(div);
-*/
-
-		div += '</div>';
-		
-		console.log('oi!');
-		// Metadata overlay (this probably has a bug when name is so long that it takes up more than one line)
-		var $overlay = $('#item-metadata-base').clone();
-		$overlay.removeAttr('id');
-
-		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
-		$overlay.find('span').text(item.name + ' - ' + StatusRef.fromId(item.status).toString());
-		
-		var $time = $overlay.find('time');
-		$time.text(itemdate);
-		$time.attr('datetime', itemdate);
-		
-		$(div).append($overlay);
 		return $(div);
 	};
 
