@@ -974,30 +974,49 @@ function locationPopup_onImageClick() {
 	//We have popupFeature, this variable holds the current feature
 	// now we can pull data and display 
 	//Variables for local use/quick access/shorter code
-		var locName 	= popupFeatureMain.name;
-		var locMedia 	= popupFeatureMain.media;
-		var locStatus	= popupFeatureMain.status;
-		var locDate 	= popupFeatureMain.date;
-		var locLan 		= popupFeatureMain.lan;
-		var locLon 		= popupFeatureMain.lon;
-	
-	//If this image is clicked, we need to do one of 2 things: If the image is a...
-	//  1) Image 2) Video file, open it for the user.
+	var locName 	= popupFeatureMain.name;
+	var locMedia 	= popupFeatureMain.media;
+	var locStatus	= popupFeatureMain.status;
+	var locDate 	= popupFeatureMain.date;
+	var locLan 		= popupFeatureMain.lan;
+	var locLon 		= popupFeatureMain.lon;
 	
 	//Check to see the media type
 	fileType = getFileType(locMedia);
 
 	//Now that we know what type we have, open a new window for the user to view
-	if(fileType == "video") {
-		//launch the video
-		navigator.notification.alert('Date: ' + locDate + '.', function(){}, locName, 'Video');
-	}
-	else if(fileType ==  "image") {
-		$.mobile.changePage('#image-viewer');
-	}
-	else {
-		//Sould be impossible to get here...so congratulations?!
-		navigator.notification.alert('Media type not supported.', function(){}, 'Error', 'Okay');
+	if(fileType == "image") {
+		// TODO: This is nearly identical to gallery-item click handler
+		$('#fs-audio').hide();
+
+		var src = $(this).attr('src');
+		var $container = $('#fs-image');
+		var $img = $('#chosenImage');
+		$img.attr('max-height', $(window).height());
+		$img.attr('max-width', $(window).width());
+		$img.attr('src', src);
+		$container.show();
+		$img.load(function() {
+			$(this).position({
+				my:	'center',
+				at:	'center',
+				of:	$('#image-viewer')
+			});
+		});
+		var $overlay = $('#item-metadata-base').clone();
+		$overlay.removeAttr('id');
+
+		var itemdate = $.format.date(locDate, "MM-dd-yyyy hh:mm a");
+		$overlay.find('span').text(locName + ' - ' + StatusRef.fromId(locStatus).toString());
+		
+		var $time = $overlay.find('time');
+		$time.text(itemdate);
+		$time.attr('datetime', itemdate);
+
+		$('#image-metadata').replaceWith($overlay);
+		$overlay.attr('id', 'image-metadata');
+
+		$.mobile.changePage($('#image-viewer'));
 	}
 }
 
@@ -1433,11 +1452,11 @@ function onDeviceReady()
 		Overwrite the error handler so we can get more information about the error.
 		We could also log this to a file.
 	*/
-	window.onerror = function myErrorHandler(msg,url,line) {
+/*	window.onerror = function myErrorHandler(msg,url,line) {
 		console.log("window.onerror: message: " + msg + ", line: " + line + ", url: " + url);
 		return true;
     };
-	
+*/	
 	/*
 		Store variables to some commonly used divs.
 	*/
@@ -1505,8 +1524,6 @@ function onDeviceReady()
 
 	// fix height of content to allow for header & footer
 	function fixContentHeight() {
-		console.log('fixContentHeight');
-		
 		if ($.mobile.activePage.attr('id') == "map-page") {
 			var viewHeight = $(window).height();
 
@@ -1810,12 +1827,29 @@ function populateGallery(parent, items, options) {
 				div += "</video>";
 				break;
 		}
-
-		// Metadata overlay (this probably has a bug when name is so long that it takes up more than one line)
+/*
 		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
 		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
 
 		div += '</div>';
+		return $(div);
+*/
+
+		div += '</div>';
+		
+		console.log('oi!');
+		// Metadata overlay (this probably has a bug when name is so long that it takes up more than one line)
+		var $overlay = $('#item-metadata-base').clone();
+		$overlay.removeAttr('id');
+
+		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
+		$overlay.find('span').text(item.name + ' - ' + StatusRef.fromId(item.status).toString());
+		
+		var $time = $overlay.find('time');
+		$time.text(itemdate);
+		$time.attr('datetime', itemdate);
+		
+		$(div).append($overlay);
 		return $(div);
 	};
 
@@ -1895,30 +1929,6 @@ $(document).ready(function () {
 				$.mobile.changePage($viewer);
 				break;
 		}
-	});
-
-	// TODO: This is nearly identical to gallery-item click handler
-	$('#locationImage').click(function() {
-		$('#fs-audio').hide();
-
-		var src = $(this).attr('src');
-		var $container = $('#fs-image');
-		var $img = $('#chosenImage');
-		$img.attr('max-height', $(window).height());
-		$img.attr('max-width', $(window).width());
-		$img.attr('src', src);
-		$container.show();
-		$img.load(function() {
-			$(this).position({
-				my:	'center',
-				at:	'center',
-				of:	$viewer
-			});
-		});
-/*		var $overlay = $(this).find('.item-metadata').clone();
-		$('#image-metadata').replaceWith($overlay);
-		$overlay.attr('id', 'image-metadata');*/
-		$.mobile.changePage($viewer);
 	});
 
 	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
