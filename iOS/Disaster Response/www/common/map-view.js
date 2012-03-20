@@ -1840,7 +1840,7 @@ function populateGallery(parent, items, options) {
 		parent.append(makeGalleryItem(items[i], i));
 
 		type = getFileType(items[i].media);
-		
+
 		if (type == 'video') {
 			// Initialize video-js on the video element
 			// TODO: bug here - fullscreen mode only works the first time with VideoJS.
@@ -1895,17 +1895,22 @@ $(document).ready(function () {
 				
 				var $container = $('#fs-image');
 				var $img = $('#chosenImage');
-				$img.attr('max-height', $(window).height());
-				$img.attr('max-width', $(window).width());
-				$img.attr('src', src);
-				$container.show();
 				$img.load(function() {
 					$(this).position({
 						my:	'center',
 						at:	'center',
 						of:	$viewer
 					});
+					$viewer.find('a').position({
+						my:	'center',
+						at:	'right top',
+						of:	$img,
+						collision:	'none'
+					});
 				});
+				$img.attr('src', src);
+				$container.show();
+
 				var $overlay = $(this).find('.item-metadata').clone();
 				$('#image-metadata').replaceWith($overlay);
 				$overlay.attr('id', 'image-metadata');
