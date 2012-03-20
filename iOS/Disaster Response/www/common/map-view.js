@@ -989,20 +989,26 @@ function locationPopup_onImageClick() {
 		// TODO: This is nearly identical to gallery-item click handler
 		$('#fs-audio').hide();
 
+		var $viewer = $('#image-viewer');
 		var src = $(this).attr('src');
 		var $container = $('#fs-image');
 		var $img = $('#chosenImage');
-		$img.attr('max-height', $(window).height());
-		$img.attr('max-width', $(window).width());
-		$img.attr('src', src);
-		$container.show();
 		$img.load(function() {
 			$(this).position({
 				my:	'center',
 				at:	'center',
-				of:	$('#image-viewer')
+				of:	$viewer
 			});
+			$viewer.find('a').position({
+				my:	'center',
+				at:	'right top',
+				of:	$img,
+				collision:	'none'
+			});			
 		});
+		$img.attr('src', src);
+		$container.show();
+
 		var $overlay = $('#item-metadata-base').clone();
 		$overlay.removeAttr('id');
 
