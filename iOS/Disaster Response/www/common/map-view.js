@@ -872,7 +872,7 @@ function destroyLocationPopup(_feature) {
 	}
 
 	LocationPopup.hide();
-	popupFeature = null;
+//	popupFeature = null;
 	popupFeatureMain = null;
 	selectedFeature = null;
 	
@@ -1014,7 +1014,7 @@ function locationPopup_onImageClick() {
 
 		var itemdate = $.format.date(locDate, "MM-dd-yyyy hh:mm a");
 		$overlay.find('span').text(locName + ' - ' + StatusRef.fromId(locStatus).toString());
-		
+
 		var $time = $overlay.find('time');
 		$time.text(itemdate);
 		$time.attr('datetime', itemdate);
@@ -1807,7 +1807,7 @@ function populateGallery(parent, items, options) {
 		return;
 
 	var makeGalleryItem = function (item, index) {
-		type = getFileType(item.media);
+		var type = getFileType(item.media);
 
 		// 2 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
 		var itemwidth = $(window).width() / 2 - 8 * 5 - 4;
@@ -1845,7 +1845,7 @@ function populateGallery(parent, items, options) {
 	for (var i = 0; i < items.length; ++i) {
 		parent.append(makeGalleryItem(items[i], i));
 
-		type = getFileType(items[i].media);
+		var type = getFileType(items[i].media);
 
 		if (type == 'video') {
 			// Initialize video-js on the video element
@@ -1855,6 +1855,53 @@ function populateGallery(parent, items, options) {
 		}
 	}
 	parent.trigger('create');
+}
+
+function indexOfSrc(src) {
+	for (var i = 0; i < popupFeature.length; ++i) {
+		if (src == popupFeature[i].media) {
+			return i;
+		}
+	}
+	return -1;
+}
+function prevImage(index) {
+	for (var i = index - 1; i >= 0; --i) {
+		var type = getFileType(popupFeature[i].media);
+		if (type == 'image') {
+			return i;
+		}
+	}
+
+	// wrap around if we didn't already find one
+	for (var i = popupFeature.length - 1; i > index; --i) {
+		var type = getFileType(popupFeature[i].media);
+		if (type == 'image') {
+			return i;
+		}
+	}
+
+	// return the same index if we didn't find any other images
+	return index;
+}
+function nextImage(index) {
+	for (var i = index + 1; i < popupFeature.length; ++i) {
+		var type = getFileType(popupFeature[i].media);
+		if (type == 'image') {
+			return i;
+		}
+	}
+
+	// wrap around if we didn't already find one
+	for (var i = 0; i < index; ++i) {
+		var type = getFileType(popupFeature[i].media);
+		if (type == 'image') {
+			return i;
+		}
+	}
+
+	// return the same index if we didn't find any other images
+	return index;
 }
 
 $(document).ready(function () {
@@ -1885,48 +1932,61 @@ $(document).ready(function () {
 		var type = $(this).attr('media-type');
 		var src = $(this).attr('media-src');
 
-		switch (type) {
-/*			case 'audio':
-				$('#fs-image').hide();
-				
-				var $container = $('#fs-audio');
-				var $audio = $container.find('audio');
-				$audio.attr('src', src);
-				$container.show();
-				$.mobile.changePage($viewer);
-				break;
-*/
-			case 'image':
-				$('#fs-audio').hide();
-				
-				var $container = $('#fs-image');
-				var $img = $('#chosenImage');
-				$img.load(function() {
-					$(this).position({
-						my:	'center',
-						at:	'center',
-						of:	$viewer
-					});
-					$viewer.find('a').position({
-						my:	'center',
-						at:	'right top',
-						of:	$img,
-						collision:	'none'
-					});
+		if (type == 'image') {
+			$('#fs-audio').hide();
+			
+			var $container = $('#fs-image');
+			var $img = $('#chosenImage');
+			$img.load(function() {
+				$(this).position({
+					my:	'center',
+					at:	'center',
+					of:	$viewer
 				});
-				$img.attr('src', src);
-				$container.show();
+				$viewer.find('a').position({
+					my:	'center',
+					at:	'right top',
+					of:	$img,
+					collision:	'none'
+				});
+			});
+			$img.attr('src', src);
+			$container.show();
 
-				var $overlay = $(this).find('.item-metadata').clone();
-				$('#image-metadata').replaceWith($overlay);
-				$overlay.attr('id', 'image-metadata');
-				$.mobile.changePage($viewer);
-				break;
+			var $overlay = $(this).find('.item-metadata').clone();
+			$('#image-metadata').replaceWith($overlay);
+			$overlay.attr('id', 'image-metadata');
+			$.mobile.changePage($viewer);
 		}
 	});
 
-	$('#image-viewer').live('pagebeforeshow', function(ignored, popup) {
-		$('#Page_Footer li').removeClass('ui-btn-active');
+	$('#image-viewer').live('swipeleft', function() {
+		// Get the current index of the displayed image
+		var $img = $('#chosenImage');
+		var src = $img.attr('src');
+		var index = indexOfSrc(src);
+
+		if (index != -1) {
+			var next = nextImage(index);
+			if (next != index) {
+				$img.attr('src', popupFeature[next].media);
+				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'slide', changeHash: false, reverse: false });
+			}
+		}
+	});
+	$('#image-viewer').live('swiperight', function() {
+		// Get the current index of the displayed image
+		var $img = $('#chosenImage');
+		var src = $img.attr('src');
+		var index = indexOfSrc(src);
+
+		if (index != -1) {
+			var prev = prevImage(index);
+			if (prev != index) {
+				$img.attr('src', popupFeature[prev].media);
+				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'slide', changeHash: false, reverse: true });
+			}
+		}
 	});
 
 	$('#image-viewer img').live('click', function() {
