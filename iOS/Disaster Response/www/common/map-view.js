@@ -2379,19 +2379,32 @@ function onAppPause() {
 function submitQueuedItems() {
 	//If itemsInQueue is 1 or more we have data to push.
 	if(itemsInQueue >= 1) {
-		//If auto push is on, try and push the data to the server.
-		if(isAutoPush) {
-			submitToServer();
-		}
-		else {
-			navigator.notification.confirm('You have unsent items.  Send now?', function (response) {
-				switch (response) {
-					case 1:
-						submitToServer();
-						break;
+		// Check to see if any are actually ready to be pushed (i.e. have a proper name and status set)
+		var total = 0;
+		var valid = 0;
+		forAllLocations(sqlDb, function(row) {
+			++total;
+
+			if (row.status && row.name) {
+				++valid;
+			}
+
+			if (total == itemsInQueue && valid > 0) {
+				//If auto push is on, try and push the data to the server.
+				if(isAutoPush) {
+					submitToServer();
 				}
-			});
-		}
+				else {
+					navigator.notification.confirm('You have unsent items.  Send now?', function (response) {
+						switch (response) {
+							case 1:
+								submitToServer();
+								break;
+						}
+					});
+				}
+			}
+		});
 	}
 }
 
