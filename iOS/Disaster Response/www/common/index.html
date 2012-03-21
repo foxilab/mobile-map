@@ -277,24 +277,25 @@
 
 		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
 			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
+				<a href='#map-page' data-role='button' data-rel='back' data-icon='back' data-iconpos='notext' data-theme='a'></a>
 				<h1>Locations</h1>
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='a' style='float:right'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a'>Submit</a>
 			</div>
 			<div data-role='content' id="queue-content" style="width:80%;margin:auto;padding:0px;">
 				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
 					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
-						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown'>
+						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown' style='-webkit-touch-callout: none;'>
 							<img/>
-							<h3>Press to Choose Location</h3>
-							<p>Press arrow to set status</p>
+							<h3>Tap to Choose Location</h3>
+							<p>Tap arrow to set status.  Swipe left to Delete</p>
 						</a>
 						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown' data-theme='a'></a>
 					</li>
 				</ul>
 			</div>
 			<div data-role='footer' style="width:80%;margin:auto">
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a' style='float: right;margin-right:20px;'>Submit</a>
-				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a' style='float:right;margin:4px;margin-right:10px;'>Submit</a>
+				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float:right;margin:4px;'>Back</a>
 			</div>
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
 			<div data-role='footer' id="queue-footer" data-position="fixed" data-id="mainfooter">
