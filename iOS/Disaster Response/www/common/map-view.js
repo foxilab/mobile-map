@@ -1720,6 +1720,28 @@ function onDeviceReady()
 	// then update all the badges accordingly.
 	updateQueueSize();
 	
+	$('#addressSearchDiv .ui-listview-filter').submit(function(){
+	  console.log("search submit");
+	  var address = $('#addressSearchDiv .ui-input-text').val();
+	  searchForAddress(address);
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
+		closeAllPopups();
+		$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+		if($('#cameraORvideoPopup').is(':visible'))
+		togglePhotoVideoDialog();
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
+		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+	
+		setTimeout(function(){
+			if(visibleListItems.length > 0)
+			   visibleListItems.addClass('ui-screen-hidden hid-myself');
+		}, 200);
+	});
+	
 	$('#addressSearchDiv .ui-input-search').find('a').attr('data-theme', 'a');
 }
 
@@ -2124,12 +2146,7 @@ $(document).ready(function () {
 	
 		map.events.rotationAngle = 0;
 	});
-	
-	$('#addressSearchDiv .ui-listview-filter').submit(function(){
-		var address = $('#addressSearchDiv .ui-input-text').val();
-		searchForAddress(address);
-	});
-				  
+
 	$('.address-list-item').live('click', function(){
 		var coordinates = $(this).attr('location');
 		var commaIndex = coordinates.indexOf(",");
@@ -2137,22 +2154,6 @@ $(document).ready(function () {
 		var lon = coordinates.substr(commaIndex+1);
 		
 		map.setCenter(new OpenLayers.LonLat(lon, lat), 17);							
-	});
-	
-	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
-			closeAllPopups();
-			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
-			if($('#cameraORvideoPopup').is(':visible'))
-					togglePhotoVideoDialog();
-	});
-		
-	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
-		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-		
-		setTimeout(function(){
-			if(visibleListItems.length > 0)
-				visibleListItems.addClass('ui-screen-hidden hid-myself');
-		}, 200);
 	});
 				  
 	$('#plus').click(function(){
