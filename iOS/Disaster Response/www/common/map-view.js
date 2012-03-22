@@ -149,8 +149,8 @@ var fusionStyle = new OpenLayers.StyleMap({
 /* ============================ *
  *  	 	 Layers
  * ============================ */
-var heatmapLayer;
-var mapLayerOSM;
+var mapLayerOSM		= null;
+var heatmapLayer	= null;
 
 var navigationLayer = new OpenLayers.Layer.Vector("Navigation Layer", {
     	styleMap: 			navStyle
@@ -675,16 +675,25 @@ function setHeatMapToggleIcon() {
 function toggleHeatMapLayer() {
 	heatmapLayer_IsVisible = !heatmapLayer_IsVisible;
 	heatmapLayer.toggle();
+	
+	console.log("Toggle HeatMap");
+	console.log("Heatmap Visible: " + heatmapLayer_IsVisible);
 }
 
 function turnHeatMapLayerOn() {
 		heatmapLayer_IsVisible = true;
 		heatmapLayer.show();
+		
+	console.log("HeatMap On");
+	console.log("Heatmap Visible: " + heatmapLayer_IsVisible);
 }
 
 function turnHeatMapLayerOff() {
 		heatmapLayer_IsVisible = false;
 		heatmapLayer.hide();
+		
+	console.log("HeatMap Off");
+	console.log("Heatmap Visible: " + heatmapLayer_IsVisible);
 }
 
 function setHeatMapLayerVisibility(_visible) {
@@ -881,51 +890,6 @@ function destroyLocationPopup(_feature) {
 	document.getElementById("locationImage").alt = "Nothing set for this location.";
 }
 
-function showStatusesDialog() {
-
-	for(var i = 0; i < popupFeature.length; i++) {
-		//clone the archetype
-		var $clone = $('#multiStatus-list-item-archetype').clone();	
-		$clone.removeAttr('id');
-
-		console.log(popupFeature[i].media);
-
-		type = getFileType(popupFeature[i].media);
-	
-		if (type == "image") {
-			$clone.find('img').attr('src', popupFeature[i].media);
-		}
-			else if (type == "audio") {
-				$clone.find('img').attr('src', 'css/images/glyphish/66-microphone.png');
-				$clone.find('img').addClass('ui-li-icon');
-			}
-			else if (type == "video") {
-				// TODO: maybe we should get a thumbnail and put the play button in the middle?
-				$clone.find('img').attr('src', 'css/images/glyphish/45-movie-1.png');
-				$clone.find('img').addClass('ui-li-icon');
-			}
-		else {
-			// Should be impossible to get here
-			console.log('unsupported media type in addToQueueDialog');
-			return;
-		}
-	
-		if (popupFeature[i].name) {
-			$clone.find('h3').text(popupFeature[i].name);
-		}
-	
-		if (popupFeature[i].status >= 1) {
-			$clone.find('p').text(popupFeature[i].date + " - " + StatusRef.fromId(popupFeature[i].status).toString());
-		}
-	
-		$('#multiStatus-dialog ul').append($clone);
-		$clone.trigger('create').show();
-	}
-	
-	
-	$.mobile.changePage('#multiStatus-dialog', 'pop');
-}
-
 function closeAllPopups() {
 	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
@@ -964,10 +928,6 @@ function arePopupsOpen() {
 		open = true;
 	
 	return open;
-}
-
-function hideStatusesDialog() {
-	$('#multiStatus-dialog li').not('#multiStatus-list-item-archetype').remove();
 }
 
 function locationPopup_onImageClick() {
@@ -1507,8 +1467,8 @@ function onDeviceReady()
 	initFilter();
 	
 	audiojs.events.ready(function() {
-						 var as = audiojs.createAll();
-						 });
+		var as = audiojs.createAll();
+	});
 
 	var footerHeight = div_PageFooter.height();
 	console.log("footerHeight: " + footerHeight);
@@ -1519,18 +1479,19 @@ function onDeviceReady()
 	//With the mapDiv setup. Create the map!
 	map = new OpenLayers.Map(mapOptions);
 	mapLayerOSM = new OpenLayers.Layer.OSM();	
-
+	
 	//Set up the HeatMap
-	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: true, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: WGS84});
+	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: heatmapLayer_IsVisible, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: WGS84});
 	initHeatmap();
 
-	map.events.register("movestart", map, onMapMoveStart);	/* Hide popups on drag */
-	map.events.register("moveend", map, onMapMoveEnd);		/* Refresh map layers. */
 	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
+		map.events.register("movestart", map, onMapMoveStart);	/* Hide popups on drag */
+		map.events.register("moveend", map, onMapMoveEnd);		/* Refresh map layers. */
 
 	// fix height of content to allow for header & footer
 	function fixContentHeight() {
 		if ($.mobile.activePage.attr('id') == "map-page") {
+
 			var viewHeight = $(window).height();
 
 			var contentHeight = viewHeight - div_PageFooter.outerHeight();
@@ -1548,9 +1509,10 @@ function onDeviceReady()
 			if (map) {
 				closeAllPopups_NoToggle();
 				map.updateSize();
+				heatmapLayer.onMapResize();
 				
 				map.zoomIn(); map.zoomOut();
-				map.zoomOut(); map.zoomIn();
+				map.zoomOut(); map.zoomIn();	
 			}
 		}
 	}
@@ -1695,14 +1657,6 @@ function onDeviceReady()
 		// rather than doing it every time.
 		//selectTabBarItem('Queue');
 		forAllLocations(sqlDb, addToQueueDialog);
-	});
-	
-	$('#multiStatus-dialog').live('pageshow', function() {
-
-	});
-						  
-	$('#multiStatus-dialog').live('pagehide', function() {
-		hideStatusesDialog();
 	});
 
 	//Clear the queue when the user is done with the page,
