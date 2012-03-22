@@ -258,7 +258,7 @@ var heatmapGradient = {
 	1.00: "rgb(255,0,0)"
 };
 
-var heatmap_IsVisible 		= true;
+var heatmap_IsVisible 		= false;
 var heatmapLayer_IsVisible	= false;
 var heatmapToggle_IsVisible	= false;
 var fusionLayer_IsVisible	= true;
@@ -1046,7 +1046,7 @@ function fusionSQLSuccess(data) {
 		
 		//Before we add anything to the list, lets check to see if we it fits our
 		// search filters
-		if(true) {
+		if(shouldAddToLayer(location)) {
 			//Now that we have our location, loop through and find out if it already exists.
 			for(var locA = 0; locA < locationArray.length; locA++) {
 				for(var loc = 0; loc < locationArray[locA].length; loc++) {
