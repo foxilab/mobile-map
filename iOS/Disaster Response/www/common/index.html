@@ -121,7 +121,6 @@
 				display:none;
 				position:relative;
 				z-index:1000;
-				/*top:20%;  #BUGFIX 38: This causes it to not center.*/
 				margin:auto;
 				background-color:#505050;
 				min-width:300px;
@@ -148,23 +147,20 @@
 			}
 			
 	</style>
-		<!-- iPad/iPhone specific css below, add after your main css >
-		<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
-		<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
-		-->
-		<!-- If your application is targeting iOS BEFORE 4.0 you MUST put json2.js from http://www.JSON.org/json2.js into your www directory and include it here -->
 		<script type="text/javascript" charset="utf-8" src="json2.js"></script>
 	</head>
 
 	<body onload="onBodyLoad()">
-		<div data-role="page" id='map-page' class="mypage" data-theme='a'> 
-			<div data-role="content" id="map-content" style="padding: 0px!important"> 
+	
+		<!-- Map Page -->
+		<div data-role="page" id='map-page' class="mypage" data-theme='a'>
+			<!-- Map Page: Content -->
+			<div data-role="content" id="map-content" style="padding: 0px!important">
+				<!-- Map Page: Map Container -->
 				<div id="mapContainer" style="background-color:white;">
+					<!-- Map Page: OpenLayers Map -->
 					<div id="OpenLayersMap"></div>
-					<!--<div id="zoomPanel"></div>-->
-					<!--<div id="northIndicator" style="position:absolute;z-index:1000;top:10px;left:30px;">
-						<image src="css/images/Reflect_Vertical.png" alt="north"/>
-					</div>-->
+
 					<div id="navigation" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
 						<a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
@@ -175,7 +171,7 @@
 					</div>
 					
 					<div id="centerButton" data-role="controlgroup" data-type="vertical">
-						<a href="#" data-role="button" id="center" data-icon="home" data-iconpos="notext"></a>
+						<a href="#" data-role="button" id="center" data-icon="glyphish-location" data-iconpos="notext"></a>
 					</div>
 
 					<div id="filterButton" data-role="controlgroup" data-type="vertical">
@@ -232,9 +228,14 @@
 					</div>
 					<div id="locationPopup" style="text-align:left; display: none; padding: 4px;">
 						<div style='clear:both'></div>
-						<div id="locationName" style="float: left; color:white; font-size:18px; margin-top: 2px"></div>
-						<span style="float: left; color:white; font-size:18px;">&nbsp;-&nbsp;</span>
-						<time id="locationDate" class="timeago" style="float: left; color:white; font-size:18px; margin-bottom:4px;"></time>
+						<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.7;position:absolute !important;left:0px;top:0px;">
+							<div style="margin:8px">
+								<span id="locationName" style="color:white"></span>
+								<p style="margin:8px;margin-left:0px;color:white">
+									<time id="locationDate" class="timeago"></time>
+								</p>
+							</div>
+						</div>
 						<div style='clear:both'></div>
 						<!-- Image -->
 						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px" align="middle"/>
@@ -249,9 +250,11 @@
 							</audio>
 						</div>
 					</div>
-				</div>
-			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+				</div> <!-- /Map Page: Map Container -->
+			</div> <!-- /Map Page: Content -->
+			
+			<!-- Page Footer -->
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li class='map-tab-button'><a href="#map-page" data-icon="home" class="ui-btn-active ui-state-persist">Map</a></li>
@@ -260,29 +263,40 @@
 						<li><a href="#more-dialog" data-icon="info">More</a></li>
 					</ul>
 				</div>
+			</div> <!-- /Page Footer -->
+		</div> <!-- /Map Page -->
+
+		<!-- Metadata overlay -->
+		<div id='item-metadata-base' class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.7;position:absolute !important;left:0px;top:0px;">
+			<div style="margin:8px">
+				<span style="color:white"></span>
+				<p style="margin:8px;margin-left:0px;color:white">
+					<time></time>
+				</p>
 			</div>
 		</div>
 
 		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
 			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
+				<a href='#map-page' data-role='button' data-rel='back' data-icon='back' data-iconpos='notext' data-theme='a'></a>
 				<h1>Locations</h1>
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-iconpos='notext' data-theme='a' style='float:right'>Submit</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a'>Submit</a>
 			</div>
 			<div data-role='content' id="queue-content" style="width:80%;margin:auto;padding:0px;">
 				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
 					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
-						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown'>
+						<a href='#location-dialog' data-rel='dialog' data-transition='slidedown' style='-webkit-touch-callout: none;'>
 							<img/>
-							<h3>Press to Choose Location</h3>
-							<p>Press arrow to set status</p>
+							<h3>Tap to Choose Location</h3>
+							<p>Tap arrow to set status.  Swipe left to Delete</p>
 						</a>
 						<a href='#status-dialog' data-rel='dialog' data-transition='slidedown' data-theme='a'></a>
 					</li>
 				</ul>
 			</div>
 			<div data-role='footer' style="width:80%;margin:auto">
-				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a' style='float: right;margin-right:20px;'>Submit</a>
-				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float: right'>Back</a>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a' style='float:right;margin:4px;margin-right:10px;'>Submit</a>
+				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float:right;margin:4px;'>Back</a>
 			</div>
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
 			<div data-role='footer' id="queue-footer" data-position="fixed" data-id="mainfooter">
@@ -343,7 +357,7 @@
 				<h3>User</h3>
 				<p>User data and variables go here.</p>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -365,7 +379,7 @@
 				<li><img src="Buildings/3D_Red.png" class="ui-li-icon">&nbsp; - Non-Operational</li>
 				</ul>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -380,8 +394,11 @@
 		<div data-role='page' id='image-viewer' class="mypage" style='background-image: none !important; background-color: black !important'>
 			<div data-role='content' style='overflow-x: visible !important'>
 				<div id='fs-image'>
-					<a style='float: right; left: 18px; top:-18px; z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
-					<img id='chosenImage'/>
+					<a style='z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
+					<img id='chosenImage' style='max-width:95%;max-height:100%'/>
+					<!-- metadata overlay -->
+					<div id="image-metadata">
+					</div>					
 				</div>
 				<div id='fs-audio' style="width: 460px; height: 80px">
 					<a style='float: right; left: 18px; z-index: 2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
@@ -389,7 +406,7 @@
 					</audio>
 				</div>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -406,7 +423,7 @@
 				<div id='gallery'>
 				</div>
 			</div>
-			<div data-role='footer' id="map-footer" data-position="fixed" data-id="mainfooter">
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
@@ -445,5 +462,5 @@
 	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>-->
 	<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>
 
-	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.1.min.js"></script>
 </html>
