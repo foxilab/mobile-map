@@ -770,24 +770,23 @@ function createLocationPopup(_feature) {
 		console.log("mime: " + mime);
 		if (mime) {
 			var fileType = getFileType(locMedia);
-		
-			console.log("fileType: " + fileType);
+			console.log("after file type");
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
-				if(fileType == "video") {
-					console.log("where is youtube");
+				console.log("connected");
+				if(fileType == "youtube") {
 					if(!stacked) {
-						console.log("show me youtube ahhhhh");
+						
 						$locationImage.hide();
 						$('#embedded-audio').hide();
-
-						var $div = $('#embedded-video');
-						//var params = { allowScriptAccess: "always" };
-						//swfobject.embedSWF(locMedia, "embedded-video", "350", "350", "10.1", null, null, params, {});
-						var $video = $div.find('video');
+						
+						window.location = locMedia;
+						/*var $div = $('#embedded-video');
+						var $video = $div.find('embed');
 						$video.attr('src', locMedia);
-						$div.show();
+						$div.show();*/
 					} else {
+						console.log("stacked");
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
 						
@@ -860,6 +859,7 @@ function createLocationPopup(_feature) {
 		$('#locationDate').attr('datetime', locDate).text($.timeago($.format.date(locDate, "yyyy-MM-dd hh:mm:ss a")));
 		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
+	
 	LocationPopup.toggle();
 	LocationPopup.trigger('updatelayout');
 	LocationPopup.position({
@@ -1586,7 +1586,7 @@ function onDeviceReady()
 														 
 	map.addControl(selectControl);
 		selectControl.activate();
-
+	isInternetConnection = window.navigator.onLine;
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
 			wasPopupOpen = true;
@@ -1673,6 +1673,28 @@ function onDeviceReady()
 	//Now that we are done loading everything, read the queue and find the size
 	// then update all the badges accordingly.
 	updateQueueSize();
+	
+	$('#addressSearchDiv .ui-listview-filter').submit(function(){
+	  console.log("search submit");
+	  var address = $('#addressSearchDiv .ui-input-text').val();
+	  searchForAddress(address);
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
+		closeAllPopups();
+		$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+		if($('#cameraORvideoPopup').is(':visible'))
+		togglePhotoVideoDialog();
+	});
+	
+	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
+		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
+	
+		setTimeout(function(){
+			if(visibleListItems.length > 0)
+			   visibleListItems.addClass('ui-screen-hidden hid-myself');
+		}, 200);
+	});
 	
 	$('#addressSearchDiv .ui-input-search').find('a').attr('data-theme', 'a');
 }
@@ -2078,12 +2100,7 @@ $(document).ready(function () {
 	
 		map.events.rotationAngle = 0;
 	});
-	
-	$('#addressSearchDiv .ui-listview-filter').submit(function(){
-		var address = $('#addressSearchDiv .ui-input-text').val();
-		searchForAddress(address);
-	});
-				  
+
 	$('.address-list-item').live('click', function(){
 		var coordinates = $(this).attr('location');
 		var commaIndex = coordinates.indexOf(",");
@@ -2091,22 +2108,6 @@ $(document).ready(function () {
 		var lon = coordinates.substr(commaIndex+1);
 		
 		map.setCenter(new OpenLayers.LonLat(lon, lat), 17);							
-	});
-	
-	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
-			closeAllPopups();
-			$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
-			if($('#cameraORvideoPopup').is(':visible'))
-					togglePhotoVideoDialog();
-	});
-		
-	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
-		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-		
-		setTimeout(function(){
-			if(visibleListItems.length > 0)
-				visibleListItems.addClass('ui-screen-hidden hid-myself');
-		}, 200);
 	});
 				  
 	$('#plus').click(function(){
