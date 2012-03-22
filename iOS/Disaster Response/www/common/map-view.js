@@ -691,28 +691,28 @@ function createLocationPopup(_feature) {
 		}
 		
 		//Check to see the media type
+		console.log("location popup");
 		var mime = mimeTypeFromExt(locMedia);
 		console.log("mime: " + mime);
 		if (mime) {
 			var fileType = getFileType(locMedia);
-		
-			console.log("fileType: " + fileType);
+			console.log("after file type");
 			//If there is internet, use data from online
 			if(isInternetConnection == true) {
-				if(fileType == "video") {
-					console.log("where is youtube");
+				console.log("connected");
+				if(fileType == "youtube") {
 					if(!stacked) {
-						console.log("show me youtube ahhhhh");
+						
 						$locationImage.hide();
 						$('#embedded-audio').hide();
-
-						var $div = $('#embedded-video');
-						//var params = { allowScriptAccess: "always" };
-						//swfobject.embedSWF(locMedia, "embedded-video", "350", "350", "10.1", null, null, params, {});
-						var $video = $div.find('video');
+						
+						window.location = locMedia;
+						/*var $div = $('#embedded-video');
+						var $video = $div.find('embed');
 						$video.attr('src', locMedia);
-						$div.show();
+						$div.show();*/
 					} else {
+						console.log("stacked");
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
 						
@@ -785,6 +785,7 @@ function createLocationPopup(_feature) {
 		$('#locationDate').attr('datetime', locDate).text($.timeago($.format.date(locDate, "yyyy-MM-dd hh:mm:ss a")));
 		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
+	
 	LocationPopup.toggle();
 	LocationPopup.trigger('updatelayout');
 	LocationPopup.position({
@@ -928,6 +929,7 @@ function locationPopup_onImageClick() {
 	}
 	else if(fileType ==  "image") {
 		$.mobile.changePage('#image-viewer');
+		$('#chosenImage').attr('src', locMedia);
 	}
 	else {
 		//Sould be impossible to get here...so congratulations?!
@@ -1362,6 +1364,7 @@ var mapLayerOSM;
 
 var div_Map;
 var div_MapContainer;
+var isAndroid;
 
 /*
 		 ==============================================
@@ -1371,7 +1374,8 @@ var div_MapContainer;
 function onDeviceReady()
 {
 	console.log("onDeviceReady");
-	
+	var ua = window.navigator.userAgent.toLowerCase();
+	isAndroid = ua.indexOf("android") > -1;
 	/*
 		The device is ready! First lets set up our listeners so we can tell
 		when certian things, like rotation, happen.
@@ -1558,7 +1562,7 @@ function onDeviceReady()
 														 
 	map.addControl(selectControl);
 		selectControl.activate();
-
+	isInternetConnection = window.navigator.onLine;
 	fusionLayer.events.on({
 		"featureselected": function(_event) {
 			wasPopupOpen = true;
