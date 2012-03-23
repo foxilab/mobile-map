@@ -218,41 +218,50 @@ function insertToAddressSearchTable(db, lon, lat, address){
 	db.transaction(insert, errorSql);
 }
 
+function performQueueInsert(db, lon, lat, name, media, status){
+	var insert = function (tx) {
+		var values = 'VALUES(';
+		values += quote(lat + ',' + lon) + ',';
+		if (name) {
+			values += quote(name) + ',';
+		}
+		else {
+			values += 'NULL,';
+		}
+		
+		values += quote(media) + ',';
+		values += "datetime('now'),";
+		
+		if (status) {
+			values += status;
+		}
+		else {
+			values += 'NULL'
+		}
+		
+		values += ')';
+		
+		tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
+			updateQueueSize();
+			showQueueTab();
+		});
+	};
+	
+	db.transaction(insert, errorSql);
+}
+
 function insertToLocationQueueTable(db, lon, lat, name, media, status) {
-	console.log(media);
-
-	window.resolveLocalFileSystemURI(media, function(fileObj) {
-		console.log(fileObj);
-		var insert = function (tx) {
-			var values = 'VALUES(';
-			values += quote(lat + ',' + lon) + ',';
-			if (name) {
-				values += quote(name) + ',';
-			}
-			else {
-				values += 'NULL,';
-			}
-
-			values += quote(fileObj.fullPath) + ',';
-			values += "datetime('now'),";
-			
-			if (status) {
-				values += status;
-			}
-			else {
-				values += 'NULL'
-			}
-
-			values += ')';
-			
-			tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
-				updateQueueSize();
-				showQueueTab();
-			});
-		};
-
-		db.transaction(insert, errorSql);
-	});
+	console.log("media: " + media);
+	console.log("platform: " + device.platform);
+	if(device.platform == 'Android')
+	{
+		console.log("i am android! hear me roar!");
+		//window.resolveLocalFileSystemURI(media, function(fileObj) {
+										 //console.log(fileObj.fullPath);
+			performQueueInsert(db, lon, lat, name, media, status);
+		//});
+	}else
+		performQueueInsert(db, lon, lat, name, media, status);
 }
 
 function deleteLocation(db, rowid) {
