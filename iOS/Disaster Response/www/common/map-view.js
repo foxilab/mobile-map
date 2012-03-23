@@ -1943,6 +1943,15 @@ $(document).ready(function () {
 			var next = nextImage(index);
 			if (next != index) {
 				$img.attr('src', popupFeature[next].media);
+
+				// TODO: This is nearly identical to the code in populateGallery()
+				var $overlay = $('#image-metadata');
+				$overlay.find('span').text(popupFeature[next].name + ' - ' + StatusRef.fromId(popupFeature[next].status).toString());
+
+				var itemdate = $.format.date(popupFeature[next].date, "MM-dd-yyyy hh:mm a");				
+				$overlay.find('time').attr('datetime', itemdate);
+				$overlay.find('time').text(itemdate);
+
 				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'slide', changeHash: false, reverse: false });
 			}
 		}
@@ -1957,6 +1966,15 @@ $(document).ready(function () {
 			var prev = prevImage(index);
 			if (prev != index) {
 				$img.attr('src', popupFeature[prev].media);
+
+				// TODO: This is nearly identical to the code in populateGallery(), as well as above in swipeleft
+				var $overlay = $('#image-metadata');
+				$overlay.find('span').text(popupFeature[prev].name + ' - ' + StatusRef.fromId(popupFeature[prev].status).toString());
+
+				var itemdate = $.format.date(popupFeature[prev].date, "MM-dd-yyyy hh:mm a");				
+				$overlay.find('time').attr('datetime', itemdate);
+				$overlay.find('time').text(itemdate);
+
 				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'slide', changeHash: false, reverse: true });
 			}
 		}
