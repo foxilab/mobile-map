@@ -420,13 +420,13 @@ function mediaUploadFailure(response) {
 function getFileMimeType(_filepath) {
 	var extension = getFileExtension(_filepath);
 	var mime = "null/null";
-	
+	console.log("mime ah: " + _filepath.substr(0, 6));
 	/* Video MIME's */
 		if(extension == "mov")
 			mime = "video/quicktime";
 		else if(extension == "mp4" || extension == "m4v")
 			mime = "video/mp4";
-		else if(_filepath.substr(0, 22) == "http://www.youtube.com")
+		else if(_filepath.substr(0, 7) == "youtube")
 			mime = "youtube";
 	
 	/* Audio MIME's */
@@ -521,8 +521,8 @@ function uploadFileToServer(row, photoguid, sql){
 	
 	ft.upload(filepath, url, function(response){
 		var videoId	= response.response;
-		var url 	= "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
-		var _sql 	= sql + squote(url) + ');';
+		//var url 	= "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
+		var _sql 	= sql + squote("youtube" + videoId) + ');';
 		console.log("videoId: " + videoId);
 		
 		callGoogleSQL(_sql, row.id);
@@ -779,8 +779,8 @@ function createLocationPopup(_feature) {
 						
 						$locationImage.hide();
 						$('#embedded-audio').hide();
-						
-						window.location = locMedia;
+						console.log("id: " + "http://www.youtube.com/v/" + locMedia.substr(7) + "?version=3&enablejsapi=1");
+						window.location = "http://www.youtube.com/v/" + locMedia.substr(7) + "?version=3&enablejsapi=1";
 						/*var $div = $('#embedded-video');
 						var $video = $div.find('embed');
 						$video.attr('src', locMedia);
@@ -790,7 +790,8 @@ function createLocationPopup(_feature) {
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
 						
-						$locationImage.attr('src', "Popup/Video.png");
+						//$locationImage.attr('src', "Popup/Video.png");
+						$locationImage.attr('src', "img.youtube.com/vi/" + locMedia.substr(7) + "/0.jpg");
 						$locationImage.attr('alt', "Video of " + locName + ".").show();
 					}
 				}
@@ -1237,7 +1238,7 @@ function shouldAddToLayer(_location) {
 		
 	if(SEARCHMEDIA.IMAGE.name == fileType && SEARCHMEDIA.IMAGE.checked)
 		shouldI_Media = true;
-	else if(SEARCHMEDIA.VIDEO.name == fileType && SEARCHMEDIA.VIDEO.checked)
+	else if(((SEARCHMEDIA.VIDEO.name == fileType) || (fileType == "youtube")) && SEARCHMEDIA.VIDEO.checked)
 		shouldI_Media = true;
 	else if(SEARCHMEDIA.AUDIO.name == fileType && SEARCHMEDIA.AUDIO.checked)
 		shouldI_Media = true;
@@ -1474,7 +1475,7 @@ function onDeviceReady()
 	console.log("footerHeight: " + footerHeight);
 	var mapHeight = screenHeight - footerHeight;
 
-	$.mobile.fixedToolbars.show();
+	//$.mobile.fixedToolbars.show();
 
 	//With the mapDiv setup. Create the map!
 	map = new OpenLayers.Map(mapOptions);
@@ -1617,6 +1618,7 @@ function onDeviceReady()
 		div_Map.css('top', mapTopPosition);
 		div_Map.css('left', mapLeftPosition);
 		$.mobile.fixedToolbars.show();
+					 console.log("map page show");
 	});
 	
 	div_MapPage.live('pagebeforehide', function() {
@@ -1696,6 +1698,8 @@ function onDeviceReady()
 	});
 	
 	$('#addressSearchDiv .ui-input-search').find('a').attr('data-theme', 'a');
+	
+	$.mobile.fixedToolbars.show();
 }
 
 function clearQueueDialog() {
