@@ -422,7 +422,7 @@ function mediaUploadFailure(response) {
 function getFileMimeType(_filepath) {
 	var extension = getFileExtension(_filepath);
 	var mime = "null/null";
-	console.log("mime ah: " + _filepath.substr(0, 6));
+	
 	/* Video MIME's */
 		if(extension == "mov")
 			mime = "video/quicktime";
@@ -773,9 +773,10 @@ function createLocationPopup(_feature) {
 						//$locationImage.hide();
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
-						
-						$locationImage.attr('src', "http://img.youtube.com/vi/" + locMedia.substr(7) + "/0.jpg");
-						window.location = "http://www.youtube.com/v/" + locMedia.substr(7) + "?version=3&enablejsapi=1";
+						var videoId = locMedia.substr(7);
+						$locationImage.attr('class', 'locImage youtubeVideo').attr('videoId', videoId);
+						$locationImage.attr('src', "http://img.youtube.com/vi/" + videoId + "/0.jpg");
+						window.location = "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
 						/*var $div = $('#embedded-video');
 						var $video = $div.find('embed');
 						$video.attr('src', locMedia);
@@ -1292,8 +1293,8 @@ function getAudio(lonlat) {
 
 function getPicture(lonlat) {
 	var isSimulator = (device.name.indexOf('Simulator') != -1);
-
-	navigator.camera.getPicture(function (imageURI) {
+	
+	/*navigator.camera.getPicture(function (imageURI) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 		
 		// TODO: This sometimes flashes the map
@@ -1305,6 +1306,14 @@ function getPicture(lonlat) {
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
+	});*/
+	
+	navigator.device.capture.captureImage(function (mediaFiles) {
+		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
+		
+		// TODO: This sometimes flashes the map
+		updateQueueSize();
+		showQueueTab();
 	});
 }
 
@@ -1332,8 +1341,8 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			//updateQueueSize();
-			//showQueueTab();
+			updateQueueSize();
+			showQueueTab();
 		});
 	}
 }

@@ -242,8 +242,6 @@ function performQueueInsert(db, lon, lat, name, media, status){
 		values += ')';
 		
 		tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
-			updateQueueSize();
-			showQueueTab();
 		});
 	};
 	
@@ -251,15 +249,22 @@ function performQueueInsert(db, lon, lat, name, media, status){
 }
 
 function insertToLocationQueueTable(db, lon, lat, name, media, status) {
-	console.log("media: " + media);
+	//alert("media: " + media);
 	console.log("platform: " + device.platform);
 	if(device.platform == 'Android')
 	{
 		console.log("i am android! hear me roar!");
-		//window.resolveLocalFileSystemURI(media, function(fileObj) {
-										 //console.log(fileObj.fullPath);
+		console.log("media.substr: " + media.substr(0, 7));
+		if(media.substr(0, 7) == "content")
+		{
+			//alert("ya");
+			window.resolveLocalFileSystemURI(media, function(fileObj) {
+				performQueueInsert(db, lon, lat, name, fileObj.fullPath, status);
+			});
+		}else{
+			//alert('no');
 			performQueueInsert(db, lon, lat, name, media, status);
-		//});
+		}
 	}else
 		performQueueInsert(db, lon, lat, name, media, status);
 }
