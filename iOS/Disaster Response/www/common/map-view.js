@@ -770,9 +770,11 @@ function createLocationPopup(_feature) {
 				if(fileType == "youtube") {
 					if(!stacked) {
 						
-						$locationImage.hide();
+						//$locationImage.hide();
 						$('#embedded-audio').hide();
-						console.log("id: " + "http://www.youtube.com/v/" + locMedia.substr(7) + "?version=3&enablejsapi=1");
+						$('#embedded-video').hide();
+						
+						$locationImage.attr('src', "http://img.youtube.com/vi/" + locMedia.substr(7) + "/0.jpg");
 						window.location = "http://www.youtube.com/v/" + locMedia.substr(7) + "?version=3&enablejsapi=1";
 						/*var $div = $('#embedded-video');
 						var $video = $div.find('embed');
@@ -784,7 +786,7 @@ function createLocationPopup(_feature) {
 						$('#embedded-video').hide();
 						
 						//$locationImage.attr('src', "Popup/Video.png");
-						$locationImage.attr('src', "img.youtube.com/vi/" + locMedia.substr(7) + "/0.jpg");
+						$locationImage.attr('src', "http://img.youtube.com/vi/" + locMedia.substr(7) + "/0.jpg");
 						$locationImage.attr('alt', "Video of " + locName + ".").show();
 					}
 				}
@@ -1693,6 +1695,11 @@ function onDeviceReady()
 	
 	$('#addressSearchDiv .ui-input-search').find('a').attr('data-theme', 'a');
 	
+	$('.youtubeVideo').live('click', function(){
+		var videoId = $(this).attr('videoId');
+		window.location = "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1"; 
+	});
+	
 	$.mobile.fixedToolbars.show();
 }
 
@@ -1804,6 +1811,10 @@ function populateGallery(parent, items, options) {
 				// Note: commented out mime type since Internet searches say this causes it not to work on Android.  It doesn't appear to be necessary on iOS either.
 				div += "<source src=" + squote(item.media) + "/>";// + " type=" + squote(getFileMimeType(item.media)) + "/>";
 				div += "</video>";
+				break;
+			case 'youtube':
+				div += '<img src=' + "'http://img.youtube.com/vi/" + item.media.substr(7) + "/0.jpg'";
+				div += ' class="youtubeVideo" videoId="' + item.media.substr(7) + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
 		}
 
