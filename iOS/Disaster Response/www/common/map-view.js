@@ -116,7 +116,8 @@ var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
 		pointRadius: 		25,
 		externalGraphic: 	"${image}",
 		fillOpacity: 		1,
-		rotation: 			0
+		rotation: 			0,
+		graphicZIndex:		"${zIndex}"
 });
 
 /* ============================ *
@@ -165,6 +166,7 @@ var statusLayer = new OpenLayers.Layer.Vector("Status Layer", {
 });
 
 var fusionLayer = new OpenLayers.Layer.Vector("Fusion Layer", {
+		rendererOptions: { zIndexing: true },
 		styleMap: 			fusionStyle,
 		displayProjection:	WGS84,
 		projection: 		WGS84_google_mercator,
@@ -675,25 +677,16 @@ function setHeatMapToggleIcon() {
 function toggleHeatMapLayer() {
 	heatmapLayer_IsVisible = !heatmapLayer_IsVisible;
 	heatmapLayer.toggle();
-	
-	console.log("Toggle HeatMap");
-	console.log("Heatmap Visible: " + heatmapLayer_IsVisible);
 }
 
 function turnHeatMapLayerOn() {
 		heatmapLayer_IsVisible = true;
 		heatmapLayer.show();
-		
-	console.log("HeatMap On");
-	console.log("Heatmap Visible: " + heatmapLayer_IsVisible);
 }
 
 function turnHeatMapLayerOff() {
 		heatmapLayer_IsVisible = false;
 		heatmapLayer.hide();
-		
-	console.log("HeatMap Off");
-	console.log("Heatmap Visible: " + heatmapLayer_IsVisible);
 }
 
 function setHeatMapLayerVisibility(_visible) {
@@ -1094,7 +1087,8 @@ function parseSQLSuccess_Icons(_locationArray) {
 				
 				//Create a point and add it to the fusionLayer
 				// pass in all the location statuses
-					var locationFeature = new OpenLayers.Feature.Vector(point, {image: icon, locations: _locationArray[locA]});
+					var locationFeature = new OpenLayers.Feature.Vector(point, {zIndex:-lonlat.lat, image: icon, locations: _locationArray[locA]});
+					
 				fusionLayer.addFeatures([locationFeature]);
 		}//end locA
 	}//end if
