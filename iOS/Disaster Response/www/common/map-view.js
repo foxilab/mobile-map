@@ -413,7 +413,7 @@ function mediaUploadSuccess(response) {
 }
 
 function mediaUploadFailure(response) {
-	console.log('media upload error');
+	console.log(response);
 }
 
 /*
@@ -443,6 +443,8 @@ function getFileMimeType(_filepath) {
 			mime = "audio/ogg";
 		else if (extension == "m4a")
 			mime = "audio/mp4";
+		else if (extension == "3gpp")
+			mime = "audio/3gpp";
 	
 	/* Image MIME's */
 		else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
@@ -570,12 +572,12 @@ function uploadFileToS3(row, photoguid, sql) {
 		options.mimeType 	= mimeType;
 		options.fileKey 	= "file";
 		options.fileName	= filepath.substr(filepath.lastIndexOf('/')+1);
+	//options.chunkedMode = true;
 		options.params 		= params;
 
 	var ft 	= new FileTransfer();
 	var url = 'http://mobileresponse.s3.amazonaws.com';
 	ft.upload(filepath, url, function(){
-		console.log("callgooglesql how many times?");
 		callGoogleSQL(sql, fileId);
 	}, mediaUploadFailure, options);
 }
@@ -1294,7 +1296,7 @@ function getAudio(lonlat) {
 function getPicture(lonlat) {
 	var isSimulator = (device.name.indexOf('Simulator') != -1);
 	
-	/*navigator.camera.getPicture(function (imageURI) {
+	navigator.camera.getPicture(function (imageURI) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 		
 		// TODO: This sometimes flashes the map
@@ -1306,15 +1308,15 @@ function getPicture(lonlat) {
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
-	});*/
+	});
 	
-	navigator.device.capture.captureImage(function (mediaFiles) {
+	/*navigator.device.capture.captureImage(function (mediaFiles) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 		
 		// TODO: This sometimes flashes the map
 		updateQueueSize();
 		showQueueTab();
-	});
+	});*/
 }
 
 function getVideo(lonlat) {
@@ -1805,8 +1807,8 @@ function populateGallery(parent, items, options) {
 
 		switch (type) {
 			case 'audio':
-				div += "<video controls preload='auto' src=" + squote(item.media) + " style='width:100%; height:100%;position:absolute;left:0px;bottom:0px'>";
-				div += "</video>";
+				div += "<audio preload='auto' src=" + squote(item.media) + " style='width:100%; height:100%;position:absolute;left:0px;bottom:0px'>";
+				div += "</audio>";
 				break;
 
 			case 'image':
