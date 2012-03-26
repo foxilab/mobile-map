@@ -2372,8 +2372,9 @@ var timeLastShown = 0;
 var unsentPopupClosed = true;
 function submitQueuedItems() {
 	var currentTimeInSeconds = new Date().getTime() / 1000;
+	
 	// Only allow the popup every 5 minutes, only if the popup isn't already up, and only if on the map page
-	if (!unsentPopupClosed && currentTimeInSeconds - timeLastShown > 300 && $.mobile.activePage.attr('id') == 'map-page') {
+	if (unsentPopupClosed && currentTimeInSeconds - timeLastShown > 300 && $.mobile.activePage.attr('id') == 'map-page') {
 		// If itemsInQueue is 1 or more we have data to push.
 		if(itemsInQueue >= 1) {
 			// Check to see if any are actually ready to be pushed (i.e. have a proper name and status set)
