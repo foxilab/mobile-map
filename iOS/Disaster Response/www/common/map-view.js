@@ -414,7 +414,7 @@ function mediaUploadSuccess(response) {
 }
 
 function mediaUploadFailure(response) {
-	console.log('media upload error');
+	console.log(response);
 }
 
 /*
@@ -444,6 +444,8 @@ function getFileMimeType(_filepath) {
 			mime = "audio/ogg";
 		else if (extension == "m4a")
 			mime = "audio/mp4";
+		else if (extension == "3gpp")
+			mime = "audio/3gpp";
 	
 	/* Image MIME's */
 		else if (extension == "jpg" || extension == "jpeg" || extension == "jpe" ||
@@ -571,12 +573,12 @@ function uploadFileToS3(row, photoguid, sql) {
 		options.mimeType 	= mimeType;
 		options.fileKey 	= "file";
 		options.fileName	= filepath.substr(filepath.lastIndexOf('/')+1);
+	//options.chunkedMode = true;
 		options.params 		= params;
 
 	var ft 	= new FileTransfer();
 	var url = 'http://mobileresponse.s3.amazonaws.com';
 	ft.upload(filepath, url, function(){
-		console.log("callgooglesql how many times?");
 		callGoogleSQL(sql, fileId);
 	}, mediaUploadFailure, options);
 }
@@ -1342,7 +1344,7 @@ function getAudio(lonlat) {
 function getPicture(lonlat) {
 	var isSimulator = (device.name.indexOf('Simulator') != -1);
 	
-	/*navigator.camera.getPicture(function (imageURI) {
+	navigator.camera.getPicture(function (imageURI) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 		
 		// TODO: This sometimes flashes the map
@@ -1354,15 +1356,15 @@ function getPicture(lonlat) {
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
-	});*/
+	});
 	
-	navigator.device.capture.captureImage(function (mediaFiles) {
+	/*navigator.device.capture.captureImage(function (mediaFiles) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 		
 		// TODO: This sometimes flashes the map
 		updateQueueSize();
 		showQueueTab();
-	});
+	});*/
 }
 
 function getVideo(lonlat) {
@@ -1853,8 +1855,8 @@ function populateGallery(parent, items, options) {
 
 		switch (type) {
 			case 'audio':
-				div += "<video controls preload='auto' src=" + squote(item.media) + " style='width:100%; height:100%;position:absolute;left:0px;bottom:0px'>";
-				div += "</video>";
+				div += "<audio preload='auto' src=" + squote(item.media) + " style='width:100%; height:100%;position:absolute;left:0px;bottom:0px'>";
+				div += "</audio>";
 				break;
 
 			case 'image':
@@ -1977,7 +1979,7 @@ $(document).ready(function () {
 
 		if (type == 'image') {
 			$('#fs-audio').hide();
-			
+
 			var $container = $('#fs-image');
 			var $img = $('#chosenImage');
 			$img.load(function() {
@@ -2416,35 +2418,46 @@ function onAppPause() {
 
 // Push any queued items to the server automatically, or with the user's consent,
 // depending on the app's current settings.
+var timeLastShown = 0;
+var unsentPopupClosed = true;
 function submitQueuedItems() {
-	//If itemsInQueue is 1 or more we have data to push.
-	if(itemsInQueue >= 1) {
-		// Check to see if any are actually ready to be pushed (i.e. have a proper name and status set)
-		var total = 0;
-		var valid = 0;
-		forAllLocations(sqlDb, function(row) {
-			++total;
+	var currentTimeInSeconds = new Date().getTime() / 1000;
+	
+	// Only allow the popup every 5 minutes, only if the popup isn't already up, and only if on the map page
+	if (unsentPopupClosed && currentTimeInSeconds - timeLastShown > 300 && $.mobile.activePage.attr('id') == 'map-page') {
+		// If itemsInQueue is 1 or more we have data to push.
+		if(itemsInQueue >= 1) {
+			// Check to see if any are actually ready to be pushed (i.e. have a proper name and status set)
+			var total = 0;
+			var valid = 0;
+			forAllLocations(sqlDb, function(row) {
+				++total;
 
-			if (row.status && row.name) {
-				++valid;
-			}
+				if (row.status && row.name) {
+					++valid;
+				}
 
-			if (total == itemsInQueue && valid > 0) {
-				//If auto push is on, try and push the data to the server.
-				if(isAutoPush) {
-					submitToServer();
+				if (total == itemsInQueue && valid > 0) {
+					//If auto push is on, try and push the data to the server.
+					if(isAutoPush) {
+						submitToServer();
+					}
+					else {
+						timeLastShown = new Date().getTime() / 1000;
+						unsentPopupClosed = false;
+
+						navigator.notification.confirm('You have unsent items.  Send now?', function (response) {
+							unsentPopupClosed = true;
+							switch (response) {
+								case 1:
+									submitToServer();
+									break;
+							}
+						});
+					}
 				}
-				else {
-					navigator.notification.confirm('You have unsent items.  Send now?', function (response) {
-						switch (response) {
-							case 1:
-								submitToServer();
-								break;
-						}
-					});
-				}
-			}
-		});
+			});
+		}
 	}
 }
 
