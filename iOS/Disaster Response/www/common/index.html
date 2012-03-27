@@ -134,13 +134,14 @@
 			.locImageMultiple{
 				position: absolute;
 				left: 48px;
-				top: 85px;
+				top: 68px;
 				width: 244px;
-				height: 174px;
+				height: 196px;
 			}
 			.locImage{
 				width: 300px;
-				height: 264px;
+				height: 300px;
+				padding: 0px 0px 0px 0px;
 			}
 			.ui-page{
 				min-height:100% !important;
@@ -226,7 +227,7 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
-					<div id="locationPopup" style="text-align:left; display: none; padding: 4px;">
+					<div id="locationPopup" style="text-align:left; display: none; padding: 5px;">
 						<div style='clear:both'></div>
 						<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.7;position:relative !important;left:0px;top:0px;">
 							<div style="margin:8px">
@@ -238,8 +239,8 @@
 						</div>
 						<div style='clear:both'></div>
 						<!-- Image -->
-						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px" align="middle"/>
-						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." align="middle"/>
+						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px padding: 20px 0px 0px 0px;" align="middle"/>
+						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." align="middle" onClick="onClick_FramedCloudLocationPopup()"/>
 						<!-- Video -->
 						<div id='embedded-video'>
 							<embed type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="300" height="300"></embed>

@@ -26,7 +26,7 @@ var div_Map;			/* The div that stores the Openlayers map.  				*/
 var div_PageFooter;		/* The div that stores the footer for every page.  			*/
 
 var cameraORvideoPopup;	/* The div that stores the cameraOrVideo popup.  			*/
-var LocationPopup;		/* The div that stores the Location popup.  				*/
+var div_LocationPopup;	/* The div that stores the Location popup.  				*/
 var div_FilterPopup;	/* The div that stores the Filter popup.  					*/
  
 /* ============================ *
@@ -200,6 +200,7 @@ var clickedLonLat 		= null;	 /* When the cameraOrVideo popup is toggled, store t
 var popupFeature 		= null;	 /* The current location displayed in the Location popup.					 */
 var popupFeatureMain	= null;	 /* The main feature that holds all the locations in the Location popup.	 */
 var selectedFeature 	= null;	 /* The feature that is currently selected.									 */
+var prevSelectedFeature = null;
 var queueVisable 		= true;	 /* Used in the filter popup to display the local queued locations.			 */
 
 var wasPopupOpen		= false; /* True if a popup was just opened.	 */
@@ -589,42 +590,54 @@ function uploadFileToS3(row, photoguid, sql) {
 		
 	This function gets called whenever the map stops moving (either from a pan or a zoom).
  */
+ var stopMoveEnd = false;
 function onMapMoveEnd(_event) {
+
+	if(!stopMoveEnd) {
 	/* Close any open popups. */
 	/*    #TODO - Close all popups or just some? */
-	if(selectedFeature)
-		selectControl.unselect(selectedFeature);
+			if(selectedFeature)
+				selectControl.unselect(selectedFeature);
 
-	/* Now that the map is done moving, get the new bounds and convert it. */
-	var bounds = map.getExtent();
-	var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
-	var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
+			/* Now that the map is done moving, get the new bounds and convert it. */
+			var bounds = map.getExtent();
+			var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
+			var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
 	
-	/* Generate the SQL to get all location statuses within the current map bounds. */
-	var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
-		" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
-		"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
+			/* Generate the SQL to get all location statuses within the current map bounds. */
+			var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
+				" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
+				"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
 	
-	/* Display the correct layer based on the maps current resolution. */
-	if(map.getResolution() <= iconMaxResolution) {
-		/* Display the icons, but hide the heatmap */
-		turnFusionLayerOn();
-		turnHeatMapToggleButtonOff();
-	} else {
-		/* STOP! Heatmap time! */
-		turnFusionLayerOff();
-		turnHeatMapToggleButtonOn();
-	}
+			/* Display the correct layer based on the maps current resolution. */
+			if(map.getResolution() <= iconMaxResolution) {
+				/* Display the icons, but hide the heatmap */
+				turnFusionLayerOn();
+				turnHeatMapToggleButtonOff();
+			} else {
+				/* STOP! Heatmap time! */
+				turnFusionLayerOff();
+				turnHeatMapToggleButtonOn();
+			}
 			
-	/* Query the Fusion Table for features with the new parameters. */
-	googleSQL(sql, 'GET', fusionSQLSuccess);
+			/* Query the Fusion Table for features with the new parameters. */
+			googleSQL(sql, 'GET', fusionSQLSuccess);
+		}
+		
+	stopMoveEnd = false;
 }
 
 /*
 	This function gets called right before the map begins to move.
  */
 function onMapMoveStart(_event) {
-	
+	//Before we move check to see if a popup was just opened.
+	if(wasPopupOpen) {
+		//Was it the location popup?
+		if(selectedFeature) {
+			stopMoveEnd = true;
+		}
+	}
 }
 
 //----------------------------------------------------
@@ -724,13 +737,14 @@ function setFusionLayerVisibility(_visible) {
 		
 	Creates the popup you get for clicking on a feature on the map.
  */
+ var featurePopup = null;
 function createLocationPopup(_feature) {
 	//Move B, get out da way: Hide the cameraOrvideoPopup to avoid position errors.
 	closeAllPopups();
 	
 	selectedFeature = _feature;
 
-	if (!LocationPopup.is(':visible')) {
+	if (!div_LocationPopup.is(':visible')) {
 		//Variables for local use/quick access/shorter code
 		var featureSize = _feature.attributes.locations.length;
 		popupFeature = _feature.attributes.locations;
@@ -743,9 +757,9 @@ function createLocationPopup(_feature) {
 			var locLon 		= popupFeatureMain.lon;
 			var precision	= 5;
 			
-		var $locationImage = $('#locationImage');
-		var $locationName = $('#locationName');
-		var $locationDate = $('#locationDate');
+		var $locationImage 	= $('#locationImage');
+		var $locationName 	= $('#locationName');
+		var $locationDate 	= $('#locationDate');
 		var $locationLonlat = $('#locationLonlat');
 		
 		var stacked = false;
@@ -776,13 +790,18 @@ function createLocationPopup(_feature) {
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
 						var videoId = locMedia.substr(7);
-						$locationImage.attr('class', 'locImage youtubeVideo').attr('videoId', videoId);
+						$locationImage.attr('class', 'locImage').attr('videoId', videoId);
 						$locationImage.attr('src', "http://img.youtube.com/vi/" + videoId + "/0.jpg");
-						window.location = "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1";
+						//window.location = "http://m.youtube.com/watch?v=" + videoId;
 						/*var $div = $('#embedded-video');
 						var $video = $div.find('embed');
 						$video.attr('src', locMedia);
 						$div.show();*/
+						
+						/*
+						div += '<img src=' + "'http://img.youtube.com/vi/" + item.media.substr(7) + "/0.jpg'";
+						div += ' class="youtubeVideo" videoId="' + item.media.substr(7) + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
+						*/
 					} else {
 						console.log("stacked");
 						$('#embedded-audio').hide();
@@ -854,34 +873,58 @@ function createLocationPopup(_feature) {
 		else
 			document.getElementById("locationName").innerHTML = locName + " (" + featureSize + ")";
 
-		LocationPopup.css('border', '2px solid ' + getStatusColor(locStatus));
+		div_LocationPopup.css('border', '2px solid ' + getStatusColor(locStatus));
 		$('#locationDate').attr('datetime', locDate).text($.timeago($.format.date(locDate, "yyyy-MM-dd hh:mm:ss a")));
 		//$('#locationLonlat').text(locLat.toFixed(precision) + ", " + locLon.toFixed(precision));
 	}
 	
-	LocationPopup.toggle();
-	LocationPopup.trigger('updatelayout');
-	LocationPopup.position({
-		my:	'center',
-		at:	'center',
-		of:	$(window)
-	});
+	featurePopup = new OpenLayers.Popup.FramedCloud("eventPopup", 
+		new OpenLayers.LonLat(locLon,locLat).transform(map.displayProjection, map.projection),
+		new OpenLayers.Size(300, 300),
+		div_LocationPopup.html(),
+		null, false, destroyLocationPopup);
+
+	map.addPopup(featurePopup);
+}
+
+function onClick_FramedCloudLocationPopup() {
+	//Now that the image is clicked figure out if there is 1 or more statuses
+	if(!$('#locationImageStack').is(':visible')) {
+		//If 1 open the normal popup
+		onImageClick_Single();
+	} else {
+		//If many open the gallary
+		onImageClick_Multiple();
+	}
+}
+
+function onImageClick_Multiple() {
+	var $gallery = $('#gallery');
+	$gallery.empty();
+	populateGallery($gallery, popupFeature);
+	$.mobile.changePage('#gallery-page');
 }
 
 function destroyLocationPopup(_feature) {
 	// Stop playing any audio or video
-	var $audio = LocationPopup.find('audio');
-	var $video = LocationPopup.find('video');
+	var $audio = div_LocationPopup.find('audio');
+	var $video = div_LocationPopup.find('video');
 	if ($video.is(':visible')) {
 		$video.get(0).pause();
 	}
 	else if ($audio.is(':visible')) {
 		$audio.get(0).pause();
 	}
+	
+	if(featurePopup) {
+		featurePopup.destroy();
+		featurePopup = null;
+	}
 
-	LocationPopup.hide();
+	div_LocationPopup.hide();
 //	popupFeature = null;
 	popupFeatureMain = null;
+	prevSelectedFeature = selectedFeature;
 	selectedFeature = null;
 	
 	//Clear out the div's
@@ -929,7 +972,9 @@ function arePopupsOpen() {
 	return open;
 }
 
-function locationPopup_onImageClick() {
+function onImageClick_Single() {
+	console.log("onImageClick_Single()");
+
 	//We have popupFeature, this variable holds the current feature
 	// now we can pull data and display 
 	//Variables for local use/quick access/shorter code
@@ -949,7 +994,7 @@ function locationPopup_onImageClick() {
 		$('#fs-audio').hide();
 
 		var $viewer = $('#image-viewer');
-		var src = $(this).attr('src');
+		var src = $('#locationImage').attr('src');
 		var $container = $('#fs-image');
 		var $img = $('#chosenImage');
 		$img.load(function() {
@@ -982,6 +1027,11 @@ function locationPopup_onImageClick() {
 		$overlay.attr('id', 'image-metadata');
 
 		$.mobile.changePage($('#image-viewer'));
+	}
+	else if(fileType == "youtube")
+	{
+		var videoId = $('#locationImage').attr('videoId');
+		window.location = "http://m.youtube.com/watch?v=" + videoId; 
 	}
 }
 
@@ -1114,9 +1164,7 @@ function parseSQLSuccess_Heatmap(_locationArray) {
 											  newestLocation.lat),
 						count: (parseInt(newestLocation.status)*50)
 					});
-		}//end locA
-		
-		//Update the layer to show the new data.
+		}//end locA	//Update the layer to show the new data.
 		transformedTestData.data = heatMapData;
 		heatmapLayer.setDataSet(transformedTestData);
 }
@@ -1446,7 +1494,7 @@ function onDeviceReady()
 	div_PageFooter				= $("#Page_Footer");
 	
 	cameraORvideoPopup 			= $("#cameraORvideoPopup");
-	LocationPopup 				= $("#locationPopup");
+	div_LocationPopup			= $("#locationPopup");
 	div_FilterPopup				= $("#filterPopup");
 	
 	/*
@@ -1497,7 +1545,7 @@ function onDeviceReady()
 	heatmapLayer = new OpenLayers.Layer.Heatmap("Heatmap Layer", map, mapLayerOSM, {visible: heatmapLayer_IsVisible, radius:10, gradient: heatmapGradient}, {isBaseLayer: false, opacity: 0.3, projection: WGS84});
 	initHeatmap();
 
-	map.addLayers([mapLayerOSM, navigationLayer, statusLayer, fusionLayer, heatmapLayer]);
+	map.addLayers([mapLayerOSM, fusionLayer, heatmapLayer, navigationLayer, statusLayer]);
 		map.events.register("movestart", map, onMapMoveStart);	/* Hide popups on drag */
 		map.events.register("moveend", map, onMapMoveEnd);		/* Refresh map layers. */
 
@@ -1713,7 +1761,7 @@ function onDeviceReady()
 	
 	$('.youtubeVideo').live('click', function(){
 		var videoId = $(this).attr('videoId');
-		window.location = "http://www.youtube.com/v/" + videoId + "?version=3&enablejsapi=1"; 
+		window.location = "http://m.youtube.com/watch?v=" + videoId; 
 	});
 	
 	$.mobile.fixedToolbars.show();
@@ -1919,13 +1967,15 @@ $(document).ready(function () {
 
 	var $queue_item;
 
-	$('.locImage').live('click', locationPopup_onImageClick);
+	/*
+	$('.locImage').live('click', onImageClick_Single);
 	$('.locImageMultiple').live('click', function() {
 		var $gallery = $('#gallery');
 		$gallery.empty();
 		populateGallery($gallery, popupFeature);
 		$.mobile.changePage('#gallery-page');
 	});
+	*/
 
 	var $viewer = $('#image-viewer');
 	$('.gallery-item').live('click', function(e) {
