@@ -128,6 +128,11 @@ var navStyle = new OpenLayers.StyleMap({
 		rules : [ new OpenLayers.Rule({
 			symbolizer : navSymbolizer
 		})]
+	}),
+	"select" : new OpenLayers.Style(null, {
+		rules : [ new OpenLayers.Rule({
+			symbolizer : navSymbolizer
+		})]
 	})
 });
 
@@ -1546,6 +1551,7 @@ function onDeviceReady()
 	initHeatmap();
 
 	map.addLayers([mapLayerOSM, fusionLayer, heatmapLayer, navigationLayer, statusLayer]);
+		
 		map.events.register("movestart", map, onMapMoveStart);	/* Hide popups on drag */
 		map.events.register("moveend", map, onMapMoveEnd);		/* Refresh map layers. */
 
@@ -1640,7 +1646,7 @@ function onDeviceReady()
 	});
 	
 	selectControl = new OpenLayers.Control.SelectFeature(
-		[fusionLayer], {
+		[navigationLayer, fusionLayer], {
 			clickout: true, toggle: false, multiple: false, hover: false,
 				toggleKey: "ctrlKey", multipleKey: "shiftKey" }
 	);
