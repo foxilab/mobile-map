@@ -1287,8 +1287,9 @@ function getAudio(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+			//updateQueueSize();
+			//showQueueTab();
 		});
 	}
 }
@@ -1300,11 +1301,13 @@ function getPicture(lonlat) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 		
 		// TODO: This sometimes flashes the map
-		updateQueueSize();
-		showQueueTab();
+		//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+		//updateQueueSize();
+		//showQueueTab();
 	},
 	function () { }, {
-		quality : 5,
+		quality : 50,
+		
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
@@ -1327,8 +1330,9 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+			//updateQueueSize();
+			//showQueueTab();
 		},
 		function () { }, {
 			quality : 100,
@@ -1343,8 +1347,9 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+			//updateQueueSize();
+			//showQueueTab();
 		});
 	}
 }
