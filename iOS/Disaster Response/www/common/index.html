@@ -134,13 +134,14 @@
 			.locImageMultiple{
 				position: absolute;
 				left: 48px;
-				top: 85px;
+				top: 68px;
 				width: 244px;
-				height: 174px;
+				height: 196px;
 			}
 			.locImage{
 				width: 300px;
-				height: 264px;
+				height: 300px;
+				padding: 0px 0px 0px 0px;
 			}
 			.ui-page{
 				min-height:100% !important;
@@ -226,9 +227,9 @@
 							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
 						</div>
 					</div>
-					<div id="locationPopup" style="text-align:left; display: none; padding: 4px;">
+					<div id="locationPopup" style="text-align:left; display: none; padding: 5px;">
 						<div style='clear:both'></div>
-						<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.7;position:absolute !important;left:0px;top:0px;">
+						<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:300px;background-color:black;opacity:0.7;position:absolute !important;left:5px;top:5px;">
 							<div style="margin:8px">
 								<span id="locationName" style="color:white"></span>
 								<p style="margin:8px;margin-left:0px;color:white">
@@ -238,8 +239,8 @@
 						</div>
 						<div style='clear:both'></div>
 						<!-- Image -->
-						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px" align="middle"/>
-						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." align="middle"/>
+						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px padding: 20px 0px 0px 0px;" align="middle"/>
+						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." align="middle" onClick="onClick_FramedCloudLocationPopup()"/>
 						<!-- Video -->
 						<div id='embedded-video'>
 							<embed type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="300" height="300"></embed>
@@ -438,8 +439,8 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<!--<script src="http://debug.phonegap.com/target/target-script-min.js#D778CBD0-D761-5773-91EE-A00212EC65665"></script>-->
-	<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>
-	<!--<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>-->
+	<!--<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>-->
+	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
 
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.1.min.js"></script>
 </html>
