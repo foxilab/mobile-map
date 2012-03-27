@@ -245,6 +245,7 @@ var orientationHeadingOffset	= 0;
 var oldRotation 				= 0;
 var screenWidth;
 var screenHeight;
+var DEVICE_ID;
 
 /* App */
 var isAutoPush 			= false;	/* If set to true, the app will try and push your local queue when you get internet.	 */
@@ -1501,7 +1502,7 @@ function onDeviceReady()
 	cameraORvideoPopup 			= $("#cameraORvideoPopup");
 	div_LocationPopup			= $("#locationPopup");
 	div_FilterPopup				= $("#filterPopup");
-	
+	DEVICE_ID = device.uuid;
 	/*
 		Update the screens size and the orientation heading.
 	*/
@@ -2275,7 +2276,7 @@ function submitToServer() {
 			for (var i = 0; i < rows.length; ++i) {
 				var sql = '';
 				var row = rows.item(i);
-				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,MediaURL) VALUES (';
+				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,DeviceID,MediaURL) VALUES (';
 				sql += squote(row.location) + ',';
 				//--------------------------------------------------
 				//  DO NOT TOUCH! It may look wrong       +-Here
@@ -2285,8 +2286,9 @@ function submitToServer() {
 				sql += squote(name) + ',';
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
+				sql += squote(DEVICE_ID) + ',';
 				var photoguid = Math.uuid();
-				
+												console.log('device.uuid: ' + DEVICE_ID);
 				var type = getFileType(row.media);
 				
 				if(type == "video")
