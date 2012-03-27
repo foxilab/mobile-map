@@ -569,10 +569,10 @@ function uploadFileToS3(row, photoguid, sql) {
 	};
 
 	var options 		= new FileUploadOptions();
+		//options.chunkedMode = true;
 		options.mimeType 	= mimeType;
 		options.fileKey 	= "file";
 		options.fileName	= filepath.substr(filepath.lastIndexOf('/')+1);
-	//options.chunkedMode = true;
 		options.params 		= params;
 
 	var ft 	= new FileTransfer();
@@ -1304,7 +1304,7 @@ function getPicture(lonlat) {
 		showQueueTab();
 	},
 	function () { }, {
-		quality : 100,
+		quality : 5,
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
