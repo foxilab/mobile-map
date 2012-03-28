@@ -242,6 +242,8 @@ function performQueueInsert(db, lon, lat, name, media, status){
 		values += ')';
 		
 		tx.executeSql('INSERT INTO locationqueue (location, name, media, date, status) ' + values, [], function(t, results) {
+			updateQueueSize();
+			showQueueTab();
 		});
 	};
 	
