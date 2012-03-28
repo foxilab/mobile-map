@@ -826,10 +826,10 @@ function createLocationPopup(_feature) {
 						$locationImage.hide();
 						$('#embedded-video').hide();
 					
-						var $div = $('#embedded-audio');
-						var $audio = $div.find('audio');
-						$audio.attr('src', locMedia);
-						$div.show();
+						//var $div = $('#embedded-audio');
+						//var $audio = $div.find('audio');
+						//$audio.attr('src', locMedia);
+						//$div.show();
 					} else {
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
@@ -893,6 +893,14 @@ function createLocationPopup(_feature) {
 		null, false, destroyLocationPopup);
 
 	map.addPopup(featurePopup);
+	
+	if(fileType == "audio" && !stacked){
+		var popupAudioDiv = $('#eventPopup #embedded-audio');
+		popupAudioDiv.find('audio').attr('src', locMedia);
+		//popupAudioDiv.append('<audio preload="auto" src="' + locMedia + '"></audio>');
+		audiojs.create(popupAudioDiv.find('audio'));
+		popupAudioDiv.show();
+	}
 }
 
 function onClick_FramedCloudLocationPopup() {
@@ -1538,9 +1546,9 @@ function onDeviceReady()
 
 	initFilter();
 	
-	audiojs.events.ready(function() {
+	/*audiojs.events.ready(function() {
 		var as = audiojs.createAll();
-	});
+	});*/
 
 	var footerHeight = div_PageFooter.height();
 	console.log("footerHeight: " + footerHeight);
@@ -1870,9 +1878,13 @@ function populateGallery(parent, items, options) {
 
 		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="position:relative;float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
 
+		// TODO: This is nearly identical to item-metadata-base
+		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
+		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:relative !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
+		
 		switch (type) {
 			case 'audio':
-				div += "<audio preload='auto' src=" + squote(item.media) + " style='width:100%; height:100%;position:absolute;left:0px;bottom:0px'>";
+				div += "<audio preload='auto' src=" + squote(item.media) + " style='width:" + itemwidth + "px;'>";
 				div += "</audio>";
 				break;
 
@@ -1894,17 +1906,14 @@ function populateGallery(parent, items, options) {
 				break;
 		}
 
-		// TODO: This is nearly identical to item-metadata-base
-		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
-		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
-
 		div += '</div>';
+		
 		return $(div);
 	};
 
 	for (var i = 0; i < items.length; ++i) {
 		parent.append(makeGalleryItem(items[i], i));
-
+		
 		var type = getFileType(items[i].media);
 
 		if (type == 'video') {
@@ -1915,6 +1924,8 @@ function populateGallery(parent, items, options) {
 		}
 	}
 	parent.trigger('create');
+	var audioGalleryItems = $('.gallery-item audio');
+	audiojs.create(audioGalleryItems);
 }
 
 function indexOfSrc(src) {
