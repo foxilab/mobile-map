@@ -128,6 +128,11 @@ var navStyle = new OpenLayers.StyleMap({
 		rules : [ new OpenLayers.Rule({
 			symbolizer : navSymbolizer
 		})]
+	}),
+	"select" : new OpenLayers.Style(null, {
+		rules : [ new OpenLayers.Rule({
+			symbolizer : navSymbolizer
+		})]
 	})
 });
 
@@ -240,6 +245,9 @@ var orientationHeadingOffset	= 0;
 var oldRotation 				= 0;
 var screenWidth;
 var screenHeight;
+var DEVICE_ID;
+var DEVICE_PLATFORM;
+var DEVICE_VERSION;
 
 /* App */
 var isAutoPush 			= false;	/* If set to true, the app will try and push your local queue when you get internet.	 */
@@ -570,10 +578,10 @@ function uploadFileToS3(row, photoguid, sql) {
 	};
 
 	var options 		= new FileUploadOptions();
+		//options.chunkedMode = true;
 		options.mimeType 	= mimeType;
 		options.fileKey 	= "file";
 		options.fileName	= filepath.substr(filepath.lastIndexOf('/')+1);
-	//options.chunkedMode = true;
 		options.params 		= params;
 
 	var ft 	= new FileTransfer();
@@ -1335,8 +1343,9 @@ function getAudio(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+			//updateQueueSize();
+			//showQueueTab();
 		});
 	}
 }
@@ -1348,11 +1357,13 @@ function getPicture(lonlat) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 		
 		// TODO: This sometimes flashes the map
-		updateQueueSize();
-		showQueueTab();
+		//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+		//updateQueueSize();
+		//showQueueTab();
 	},
 	function () { }, {
-		quality : 100,
+		quality : 50,
+		
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
@@ -1375,8 +1386,9 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+			//updateQueueSize();
+			//showQueueTab();
 		},
 		function () { }, {
 			quality : 100,
@@ -1391,8 +1403,9 @@ function getVideo(lonlat) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
 			
 			// TODO: This sometimes flashes the map
-			updateQueueSize();
-			showQueueTab();
+			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
+			//updateQueueSize();
+			//showQueueTab();
 		});
 	}
 }
@@ -1491,6 +1504,9 @@ function onDeviceReady()
 	cameraORvideoPopup 			= $("#cameraORvideoPopup");
 	div_LocationPopup			= $("#locationPopup");
 	div_FilterPopup				= $("#filterPopup");
+	DEVICE_ID = device.uuid;
+	DEVICE_PLATFORM = device.platform;
+	DEVICE_VERSION = device.version;
 	
 	/*
 		Update the screens size and the orientation heading.
@@ -1541,6 +1557,7 @@ function onDeviceReady()
 	initHeatmap();
 
 	map.addLayers([mapLayerOSM, fusionLayer, heatmapLayer, navigationLayer, statusLayer]);
+		
 		map.events.register("movestart", map, onMapMoveStart);	/* Hide popups on drag */
 		map.events.register("moveend", map, onMapMoveEnd);		/* Refresh map layers. */
 
@@ -1635,7 +1652,7 @@ function onDeviceReady()
 	});
 	
 	selectControl = new OpenLayers.Control.SelectFeature(
-		[fusionLayer], {
+		[navigationLayer, fusionLayer], {
 			clickout: true, toggle: false, multiple: false, hover: false,
 				toggleKey: "ctrlKey", multipleKey: "shiftKey" }
 	);
@@ -2264,7 +2281,7 @@ function submitToServer() {
 			for (var i = 0; i < rows.length; ++i) {
 				var sql = '';
 				var row = rows.item(i);
-				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,MediaURL) VALUES (';
+				sql += 'INSERT INTO ' + FusionTableId.locations() + ' (Location,Name,Status,Date,DeviceID,DevicePlatform,DeviceVersion,MediaURL) VALUES (';
 				sql += squote(row.location) + ',';
 				//--------------------------------------------------
 				//  DO NOT TOUCH! It may look wrong       +-Here
@@ -2274,8 +2291,13 @@ function submitToServer() {
 				sql += squote(name) + ',';
 				sql += row.status + ',';
 				sql += squote(row.date) + ',';
+				sql += squote(DEVICE_ID) + ',';
+				sql += squote(DEVICE_PLATFORM) + ',';
+				sql += squote(DEVICE_VERSION) + ',';
 				var photoguid = Math.uuid();
-				
+												console.log('device.uuid: ' + DEVICE_ID);
+												console.log('device.platform: ' + DEVICE_PLATFORM);
+												console.log('device.version: ' + DEVICE_VERSION);
 				var type = getFileType(row.media);
 				
 				if(type == "video")
