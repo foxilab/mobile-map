@@ -2295,9 +2295,6 @@ function submitToServer() {
 				sql += squote(DEVICE_PLATFORM) + ',';
 				sql += squote(DEVICE_VERSION) + ',';
 				var photoguid = Math.uuid();
-												console.log('device.uuid: ' + DEVICE_ID);
-												console.log('device.platform: ' + DEVICE_PLATFORM);
-												console.log('device.version: ' + DEVICE_VERSION);
 				var type = getFileType(row.media);
 				
 				if(type == "video")
