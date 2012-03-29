@@ -1886,6 +1886,8 @@ function populateGallery(parent, items, options) {
 
 		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="position:relative;float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
 		
+		var playLeftCenter = itemwidth / 2 - 32;
+		
 		switch (type) {
 			case 'audio':
 				div += "<audio preload='auto' src=" + squote(item.media) + ">";
@@ -1905,6 +1907,7 @@ function populateGallery(parent, items, options) {
 				div += "</video>";
 				break;
 			case 'youtube':
+				div += '<div style="position:absolute;top:' + playLeftCenter + ';left:' + playLeftCenter + 'px"><img class="galleryPlayYoutube" src="css/images/play_icon.png"/></div>';
 				div += '<img src=' + "'http://img.youtube.com/vi/" + item.media.substr(7) + "/0.jpg'";
 				div += ' class="youtubeVideo" videoId="' + item.media.substr(7) + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
@@ -2104,6 +2107,12 @@ $(document).ready(function () {
 
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
+	});
+	
+	$('.galleryPlayYoutube').live('click', function(e){
+		var youtubeImage = $(this).parent().siblings('img');
+		var videoId = youtubeImage.attr('videoId');
+		window.location = "http://m.youtube.com/watch?v=" + videoId;
 	});
 
 	$('.queue-list-item').live('swipeleft', showQueueItemDelete)
