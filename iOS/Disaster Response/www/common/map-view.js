@@ -1939,7 +1939,8 @@ function populateGallery(parent, items, options) {
 	{
 		audiojs.create(audioGalleryItems);
 	
-		var middleOfElement = itemwidth / 2 - 80;
+		//36 is the height of .audiojs
+		var middleOfElement = itemwidth - 36;
 		$('.gallery-item .audiojs').css('position', 'relative').css('top', middleOfElement + 'px');
 	}
 	
