@@ -269,9 +269,9 @@ var heatmapGradient = {
 	1.00: "rgb(255,0,0)"
 };
 
-var heatmap_IsVisible 		= false;
-var heatmapLayer_IsVisible	= false;
-var heatmapToggle_IsVisible	= false;
+var heatmap_IsVisible 		= true;
+var heatmapLayer_IsVisible	= true;
+var heatmapToggle_IsVisible	= true;
 var fusionLayer_IsVisible	= true;
 
 /*
