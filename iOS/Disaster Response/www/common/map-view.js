@@ -1338,7 +1338,7 @@ function initHeatmap() {
 		});
     }
 	
-    transformedTestData.data = nudata;
+	transformedTestData.data = nudata;
 	heatmapLayer.setDataSet(transformedTestData);
 	
 	setHeatMapLayerVisibility(heatmapLayer_IsVisible);
