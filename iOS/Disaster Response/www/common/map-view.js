@@ -826,10 +826,10 @@ function createLocationPopup(_feature) {
 						$locationImage.hide();
 						$('#embedded-video').hide();
 					
-						//var $div = $('#embedded-audio');
+						var $div = $('#embedded-audio');
 						//var $audio = $div.find('audio');
 						//$audio.attr('src', locMedia);
-						//$div.show();
+						$div.show();
 					} else {
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
@@ -895,15 +895,20 @@ function createLocationPopup(_feature) {
 	map.addPopup(featurePopup);
 	
 	if(fileType == "audio" && !stacked){
-		var popupAudioDiv = $('#eventPopup #embedded-audio');
+		var eventPopup = $('#eventPopup');
+		var oldAudio = eventPopup.find('.audiojs').attr('id', 'old-audio');
+		var popupAudioDiv = eventPopup.find('#embedded-audio');
+		var newAudioJSElement = popupAudioDiv.find('audio');
 		popupAudioDiv.find('audio').attr('src', locMedia);
 		//popupAudioDiv.append('<audio preload="auto" src="' + locMedia + '"></audio>');
-		audiojs.create(popupAudioDiv.find('audio'));
+		audiojs.create(newAudioJSElement);
+		oldAudio.replaceWith(oldAudio.children('.audiojs'));
 		popupAudioDiv.show();
 	}
 }
 
 function onClick_FramedCloudLocationPopup() {
+console.log("onClick_FramedCloudLocationPopup called");
 	//Now that the image is clicked figure out if there is 1 or more statuses
 	if(!$('#locationImageStack').is(':visible')) {
 		//If 1 open the normal popup
@@ -1546,9 +1551,9 @@ function onDeviceReady()
 
 	initFilter();
 	
-	/*audiojs.events.ready(function() {
+	audiojs.events.ready(function() {
 		var as = audiojs.createAll();
-	});*/
+	});
 
 	var footerHeight = div_PageFooter.height();
 	console.log("footerHeight: " + footerHeight);
@@ -1884,7 +1889,7 @@ function populateGallery(parent, items, options) {
 		
 		switch (type) {
 			case 'audio':
-				div += "<audio preload='auto' src=" + squote(item.media) + " style='width:" + itemwidth + "px;'>";
+				div += "<audio preload='auto' src=" + squote(item.media) + ">";
 				div += "</audio>";
 				break;
 
