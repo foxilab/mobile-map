@@ -1331,15 +1331,15 @@ function initHeatmap() {
 	var transformedTestData = { max: testData.max , data: [] },
 		data = testData.data, datalen = data.length, nudata = [];
 	
-    // in order to use the OpenLayers Heatmap Layer we have to transform our data into 
-    // { max: <max>, data: [{lonlat: <OpenLayers.LonLat>, count: <count>},...]}
-    while(datalen--) {
-        nudata.push({
+	// in order to use the OpenLayers Heatmap Layer we have to transform our data into 
+	// { max: <max>, data: [{lonlat: <OpenLayers.LonLat>, count: <count>},...]}
+	while (datalen--) {
+		nudata.push({
 			lonlat: new OpenLayers.LonLat(data[datalen].lon, data[datalen].lat),
 			count: data[datalen].count
 		});
-    }
-	
+	}
+
 	transformedTestData.data = nudata;
 	heatmapLayer.setDataSet(transformedTestData);
 	
