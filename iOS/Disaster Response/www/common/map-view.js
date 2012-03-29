@@ -1933,7 +1933,6 @@ function populateGallery(parent, items, options) {
 	}
 	parent.trigger('create');
 	
-	console.log("what the f");
 	var audioGalleryItems = $('.gallery-item audio');
 	
 	if(audioGalleryItems.length)
