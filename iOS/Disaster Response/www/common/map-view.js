@@ -896,11 +896,10 @@ function createLocationPopup(_feature) {
 	
 	if(fileType == "audio" && !stacked){
 		var eventPopup = $('#eventPopup');
-		var oldAudio = eventPopup.find('.audiojs').attr('id', 'old-audio');
+		var oldAudio = eventPopup.find('.audiojs');
 		var popupAudioDiv = eventPopup.find('#embedded-audio');
 		var newAudioJSElement = popupAudioDiv.find('audio');
 		popupAudioDiv.find('audio').attr('src', locMedia);
-		//popupAudioDiv.append('<audio preload="auto" src="' + locMedia + '"></audio>');
 		audiojs.create(newAudioJSElement);
 		oldAudio.replaceWith(oldAudio.children('.audiojs'));
 		popupAudioDiv.show();
@@ -912,9 +911,12 @@ console.log("onClick_FramedCloudLocationPopup called");
 	//Now that the image is clicked figure out if there is 1 or more statuses
 	if(!$('#locationImageStack').is(':visible')) {
 		//If 1 open the normal popup
+		console.log("single");
 		onImageClick_Single();
+		
 	} else {
 		//If many open the gallary
+		console.log("multiple");
 		onImageClick_Multiple();
 	}
 }
@@ -1375,8 +1377,7 @@ function getPicture(lonlat) {
 		//showQueueTab();
 	},
 	function () { }, {
-		quality : 50,
-		
+		quality : 100,
 		destinationType : Camera.DestinationType.FILE_URI,
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
@@ -1875,17 +1876,15 @@ function populateGallery(parent, items, options) {
 	if (!parent || !$.isArray(items))
 		return;
 
+	var itemwidth = $(window).width() / 2 - 8 * 5 - 4;
+	
 	var makeGalleryItem = function (item, index) {
 		var type = getFileType(item.media);
 
 		// 2 items across the screen minus the 8px margin (not sure where the extra 4 pixels come from, maybe default div margin/padding? - discovered through trial and error)
-		var itemwidth = $(window).width() / 2 - 8 * 5 - 4;
+		
 
 		var div = '<div class="gallery-item" media-type=' + quote(type) + ' media-src=' + quote(item.media) + ' style="position:relative;float:left;padding:4px;margin:8px;width:' + itemwidth + 'px;height:' + itemwidth + 'px;border:1px solid silver;text-align:center;line-height:' + itemwidth + 'px;display:table-cell;vertical-align:middle"><span style="vertical-align:middle"></span>';
-
-		// TODO: This is nearly identical to item-metadata-base
-		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
-		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:relative !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
 		
 		switch (type) {
 			case 'audio':
@@ -1911,6 +1910,10 @@ function populateGallery(parent, items, options) {
 				break;
 		}
 
+		// TODO: This is nearly identical to item-metadata-base
+		var itemdate = $.format.date(item.date, "MM-dd-yyyy hh:mm a");
+		div += '<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.6;position:absolute !important;left:0px;top:0px;"><div style="margin:8px"><span style="color:white">' + item.name + ' - ' + StatusRef.fromId(item.status).toString() + '</span><p style="margin:8px;margin-left:0px;color:white"><time style="" datetime="' + itemdate + '">' + itemdate + '</time></p>' + '</div></div>';
+		
 		div += '</div>';
 		
 		return $(div);
@@ -1929,8 +1932,18 @@ function populateGallery(parent, items, options) {
 		}
 	}
 	parent.trigger('create');
+	
+	console.log("what the f");
 	var audioGalleryItems = $('.gallery-item audio');
-	audiojs.create(audioGalleryItems);
+	
+	if(audioGalleryItems.length)
+	{
+		audiojs.create(audioGalleryItems);
+	
+		var middleOfElement = itemwidth / 2 - 80;
+		$('.gallery-item .audiojs').css('position', 'relative').css('top', middleOfElement + 'px');
+	}
+	
 }
 
 function indexOfSrc(src) {
