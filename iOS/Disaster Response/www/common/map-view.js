@@ -1327,10 +1327,10 @@ function initHeatmap() {
 		max: 1, data: [
 			{lat: 0.0, lon: 0.0, count: 0}
 	]}
-	
+
 	var transformedTestData = { max: testData.max , data: [] },
 		data = testData.data, datalen = data.length, nudata = [];
-	
+
 	// in order to use the OpenLayers Heatmap Layer we have to transform our data into 
 	// { max: <max>, data: [{lonlat: <OpenLayers.LonLat>, count: <count>},...]}
 	while (datalen--) {
