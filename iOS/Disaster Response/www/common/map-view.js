@@ -1054,7 +1054,7 @@ function onImageClick_Single() {
 	else if(fileType == "youtube")
 	{
 		var videoId = $('#locationImage').attr('videoId');
-		window.location = "http://m.youtube.com/watch?v=" + videoId; 
+		window.location = "http://www.youtube.com/watch?v=" + videoId; 
 	}
 }
 
@@ -1787,7 +1787,7 @@ function onDeviceReady()
 
 	$('.youtubeVideo').live('click', function(){
 		var videoId = $(this).attr('videoId');
-		window.location = "http://m.youtube.com/watch?v=" + videoId; 
+		window.location = "http://www.youtube.com/watch?v=" + videoId; 
 	});
 
 	$.mobile.fixedToolbars.show();
@@ -1907,9 +1907,10 @@ function populateGallery(parent, items, options) {
 				div += "</video>";
 				break;
 			case 'youtube':
-				div += '<div style="position:absolute;top:' + playLeftCenter + ';left:' + playLeftCenter + 'px"><img class="galleryPlayYoutube" src="css/images/play_icon.png"/></div>';
-				div += '<img src=' + "'http://img.youtube.com/vi/" + item.media.substr(7) + "/0.jpg'";
-				div += ' class="youtubeVideo" videoId="' + item.media.substr(7) + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
+				var videoId = item.media.substr(7);
+				div += '<img videoId="' + videoId + '" style="position:absolute;top:' + playLeftCenter + 'px;left:' + playLeftCenter + 'px" class="galleryPlayYoutube" src="css/images/play_icon.png"></img>';
+				div += '<img src=' + "'http://img.youtube.com/vi/" + videoId + "/0.jpg'";
+				div += ' class="youtubeVideo" videoId="' + videoId + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
 		}
 
@@ -2108,11 +2109,10 @@ $(document).ready(function () {
 	$('.queue-list-item').live('click', function(e) {
 		$queue_item = $(this);
 	});
-	
+
 	$('.galleryPlayYoutube').live('click', function(e){
-		var youtubeImage = $(this).parent().siblings('img');
-		var videoId = youtubeImage.attr('videoId');
-		window.location = "http://m.youtube.com/watch?v=" + videoId;
+		var videoId = $(this).attr('videoId');
+		window.location = "http://www.youtube.com/watch?v=" + videoId;
 	});
 
 	$('.queue-list-item').live('swipeleft', showQueueItemDelete)
