@@ -149,7 +149,14 @@
 			.audiojs{
 				width: 100% !important;
 			}
-			
+			#legend-ul li {
+				display:			block;
+				height:			60px;
+				line-height:	100%;
+			}
+			#legend-ul li img {
+				vertical-align:	middle;
+			}
 	</style>
 		<script type="text/javascript" charset="utf-8" src="json2.js"></script>
 	</head>
@@ -354,13 +361,20 @@
 
 		<div data-role='page' id='more-dialog' class="mypage" data-theme='a'>
 			<div data-role='content'>
-				<h2>More</h2>
-				<ul data-role="listview">
-				<li><img src="Buildings/3D_Green.png" class="ui-li-icon">&nbsp; - Operational</li>
-				<li><img src="Buildings/3D_Yellow.png" class="ui-li-icon">&nbsp; - Limited Capabilities</li>
-				<li><img src="Buildings/3D_Orange.png" class="ui-li-icon">&nbsp; - Intact, but Uninhabited</li>
-				<li><img src="Buildings/3D_Red.png" class="ui-li-icon">&nbsp; - Non-Operational</li>
+				<h2>Legend</h2>
+				<ul id='legend-ul' style='list-style-type:none;padding:0px'>
+					<li><img src="Buildings/3D_Green.png" />- Operational</li>
+					<li><img src="Buildings/3D_Yellow.png" />- Limited Capabilities</li>
+					<li><img src="Buildings/3D_Orange.png" />- Intact, but Uninhabited</li>
+					<li><img src="Buildings/3D_Red.png" />- Non-Operational</li>
 				</ul>
+				<span style='margin-top:24px'><h2>About</h2></span>
+				<div id='about-and-legal'>
+					<p>Copyright 2012 LMN Solutions, Inc.</p>
+					<p>The Company is not responsible nor liable for any content that you publish that may infringe local or international law, or that violates any intellectual property rights. If such content is detected by or reported to The Company, The Company will remove it from public view and notify you about the situation.</p>
+					<p>We are happy to share with you the software we developed for a demonstration application that is focused on collecting operational status of businesses and infrastructure in a disaster relief scenario. Please note that this is purely for demonstration purposes (such as the FOSS4G North America conference) and we have developed it as an internal R&amp;D effort to explore concepts related to mobile applications.  It is not for production purposes and no warranties or liabilities in using this software are expressed or implied.
+					</p>
+				</div>
 			</div>
 			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
@@ -437,4 +451,6 @@
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.1.min.js"></script>
+
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>

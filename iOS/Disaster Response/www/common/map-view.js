@@ -1773,23 +1773,23 @@ function onDeviceReady()
 		if($('#cameraORvideoPopup').is(':visible'))
 		togglePhotoVideoDialog();
 	});
-	
+
 	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
 		var visibleListItems = $('#old-places-list .address-list-item').not('.ui-screen-hidden');
-	
+
 		setTimeout(function(){
 			if(visibleListItems.length > 0)
 			   visibleListItems.addClass('ui-screen-hidden hid-myself');
 		}, 200);
 	});
-	
+
 	$('#addressSearchDiv .ui-input-search').find('a').attr('data-theme', 'a');
-	
+
 	$('.youtubeVideo').live('click', function(){
 		var videoId = $(this).attr('videoId');
 		window.location = "http://m.youtube.com/watch?v=" + videoId; 
 	});
-	
+
 	$.mobile.fixedToolbars.show();
 }
 
@@ -1800,7 +1800,7 @@ function clearQueueDialog() {
 function addToQueueDialog(locRow) {
 	var $clone = $('#queue-list-item-archetype').clone();	
 	$clone.removeAttr('id');
-	
+
 	console.log(locRow.media);
 	type = getFileType(locRow.media);
 
