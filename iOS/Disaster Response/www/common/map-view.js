@@ -1601,8 +1601,9 @@ function onDeviceReady()
 				map.updateSize();
 				heatmapLayer.onMapResize();
 				
+				console.log("Zoom: " + map.getZoom());
+				
 				map.zoomIn(); map.zoomOut();
-				map.zoomOut(); map.zoomIn();	
 			}
 		}
 	}
