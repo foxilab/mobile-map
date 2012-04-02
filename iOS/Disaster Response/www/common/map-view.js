@@ -95,10 +95,10 @@ var mapOptions = {
 /* ============================ *
  * 		   Symbolizers
  * ============================ */
-var positionUnlockedImage	= "css/images/PositionUnlocked.png";
+var positionUnlockedImage	= "css/images/glyphish/59-flag.png";
 var positionLockedImage		= "css/images/PositionLocked.png";
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius: 		25,
+		pointRadius: 		30,
     	externalGraphic:	positionUnlockedImage,
 		fillOpacity: 		1,
 		rotation: 			0
@@ -113,7 +113,7 @@ var statusSymbolizer = new OpenLayers.Symbolizer.Point({
 });
 
 var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius: 		25,
+		pointRadius: 		20,
 		externalGraphic: 	"${image}",
 		fillOpacity: 		1,
 		rotation: 			0,
@@ -357,6 +357,7 @@ function geolocationError(error) {
 			}
         }
         
+		toggleHeatMapLayer();
         locatedSuccess = false;
     }
     
