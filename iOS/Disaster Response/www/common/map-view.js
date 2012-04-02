@@ -959,7 +959,7 @@ function destroyLocationPopup(_feature) {
 function closeAllPopups() {
 	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
-		map.removePopup(featurePopup);
+		if(featurePopup) map.removePopup(featurePopup);
 		wasPopupClosed = true;
 	}
 	if(cameraORvideoPopup.is(':visible')) {
@@ -975,7 +975,7 @@ function closeAllPopups() {
 function closeAllPopups_NoToggle() {
 	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
-		map.removePopup(featurePopup);
+		if(featurePopup) map.removePopup(featurePopup);
 	}
 	if(cameraORvideoPopup.is(':visible')) {
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
