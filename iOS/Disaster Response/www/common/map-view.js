@@ -95,11 +95,11 @@ var mapOptions = {
 /* ============================ *
  * 		   Symbolizers
  * ============================ */
-var positionUnlockedImage	= "css/images/PositionUnlocked.png";
+var positionUnlockedImage	= "css/images/glyphish/59-flag.png";
 var positionLockedImage		= "css/images/PositionLocked.png";
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius: 		25,
-    	externalGraphic:	positionUnlockedImage,
+		pointRadius: 		30,
+    	externalGraphic:	positionLockedImage,
 		fillOpacity: 		1,
 		rotation: 			0
 });
@@ -113,7 +113,7 @@ var statusSymbolizer = new OpenLayers.Symbolizer.Point({
 });
 
 var fusionSymbolizer = new OpenLayers.Symbolizer.Point({
-		pointRadius: 		25,
+		pointRadius: 		20,
 		externalGraphic: 	"${image}",
 		fillOpacity: 		1,
 		rotation: 			0,
@@ -357,6 +357,7 @@ function geolocationError(error) {
 			}
         }
         
+		toggleHeatMapLayer();
         locatedSuccess = false;
     }
     
@@ -958,6 +959,7 @@ function destroyLocationPopup(_feature) {
 function closeAllPopups() {
 	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
+		if(featurePopup) map.removePopup(featurePopup);
 		wasPopupClosed = true;
 	}
 	if(cameraORvideoPopup.is(':visible')) {
@@ -973,6 +975,7 @@ function closeAllPopups() {
 function closeAllPopups_NoToggle() {
 	if(selectedFeature) {
 		selectControl.unselect(selectedFeature); //Removes the LocationPopup
+		if(featurePopup) map.removePopup(featurePopup);
 	}
 	if(cameraORvideoPopup.is(':visible')) {
 		cameraORvideoPopup.hide();	 //Removes the CameraOrVideoPopup
@@ -1630,8 +1633,9 @@ function onDeviceReady()
 				map.updateSize();
 				heatmapLayer.onMapResize();
 				
+				console.log("Zoom: " + map.getZoom());
+				
 				map.zoomIn(); map.zoomOut();
-				map.zoomOut(); map.zoomIn();	
 			}
 		}
 	}
