@@ -99,7 +99,7 @@ var positionUnlockedImage	= "css/images/glyphish/59-flag.png";
 var positionLockedImage		= "css/images/PositionLocked.png";
 var navSymbolizer = new OpenLayers.Symbolizer.Point({
 		pointRadius: 		30,
-    	externalGraphic:	positionUnlockedImage,
+    	externalGraphic:	positionLockedImage,
 		fillOpacity: 		1,
 		rotation: 			0
 });
