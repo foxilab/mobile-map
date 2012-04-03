@@ -826,7 +826,7 @@ function createLocationPopup(_feature) {
 					if(!stacked) {
 						$locationImage.hide();
 						$('#embedded-video').hide();
-					
+						//$('#locationImagePlay').hide();
 						var $div = $('#embedded-audio');
 						//var $audio = $div.find('audio');
 						//$audio.attr('src', locMedia);
@@ -834,6 +834,7 @@ function createLocationPopup(_feature) {
 					} else {
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
+						//$('#locationImagePlay').hide();
 						
 						$locationImage.attr('src', "css/images/speaker.png");
 						$locationImage.attr('alt', "Audio recorded at " + locName + ".").show();
@@ -842,6 +843,7 @@ function createLocationPopup(_feature) {
 				else if(fileType ==  "image") {
 					$('#embedded-audio').hide();
 					$('#embedded-video').hide();
+					//$('#locationImagePlay').hide();
 					
 					$locationImage.attr('src', locMedia);
 					$locationImage.attr('alt', "Image taken of " + locName + ".").show();
@@ -851,7 +853,8 @@ function createLocationPopup(_feature) {
 			else {
 				$('#embedded-audio').hide();
 				$('#embedded-video').hide();
-			
+				//$('#locationImagePlay').hide();
+				
 				if(fileType == "video") {
 					$locationImage.attr('src', "Popup/Video_Offline.png");
 					$locationImage.attr('alt', "Video of "+locName+", currently unavailable.").show();
@@ -870,7 +873,8 @@ function createLocationPopup(_feature) {
 		else {
 			$('#embedded-audio').hide();
 			$('#embedded-video').hide();
-					
+			//$('#locationImagePlay').hide();
+			
 			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 			document.getElementById("locationImage").alt = "This file type is not supported.";
 			$locationImage.show();
