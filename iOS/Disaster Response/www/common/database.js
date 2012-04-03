@@ -251,6 +251,11 @@ function performQueueInsert(db, lon, lat, name, media, status){
 }
 
 function insertToLocationQueueTable(db, lon, lat, name, media, status) {
+	if (!name && popupFeatureMainName) {
+		console.log("using popup feature's building name");
+		name = popupFeatureMainName;
+	}
+
 	//alert("media: " + media);
 	console.log("platform: " + device.platform);
 	if(device.platform == 'Android')

@@ -1356,7 +1356,7 @@ function getAudio(lonlat) {
 	else {
 		navigator.device.capture.captureAudio(function (mediaFiles) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
-			
+
 			// TODO: This sometimes flashes the map
 			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
 			//updateQueueSize();
@@ -1472,6 +1472,38 @@ function searchForAddress(address){
 		  addToAddressList(lonlat.lon, lonlat.lat, formattedAddress);
 	  }
 	});
+}
+
+function onMapTouch(lonlat, popupFeatureName)
+{
+	popupFeatureMainName = popupFeatureName;
+
+	// First thing we need to do is check if the search bar was focused before you
+	// clicked the map. If so, unfocus it and close that popup
+	if ($('#addressSearchDiv .ui-input-text').is(":focus")) {
+		$('#addressSearchDiv .ui-input-text').blur();
+		wasPopupClosed = true;
+	}
+
+	// Now check to make sure that no popups are open and one wasn't just closed
+	if (!arePopupsOpen() && !wasPopupClosed)
+	{
+		// If not, open the PhotoVideo dialog
+		clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
+		togglePhotoVideoDialog();
+	}
+	else {
+		//A popup was open, close em all!
+		//	cant call closeAllPopups, feature pop up cant be closed here =(
+		if (div_FilterPopup.is(':visible'))
+			toggleFilterPopup();
+		if (cameraORvideoPopup.is(':visible'))
+			togglePhotoVideoDialog();
+	}
+	
+	//Reset these
+	wasPopupOpen = false;
+	wasPopupClosed = false;
 }
 
 /*
@@ -1633,35 +1665,8 @@ function onDeviceReady()
 			},
 			this.handlerOptions );
 		},
-		trigger : function (e) 
-		{
-			//First thing we need to do is check if the search bar was focused before you
-			// clicked the map. If so, unfocus it and close that popup
-			if($('#addressSearchDiv .ui-input-text').is(":focus")) {
-				$('#addressSearchDiv .ui-input-text').blur();
-				wasPopupClosed = true;
-			}
-												
-			//Now check to make sure that no popups are open and one wasn't just closed
-			if(!arePopupsOpen() && !wasPopupClosed)
-			{
-				//If not, open the PhotoVideo dialog
-				var lonlat = map.getLonLatFromViewPortPx(e.xy);
-				clickedLonLat = new OpenLayers.LonLat(lonlat.lon,lonlat.lat).transform(map.projection, map.displayProjection);
-				togglePhotoVideoDialog();
-			}
-			else {
-				//A popup was open, close em all!
-				//	cant call closeAllPopups, feature pop up cant be closed here =(
-				if(div_FilterPopup.is(':visible'))
-					toggleFilterPopup();
-				if(cameraORvideoPopup.is(':visible'))
-					togglePhotoVideoDialog();
-			}
-			
-			//Reset these
-			wasPopupOpen = false;
-			wasPopupClosed = false;
+		trigger : function(e) {
+			onMapTouch(map.getLonLatFromViewPortPx(e.xy));
 		}
 	});
 	
@@ -1770,8 +1775,9 @@ function onDeviceReady()
 	$('#addressSearchDiv .ui-listview-filter').live('focus', function(){
 		closeAllPopups();
 		$('#old-places-list .address-list-item').removeClass('ui-screen-hidden');
+
 		if($('#cameraORvideoPopup').is(':visible'))
-		togglePhotoVideoDialog();
+			togglePhotoVideoDialog();
 	});
 
 	$('#addressSearchDiv .ui-listview-filter').live('blur', function(){
@@ -1997,6 +2003,15 @@ function nextImage(index) {
 	return index;
 }
 
+function updateStatusButtonClick() {
+	console.log('clickity click click');
+	var name = popupFeatureMain.name;
+	var lonlat = new OpenLayers.LonLat(popupFeatureMain.lon, popupFeatureMain.lat);
+	closeAllPopups();
+	wasPopupClosed	= false;
+	onMapTouch(lonlat, name);
+}
+
 $(document).ready(function () {
 	console.log('document ready');
 
@@ -2190,7 +2205,7 @@ $(document).ready(function () {
 			$('#location-dialog').dialog('close');
 		});
 	});
-	
+
 	$('#location-dialog').live('pagebeforeshow', function() {
 		$(this).find('input').val('');
 	});
