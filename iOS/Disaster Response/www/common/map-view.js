@@ -826,7 +826,6 @@ function createLocationPopup(_feature) {
 					if(!stacked) {
 						$locationImage.hide();
 						$('#embedded-video').hide();
-						//$('#locationImagePlay').hide();
 						var $div = $('#embedded-audio');
 						//var $audio = $div.find('audio');
 						//$audio.attr('src', locMedia);
@@ -834,7 +833,6 @@ function createLocationPopup(_feature) {
 					} else {
 						$('#embedded-audio').hide();
 						$('#embedded-video').hide();
-						//$('#locationImagePlay').hide();
 						
 						$locationImage.attr('src', "css/images/speaker.png");
 						$locationImage.attr('alt', "Audio recorded at " + locName + ".").show();
@@ -843,7 +841,6 @@ function createLocationPopup(_feature) {
 				else if(fileType ==  "image") {
 					$('#embedded-audio').hide();
 					$('#embedded-video').hide();
-					//$('#locationImagePlay').hide();
 					
 					$locationImage.attr('src', locMedia);
 					$locationImage.attr('alt', "Image taken of " + locName + ".").show();
@@ -853,7 +850,6 @@ function createLocationPopup(_feature) {
 			else {
 				$('#embedded-audio').hide();
 				$('#embedded-video').hide();
-				//$('#locationImagePlay').hide();
 				
 				if(fileType == "video") {
 					$locationImage.attr('src', "Popup/Video_Offline.png");
@@ -873,7 +869,6 @@ function createLocationPopup(_feature) {
 		else {
 			$('#embedded-audio').hide();
 			$('#embedded-video').hide();
-			//$('#locationImagePlay').hide();
 			
 			document.getElementById("locationImage").src = "Popup/FileNotSupported.png";
 			document.getElementById("locationImage").alt = "This file type is not supported.";
@@ -899,8 +894,8 @@ function createLocationPopup(_feature) {
 
 	map.addPopup(featurePopup);
 	
+	var eventPopup = $('#eventPopup');
 	if(fileType == "audio" && !stacked){
-		var eventPopup = $('#eventPopup');
 		var oldAudio = eventPopup.find('.audiojs');
 		var popupAudioDiv = eventPopup.find('#embedded-audio');
 		var newAudioJSElement = popupAudioDiv.find('audio');
@@ -908,6 +903,14 @@ function createLocationPopup(_feature) {
 		audiojs.create(newAudioJSElement);
 		oldAudio.replaceWith(oldAudio.children('.audiojs'));
 		popupAudioDiv.show();
+	}else if(fileType == "youtube" && !stacked){
+		var olPopupImage = eventPopup.find('#locationImage');
+		var olPopupImageTop = olPopupImage.height() / 2 ;
+		var olPopupImageLeft = olPopupImage.width() / 2 - 32;
+		var playImageElement = '<img id="locationImagePlay" class="galleryPlayYoutube" src="css/images/play_icon.png"';
+		playImageElement += 'style="position:absolute;top:' + olPopupImageTop + 'px;left:' + olPopupImageLeft + 'px;" '
+		playImageElement += 'onClick="playVideo(this)" videoid="' + locMedia.substr(7) + '"/>';
+		olPopupImage.before(playImageElement);
 	}
 }
 
@@ -1958,6 +1961,11 @@ function populateGallery(parent, items, options) {
 	
 }
 
+function playVideo(object){
+	var videoId = $(object).attr('videoid');
+	window.location = "http://www.youtube.com/watch?v=" + videoId;
+}
+
 function indexOfSrc(src) {
 	for (var i = 0; i < popupFeature.length; ++i) {
 		if (src == popupFeature[i].media) {
@@ -2119,8 +2127,7 @@ $(document).ready(function () {
 	});
 
 	$('.galleryPlayYoutube').live('click', function(e){
-		var videoId = $(this).attr('videoId');
-		window.location = "http://www.youtube.com/watch?v=" + videoId;
+		playVideo(this);
 	});
 
 	$('.queue-list-item').live('swipeleft', showQueueItemDelete)
