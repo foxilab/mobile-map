@@ -2184,7 +2184,7 @@ $(document).ready(function () {
 
 	$('#location-dialog').live('pagebeforeshow', function() {
 		var $ul = $('#places-list');
-		$ul.remove('li');
+		$ul.empty();
 
 		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
@@ -2200,7 +2200,7 @@ $(document).ready(function () {
 								break;
 							}
 						}
-						
+
 						if (!alreadyAdded) {
 							placesList.push(data.results[i].reference);
 							$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
