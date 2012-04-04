@@ -905,12 +905,16 @@ function createLocationPopup(_feature) {
 		popupAudioDiv.show();
 	}else if(fileType == "youtube" && !stacked){
 		var olPopupImage = eventPopup.find('#locationImage');
-		var olPopupImageTop = olPopupImage.height() / 2 ;
-		var olPopupImageLeft = olPopupImage.width() / 2 - 32;
+		//var olPopupImageTop = olPopupImage.height() / 2 ;
+		//var olPopupImageLeft = olPopupImage.width() / 2 - 32;
+		
 		var playImageElement = '<img id="locationImagePlay" class="galleryPlayYoutube" src="css/images/play_icon.png"';
-		playImageElement += 'style="position:absolute;top:' + olPopupImageTop + 'px;left:' + olPopupImageLeft + 'px;" '
+		playImageElement += 'style="position:absolute;top:150px;left:118px;" '
 		playImageElement += 'onClick="playVideo(this)" videoid="' + locMedia.substr(7) + '"/>';
 		olPopupImage.before(playImageElement);
+		eventPopup.find('.item-metadata').css('width', '300px');
+	}else if(fileType == "image" && !stacked){
+		eventPopup.find('.item-metadata').css('width', '300px');
 	}
 }
 
