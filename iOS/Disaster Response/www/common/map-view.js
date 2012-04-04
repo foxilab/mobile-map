@@ -1929,7 +1929,7 @@ function populateGallery(parent, items, options) {
 				break;
 			case 'youtube':
 				var videoId = item.media.substr(7);
-				div += '<img videoId="' + videoId + '" style="position:absolute;top:' + playLeftCenter + 'px;left:' + playLeftCenter + 'px" class="galleryPlayYoutube" src="css/images/play_icon.png"></img>';
+				div += '<img videoId="' + videoId + '" style="position:absolute;z-index:100;top:' + playLeftCenter + 'px;left:' + playLeftCenter + 'px" class="galleryPlayYoutube" src="css/images/play_icon.png"></img>';
 				div += '<img src=' + "'http://img.youtube.com/vi/" + videoId + "/0.jpg'";
 				div += ' class="youtubeVideo" videoId="' + videoId + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
