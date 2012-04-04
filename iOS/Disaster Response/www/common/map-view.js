@@ -367,8 +367,8 @@ function compassSuccess(heading) {
 	//Rotate arrow
 	/*navSymbolizer.rotation = heading.magneticHeading;
 	navigationLayer.redraw();*/
-	var heading = (heading.magneticHeading + orientationHeadingOffset) % 360;
-	var mapRotation = 360 - heading;
+	//var heading = (heading.magneticHeading + orientationHeadingOffset) % 360;
+	/*var mapRotation = 360 - heading.magneticHeading;
 	
 	//Rotate map
 	if(!screenLocked) {
@@ -376,11 +376,20 @@ function compassSuccess(heading) {
 		$("#northIndicator").animate({rotate: mapRotation + 'deg'}, 1000);
 		
 		map.events.rotationAngle = -1 * mapRotation;
-	}else {
+	}else {*/
 		//navSymbolizer.rotation = mapRotation;
-		navSymbolizer.rotation = heading;
+		updateOrientationHeading();
+		navSymbolizer.rotation = heading.magneticHeading + getOrientationHeadingOffset();
+		
+		/*
+		console.log("Heading: " + heading.magneticHeading);
+		console.log("Offset: " + getOrientationHeadingOffset());
+		console.log("Final Rotation: " + navSymbolizer.rotation);
+		console.log("=====================================");
+		*/
+
 		navigationLayer.redraw();
-	}
+	//}
 };
 
 function compassError(error) {
@@ -1663,7 +1672,7 @@ function onDeviceReady()
 	});
 
 	var compassOptions = {
-		frequency: 3000
+		frequency: 1000
 	};
 
 	navigator.compass.watchHeading(compassSuccess, compassError, compassOptions);
