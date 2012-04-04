@@ -946,7 +946,7 @@ function onImageClick_Multiple() {
 	var $gallery = $('#gallery');
 	$gallery.empty();
 	populateGallery($gallery, popupFeature);
-	$.mobile.changePage('#gallery-page');
+	$.mobile.changePage('#gallery-page', 'none');
 }
 
 function destroyLocationPopup(_feature) {
@@ -1072,7 +1072,7 @@ function onImageClick_Single() {
 		$('#image-metadata').replaceWith($overlay);
 		$overlay.attr('id', 'image-metadata');
 
-		$.mobile.changePage($('#image-viewer'));
+		$.mobile.changePage($('#image-viewer'), 'none');
 	}
 	else if(fileType == "youtube")
 	{
@@ -1938,7 +1938,7 @@ function populateGallery(parent, items, options) {
 				break;
 			case 'youtube':
 				var videoId = item.media.substr(7);
-				div += '<img videoId="' + videoId + '" style="position:absolute;top:' + playLeftCenter + 'px;left:' + playLeftCenter + 'px" class="galleryPlayYoutube" src="css/images/play_icon.png"></img>';
+				div += '<img videoId="' + videoId + '" style="position:absolute;z-index:100;top:' + playLeftCenter + 'px;left:' + playLeftCenter + 'px" class="galleryPlayYoutube" src="css/images/play_icon.png"></img>';
 				div += '<img src=' + "'http://img.youtube.com/vi/" + videoId + "/0.jpg'";
 				div += ' class="youtubeVideo" videoId="' + videoId + '" style="vertical-align:middle;max-width:' + itemwidth + 'px;max-height:' + itemwidth + 'px"></img>';
 				break;
@@ -2041,9 +2041,12 @@ function updateStatusButtonClick() {
 	onMapTouch(lonlat, name);
 }
 
-$(document).ready(function () {
-	console.log('document ready');
+$(document).bind('mobileinit', function () {
+	$.mobile.defaultDialogTransition = 'none';
+	$.mobile.defaultPageTransition = 'none';
+});
 
+$(document).ready(function () {
 	$(document).click(function () {
 		hideQueueItemDelete();
 	});
@@ -2095,7 +2098,7 @@ $(document).ready(function () {
 			var $overlay = $(this).find('.item-metadata').clone();
 			$('#image-metadata').replaceWith($overlay);
 			$overlay.attr('id', 'image-metadata');
-			$.mobile.changePage($viewer);
+			$.mobile.changePage($viewer, 'none');
 		}
 	});
 
@@ -2118,7 +2121,7 @@ $(document).ready(function () {
 				$overlay.find('time').attr('datetime', itemdate);
 				$overlay.find('time').text(itemdate);
 
-				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'slide', changeHash: false, reverse: false });
+				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'none', changeHash: false, reverse: false });
 			}
 		}
 	});
@@ -2141,7 +2144,7 @@ $(document).ready(function () {
 				$overlay.find('time').attr('datetime', itemdate);
 				$overlay.find('time').text(itemdate);
 
-				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'slide', changeHash: false, reverse: true });
+				$.mobile.changePage('#image-viewer', { allowSamePageTransition: true, transition: 'none', changeHash: false, reverse: true });
 			}
 		}
 	});
@@ -2175,7 +2178,7 @@ $(document).ready(function () {
 		// If we were the last item in the queue, close the dialog
 		if (itemsInQueue === 1) {
 			//$('#queue-dialog').dialog('close');
-			$.mobile.changePage('#map-page');
+			$.mobile.changePage('#map-page', 'none');
 		}
 
 		var id = $(this).attr('rowid');
@@ -2190,11 +2193,12 @@ $(document).ready(function () {
 
 	$('#location-dialog').live('pagebeforeshow', function() {
 		var $ul = $('#places-list');
-		$ul.remove('li');
-		
+		$ul.empty();
+
 		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
-				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
+				// TODO: the search radius should either be configurable in settings, or set based on device capability
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=100&key=' + GoogleApi.key(),
 				success:	function(data) {
 					var placesList = new Array();
 					for (var i = 0; i < data.results.length; ++i) {
@@ -2205,7 +2209,7 @@ $(document).ready(function () {
 								break;
 							}
 						}
-						
+
 						if (!alreadyAdded) {
 							placesList.push(data.results[i].reference);
 							$ul.append("<li class='location-list-item' reference='" + data.results[i].reference + "'><a data-rel='back'>" + data.results[i].name + "</a></li>");
@@ -2498,7 +2502,7 @@ function hideAppBadge() {
 }
 
 function showQueueTab() {
-	$.mobile.changePage('#queue-dialog', 'pop');
+	$.mobile.changePage('#queue-dialog', 'none');
 }
 
 /*
