@@ -1776,7 +1776,11 @@ function onDeviceReady()
 		
 		$('#googlePlacesRadius').val(googlePlaces_Radius);
 	});
-	
+
+	$('#googlePlacesRadius').click(function(e) {
+		e.stopPropagation();
+	});
+
 	$('#more-dialog').live('pagebeforeshow', function(){
 		$('.more-tab-button').children().addClass('ui-btn-active');
 	});
@@ -2285,7 +2289,7 @@ $(document).ready(function () {
 	});
 	
 	$('#filterToggle').live('click', function() {
-			toggleFilterPopup();
+		toggleFilterPopup();
 	});
 				  
 	$("#northIndicator").live("taphold", function(){
