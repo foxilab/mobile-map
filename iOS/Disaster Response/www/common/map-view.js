@@ -274,6 +274,8 @@ var heatmapLayer_IsVisible	= true;
 var heatmapToggle_IsVisible	= true;
 var fusionLayer_IsVisible	= true;
 
+var googlePlaces_Radius 	= 100;
+
 /*
  		==============================================
  						onBodyLoad
@@ -1751,6 +1753,11 @@ function onDeviceReady()
 	
 	$('#user-dialog').live('pagebeforehide', function(){
 		$('.user-tab-button').children().removeClass('ui-btn-active');
+		
+		googlePlaces_Radius = $('#googlePlacesRadius').val();
+		
+		if(googlePlaces_Radius < 0)
+			googlePlaces_Radius = 0;
 	});
 	
 	$('#more-dialog').live('pagebeforehide', function(){
@@ -1763,6 +1770,8 @@ function onDeviceReady()
 	
 	$('#user-dialog').live('pagebeforeshow', function(){
 		$('.user-tab-button').children().addClass('ui-btn-active');
+		
+		$('#googlePlacesRadius').val(googlePlaces_Radius);
 	});
 	
 	$('#more-dialog').live('pagebeforeshow', function(){
@@ -2198,7 +2207,7 @@ $(document).ready(function () {
 		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
 				// TODO: the search radius should either be configurable in settings, or set based on device capability
-				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=100&key=' + GoogleApi.key(),
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=' + googlePlaces_Radius + '&key=' + GoogleApi.key(),
 				success:	function(data) {
 					var placesList = new Array();
 					for (var i = 0; i < data.results.length; ++i) {
