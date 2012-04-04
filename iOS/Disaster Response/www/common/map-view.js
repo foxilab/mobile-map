@@ -2035,7 +2035,6 @@ function updateStatusButtonClick() {
 $(document).bind('mobileinit', function () {
 	$.mobile.defaultDialogTransition = 'none';
 	$.mobile.defaultPageTransition = 'none';
-	$.mobile.touchOverflowEnabled = true;
 });
 
 $(document).ready(function () {
@@ -2189,7 +2188,8 @@ $(document).ready(function () {
 
 		forEachLocationQueueRow(sqlDb, [$queue_item.attr('rowid')], function(row) {
 			$.ajax({
-				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=500&key=' + GoogleApi.key(),
+				// TODO: the search radius should either be configurable in settings, or set based on device capability
+				url:	'https://maps.googleapis.com/maps/api/place/search/json?location=' + row.location + '&sensor=false&radius=100&key=' + GoogleApi.key(),
 				success:	function(data) {
 					var placesList = new Array();
 					for (var i = 0; i < data.results.length; ++i) {
