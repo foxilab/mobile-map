@@ -348,8 +348,12 @@
 		<div data-role='page' id='user-dialog' class="mypage" data-theme='a'>
 			<div data-role='content'>
 				<h3>Settings</h3>
+				
+				<div data-role="fieldcontain">
 				<label for="googlePlacesRadius">Search Radius (in meters):</label>
-				<input type="number" name="googlePlacesRadius" id="googlePlacesRadius" value="10"/>
+				<input type="number" name="googlePlacesRadius" id="googlePlacesRadius" data-theme='a' value="100"/>
+				</div>
+				
 			</div>
 			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
 				<div data-role="navbar" id="map-tabBar" data-iconpos="top">

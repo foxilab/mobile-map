@@ -1758,6 +1758,9 @@ function onDeviceReady()
 		
 		if(googlePlaces_Radius < 0)
 			googlePlaces_Radius = 0;
+		//#GOOGLE
+		//if(googlePlacesRadius > 50000)
+		//	googlePlaces_Radius = 50000;
 	});
 	
 	$('#more-dialog').live('pagebeforehide', function(){
@@ -2367,8 +2370,8 @@ $(document).ready(function () {
 	$('input[name="checkbox-FileTypeC"]').live('change',filterUpdated);
 	
 	$('input[name="checkbox-QueueA"]').live('change',filterUpdated);
-});
-
+	});
+	
 function submitToServer() {
 	getValidLocationRowIds(sqlDb, function (rowids) {
 		forLocationQueueRows(sqlDb, rowids, function(rows) {
