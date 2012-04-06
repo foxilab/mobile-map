@@ -69,7 +69,7 @@ var selectControl;
 var touchNavOptions = {
 	dragPanOptions: {
 		interval: 		0, /* non-zero kills performance on some mobile phones  */
-		enableKinetic:	true
+		enableKinetic:	false
 	}
 };
 var rotatingTouchNav = new OpenLayers.Control.TouchNavigation(touchNavOptions);
@@ -625,7 +625,7 @@ function onMapMoveEnd(_event) {
 			var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
 	
 			/* Generate the SQL to get all location statuses within the current map bounds. */
-			var sql = "SELECT Location,Name,Status,Date,MediaURL FROM " + FusionTableId.locations() + 
+			var sql = "SELECT Location,Name,Status,Date,MediaURL,ROWID FROM " + FusionTableId.locations() + 
 				" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
 				"LATLNG("+rightTop.lat+","+rightTop.lon+"))) ORDER BY Date DESC";
 	
@@ -643,7 +643,7 @@ function onMapMoveEnd(_event) {
 			/* Query the Fusion Table for features with the new parameters. */
 			googleSQL(sql, 'GET', fusionSQLSuccess);
 		}
-		
+			
 	stopMoveEnd = false;
 }
 
@@ -1104,6 +1104,7 @@ function getDataFromFusionRow(_row) {
 		var status = parseInt(locationDataSplit[(positon+=1)]);
 		var date = locationDataSplit[(positon+=1)];
 		var media = locationDataSplit[(positon+=1)];
+		var rowID = locationDataSplit[(positon+=1)];
 	//}
 	
 	//#BUGFIX 44
@@ -1120,12 +1121,14 @@ function getDataFromFusionRow(_row) {
 			lon: lon,
 			status: status,
 			date: dateConverted,
-			media: media
+			media: media,
+			rowID: rowID
 	};
 	
 	return location;
 }
 
+var selectedLocA = -1;
 function fusionSQLSuccess(data) {
 
 	var rows = $.trim(data).split('\n');
@@ -1134,12 +1137,21 @@ function fusionSQLSuccess(data) {
 	var locationArray = [];
 	locationArray.length = 0;
 	var exists = false;
+	var selected = false;
+	selectedLocA = -1;
 		
 	//With the data, we want to split it up and get it into a format we can use
 	//	start at 1, rows[0] is our column titles.
 	for(var i = 1; i < length; i++) {
 		var location = getDataFromFusionRow(rows[i]);
 			exists = false;
+			
+		//If this location was selected same its locA
+		if(selectedFeature)
+			if(location.rowID == selectedFeature.attributes.locations[0].rowID) {
+				selected = true;
+				destroyLocationPopup(selectedFeature);
+			}
 		
 		//Before we add anything to the list, lets check to see if we it fits our
 		// search filters
@@ -1153,6 +1165,11 @@ function fusionSQLSuccess(data) {
 						//So add the location to this spot in the locationArray
 						locationArray[locA].push(location);
 						exists = true;
+						
+						if(selected) {
+							selectedLocA = locA;
+						}
+						
 						break;	//Okay we are done here.
 					}
 				}
@@ -1161,8 +1178,14 @@ function fusionSQLSuccess(data) {
 			//Does it exist?
 			if(exists == false) {
 				locationArray.push([location]);
+				
+				if(selected) {
+					selectedLocA = (locationArray.length - 1);
+				}
 			}
 		}
+		
+		selected = false;
 	}
 	
 	//Parse ALL the data!!
@@ -1171,11 +1194,12 @@ function fusionSQLSuccess(data) {
 }
 
 function parseSQLSuccess_Icons(_locationArray) {
+
 	//Only do this if the icons are visible
 	if(fusionLayer_IsVisible == true) {
 		//We got our new data set, remove all the old features.
 		fusionLayer.removeAllFeatures();
-		
+
 		//Lets loop through the whole array
 		for(var locA = 0; locA < _locationArray.length; locA++) {
 				//The newest location (used for GUI)
@@ -1191,9 +1215,17 @@ function parseSQLSuccess_Icons(_locationArray) {
 				//Create a point and add it to the fusionLayer
 				// pass in all the location statuses
 					var locationFeature = new OpenLayers.Feature.Vector(point, {zIndex:-lonlat.lat, image: icon, locations: _locationArray[locA]});
-					
-				fusionLayer.addFeatures([locationFeature]);
-		}//end locA
+	
+					fusionLayer.addFeatures([locationFeature]);
+				
+			if(selectedLocA == locA) {
+				selectControl.select(locationFeature);
+				wasPopupOpen = false;
+				wasPopupClosed = false;
+				stopMoveEnd = false;
+				selectedLocA = -1;
+			}
+		}//end locA		
 	}//end if
 }
 
@@ -2051,9 +2083,10 @@ function nextImage(index) {
 function updateStatusButtonClick() {
 	console.log('clickity click click');
 	var name = popupFeatureMain.name;
-	var lonlat = new OpenLayers.LonLat(popupFeatureMain.lon, popupFeatureMain.lat);
+	var lonlat = new OpenLayers.LonLat(popupFeatureMain.lon, popupFeatureMain.lat).transform(map.displayProjection, map.projection);
 	closeAllPopups();
 	wasPopupClosed	= false;
+	
 	onMapTouch(lonlat, name);
 }
 
