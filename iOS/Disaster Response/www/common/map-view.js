@@ -378,18 +378,6 @@ var WatchID_Accelerometer;
 var WatchID_Compass;
 var WatchID_GeoLocation;
 
-/*
- 		==============================================
- 						onBodyLoad
- 		==============================================
-		
-	My body is ready! This is the main entry point into the application. When the app loads we check 
-	to see if Cordova is ready. The moment it is we call onDeviceReady and can safely do what we want.
- */
-function onBodyLoad() {
-	document.addEventListener('deviceready', onDeviceReady, false);
-}
-
 function startWatch_Accelerometer() {
 	WatchID_Accelerometer = navigator.accelerometer.watchAcceleration(accelerometerSuccess,
 		accelerometerError, CordovaOptions_Accelerometer);
@@ -524,6 +512,19 @@ function geolocationError(error) {
     }
     
 };
+
+/*
+ 	==============================================
+					  onBodyLoad
+ 	==============================================
+ 
+	 My body is ready! This is the main entry point into the application. When the app loads we check 
+ 		to see if Cordova is ready. The moment it is we call onDeviceReady and can safely do what we want.
+ */
+function onBodyLoad() {
+	document.addEventListener('deviceready', onDeviceReady, false);
+}
+
 
 function googleSQL(sql, type, success, error) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
