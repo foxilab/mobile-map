@@ -354,6 +354,30 @@ var CurrentUser = {
 	}
 }
 
+/* ============================ *
+ *  	 Cordova Options
+ * ============================ */
+ 
+var CordovaOptions_Accelerometer = {
+	frequency: 5000 /* How often to retrieve the Acceleration in milliseconds. Default: 10000 */										  
+};
+
+var CordovaOptions_Compass = {
+	frequency: 500,	/* How often to retrieve the compass heading in milliseconds. Default: 100 */
+	filter: 1		/* The change in degrees required to initiate a watchHeading success callback. */
+};
+
+var CordovaOptions_GeoLocation = {
+	enableHighAccuracy: true,	/* Provides a hint that the application would like to 
+									receive the best possible results. Must be true for Android */
+	timeout: 5000,		/* The maximum length of time (msec) that is allowed to pass. */
+	maximumAge: 4000	/* Accept a cached position whose age is no greater than the specified time in milliseconds. */
+};
+
+var WatchID_Accelerometer;
+var WatchID_Compass;
+var WatchID_GeoLocation;
+
 /*
  		==============================================
  						onBodyLoad
@@ -366,34 +390,88 @@ function onBodyLoad() {
 	document.addEventListener('deviceready', onDeviceReady, false);
 }
 
-/*
-	Centers the map on the users current positon.
- */
-function centerMap() {
-	map.setCenter(new OpenLayers.LonLat(CurrentUser.GeoLocation.longitude, 
-		CurrentUser.GeoLocation.latitude).transform(WGS84, WGS84_google_mercator));
+function startWatch_Accelerometer() {
+	WatchID_Accelerometer = navigator.accelerometer.watchAcceleration(accelerometerSuccess,
+		accelerometerError, CordovaOptions_Accelerometer);
 }
 
-function accelerometerSuccess(acceleration) {
-	CurrentUser.Acceleration.x = acceleration.x;
-	CurrentUser.Acceleration.y = acceleration.y;
-	CurrentUser.Acceleration.z = acceleration.z;
-	CurrentUser.Acceleration.timestamp = acceleration.timestamp;
+function stopWatch_Accelerometer() {
+	if(WatchID_Accelerometer) {
+		navigator.accelerometer.clearWatch(WatchID_Accelerometer);
+		WatchID_Accelerometer = null;
+	}
+}
+
+function accelerometerSuccess(_acceleration) {
+	CurrentUser.Acceleration.x			= _acceleration.x;
+	CurrentUser.Acceleration.y			= _acceleration.y;
+	CurrentUser.Acceleration.z			= _acceleration.z;
+	CurrentUser.Acceleration.timestamp	= new Date(_acceleration.timestamp);
 }
 
 function accelerometerError() {
 	
 }
 
-function geolocationSuccess(position) {
-	CurrentUser.GeoLocation.latitude			= position.coords.latitude;
-	CurrentUser.GeoLocation.longitude			= position.coords.longitude;
-	CurrentUser.GeoLocation.altitude			= position.coords.altitude;
-	CurrentUser.GeoLocation.accuracy			= position.coords.accuracy;
-	CurrentUser.GeoLocation.altitudeAccuracy	= position.coords.altitudeAccuracy;
-	CurrentUser.GeoLocation.heading				= position.coords.heading;
-	CurrentUser.GeoLocation.speed				= position.coords.speed;
-	CurrentUser.GeoLocation.timestamp			= position.timestamp;
+function startWatch_Compass() {
+	WatchID_Compass = navigator.compass.watchHeading(compassSuccess,
+		compassError, CordovaOptions_Compass);
+}
+
+function stopWatch_Compass() {
+	if(WatchID_Compass) {
+		navigator.accelerometer.clearWatch(WatchID_Compass);
+		WatchID_Compass = null;
+	}
+}
+
+function compassSuccess(_compassHeading) {
+	CurrentUser.Compass.magneticHeading = _compassHeading.magneticHeading;
+	CurrentUser.Compass.trueHeading		= _compassHeading.trueHeading;
+	CurrentUser.Compass.headingAccuracy	= _compassHeading.headingAccuracy;
+	CurrentUser.Compass.timestamp		= new Date(_compassHeading.timestamp);
+	
+	navSymbolizer.rotation = (CurrentUser.Compass.magneticHeading + getOrientationHeadingOffset());
+	navigationLayer.redraw();
+};
+
+function compassError(_compassError) {
+	switch(_compassError.code) {
+		case CompassError.COMPASS_INTERNAL_ERR: {
+			
+		} break;
+		
+		case CompassError.COMPASS_NOT_SUPPORTED: {
+			
+		} break;
+		
+		default: {
+			/* Should never get here */
+		} break;
+	}
+};
+
+function startWatch_GeoLocation() {
+	WatchID_GeoLocation = navigator.geolocation.watchPosition(geolocationSuccess,
+		geolocationError, CordovaOptions_GeoLocation);
+}
+
+function stopWatch_GeoLocation() {
+	if(WatchID_GeoLocation) {
+		navigator.accelerometer.clearWatch(WatchID_GeoLocation);
+		WatchID_GeoLocation = null;
+	}
+}
+
+function geolocationSuccess(_position) {
+	CurrentUser.GeoLocation.latitude			= _position.coords.latitude;
+	CurrentUser.GeoLocation.longitude			= _position.coords.longitude;
+	CurrentUser.GeoLocation.altitude			= _position.coords.altitude;
+	CurrentUser.GeoLocation.accuracy			= _position.coords.accuracy;
+	CurrentUser.GeoLocation.altitudeAccuracy	= _position.coords.altitudeAccuracy;
+	CurrentUser.GeoLocation.heading				= _position.coords.heading;
+	CurrentUser.GeoLocation.speed				= _position.coords.speed;
+	CurrentUser.GeoLocation.timestamp			= new Date(_position.timestamp);
 
     if(map) {
         var currentPoint = new OpenLayers.Geometry.Point(CurrentUser.GeoLocation.longitude, CurrentUser.GeoLocation.latitude).transform(WGS84, WGS84_google_mercator);
@@ -447,25 +525,6 @@ function geolocationError(error) {
     
 };
 
-function compassSuccess(heading) {
-	CurrentUser.Compass.magneticHeading = heading.magneticHeading;
-	CurrentUser.Compass.trueHeading = heading.trueHeading;
-	CurrentUser.Compass.headingAccuracy = heading.headingAccuracy;
-	CurrentUser.Compass.timestamp = heading.timestamp;
-		
-	navSymbolizer.rotation = (CurrentUser.Compass.magneticHeading + getOrientationHeadingOffset());
-	navigationLayer.redraw();
-};
-
-function compassError(error) {
-	//error handling
-/*	if(error.code == CompassError.COMPASS_INTERNAL_ERR)
-        navigator.notification.alert("compass internal error", function(){}, 'Error', 'Okay');
-	else if(error.code == CompassError.COMPASS_NOT_SUPPORTED)
-        navigator.notification.alert("compass not supported", function(){}, 'Error', 'Okay');
-*/
-};
-
 function googleSQL(sql, type, success, error) {
 	// TODO: we could actually figure this out without a type argument by inspecting the SQL string
 	var http_type = 'GET';
@@ -492,6 +551,13 @@ function googleSQL(sql, type, success, error) {
 	});
 }
 
+/*
+ Centers the map on the users current positon.
+ */
+function centerMap() {
+	map.setCenter(new OpenLayers.LonLat(CurrentUser.GeoLocation.longitude, 
+										CurrentUser.GeoLocation.latitude).transform(WGS84, WGS84_google_mercator));
+}
 function mediaUploadFailure(response) {
 	console.log(response);
 }
@@ -1744,20 +1810,10 @@ function onDeviceReady()
 	}
 	$(window).bind('orientationchange resize pageshow', fixContentHeight);
 	fixContentHeight();
-
-	navigator.geolocation.watchPosition(geolocationSuccess, geolocationError, {
-		enableHighAccuracy: true,
-		timeout: 5000,
-		maximumAge: 4000
-	});
-
-	navigator.compass.watchHeading(compassSuccess, compassError, {
-		frequency: 500	/* Default: 100 */
-	});
 	
-	navigator.accelerometer.watchAcceleration(accelerometerSuccess, accelerometerError, {
-		frequency: 5000 /* Default: 10000 */										  
-	});
+	startWatch_Accelerometer();
+	startWatch_Compass();
+	startWatch_GeoLocation();
 	
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 		defaultHandlerOptions : {
