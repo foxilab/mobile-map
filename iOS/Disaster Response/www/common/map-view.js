@@ -351,6 +351,14 @@ var CurrentUser = {
 			console.log(" - .speed: " + this.speed);
 			console.log(" - .timestamp: " + this.timestamp);
 		}
+	},
+	
+	Log : function() {
+		this.Acceleration.Log();
+		this.Compass.Log();
+		this.Connection.Log();
+		this.Device.Log();
+		this.GeoLocation.Log();
 	}
 }
 
@@ -512,6 +520,25 @@ function geolocationError(error) {
     }
     
 };
+
+function checkConnection() {
+	CurrentUser.Connection.type = getConnectionType();
+	
+	var states = {};
+	states[Connection.UNKNOWN]  = 'Unknown connection';
+	states[Connection.ETHERNET] = 'Ethernet connection';
+	states[Connection.WIFI]     = 'WiFi connection';
+	states[Connection.CELL_2G]  = 'Cell 2G connection';
+	states[Connection.CELL_3G]  = 'Cell 3G connection';
+	states[Connection.CELL_4G]  = 'Cell 4G connection';
+	states[Connection.NONE]     = 'No network connection';
+	
+	return states[CurrentUser.Connection.type];
+}
+
+function getConnectionType() {
+	return navigator.network.connection.type;					   
+}
 
 /*
  	==============================================
@@ -2727,25 +2754,6 @@ function onAppOnline() {
 
 	//Because native code won't run while an app is paused, this should not get called unless the app is running. Time to push data to the server.
 	submitQueuedItems();
-}
-
-function checkConnection() {
-	CurrentUser.Connection.type = getConnectionType();
-						   
-	var states = {};
-		states[Connection.UNKNOWN]  = 'Unknown connection';
-		states[Connection.ETHERNET] = 'Ethernet connection';
-		states[Connection.WIFI]     = 'WiFi connection';
-		states[Connection.CELL_2G]  = 'Cell 2G connection';
-		states[Connection.CELL_3G]  = 'Cell 3G connection';
-		states[Connection.CELL_4G]  = 'Cell 4G connection';
-		states[Connection.NONE]     = 'No network connection';
-		
-	return states[CurrentUser.Connection.type];
-}
-
-function getConnectionType() {
-	return navigator.network.connection.type;					   
 }
 
 /*
