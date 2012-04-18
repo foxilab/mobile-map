@@ -157,6 +157,12 @@
 			#legend-ul li img {
 				vertical-align:	middle;
 			}
+			#osmAttribution{
+				position: absolute;
+				z-index: 1000;
+				bottom: 60px;
+				left: 60px;
+			}
 	</style>
 		<script type="text/javascript" charset="utf-8" src="json2.js"></script>
 	</head>
@@ -180,7 +186,7 @@
 					<div id="heatmapLockButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="heatmapLock" data-icon="plus" data-iconpos="notext"></a>
 					</div>
-					
+					<div id="osmAttribution"></div>
 					<div id="centerButton" data-role="controlgroup" data-type="vertical">
 						<a href="#" data-role="button" id="center" data-icon="glyphish-location" data-iconpos="notext"></a>
 					</div>
@@ -460,6 +466,5 @@
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
 	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.1.min.js"></script>
 
-	<script src="http://lmnuser4:8080/target/target-script-min.js#joe"></script>
-	<!--<script src="http://192.168.10.179:8081/target/target-script-min.js#kevin"></script>-->
+	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
 </html>

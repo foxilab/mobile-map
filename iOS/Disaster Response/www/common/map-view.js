@@ -86,7 +86,8 @@ var mapOptions = {
 	allOverlays: 		true,
 	restrictedExtent: 	restrictedExtent,
 	controls: [
-		rotatingTouchNav
+		rotatingTouchNav,
+			   new OpenLayers.Control.Attribution({div: osmAttribution})
 	]
 };
 
