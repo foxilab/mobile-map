@@ -1,0 +1,470 @@
+<!doctype html>
+<html>
+	<head>
+		<title></title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+		<meta charset="utf-8">
+
+		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
+		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css"/>
+		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
+		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
+
+		<style type="text/css">
+			#zoomPanel{
+				position:absolute;
+				z-index:1999;
+				background-image: url("http://openlayers.org/api/theme/default/img/zoom-panel.png");
+				height:54px;
+				width:18px;
+				cursor:pointer;
+			}
+			.olControlZoomInItemInactive { 
+				position: absolute;
+				height: 18px;
+				width: 18px;
+			}
+			.olControlZoomToMaxExtentItemInactive {
+				position: absolute;
+				top:18px;
+				height: 18px;
+				width: 18px;
+			}
+			.olControlZoomOutItemInactive {
+				position: absolute;
+				top:36px;
+				height: 18px;
+				width: 18px;
+			}
+			#heatmapLockButton {
+				position: fixed;
+				bottom: 45px;
+				left: 10px;
+				z-index: 1000;
+			}
+			#heatmapLockButton .ui-btn-icon-notext {
+				display: block;
+				padding: 7px 6px 7px 8px;
+			}
+			
+			#centerButton {
+				position: fixed;
+				bottom: 45px;
+				right: 10px;
+				z-index: 1000;
+			}
+			#centerButton .ui-btn-icon-notext {
+				display: block;
+				padding: 7px 6px 7px 8px;
+			}
+			
+			#filterButton {
+				position: absolute;
+				top: 0px;
+				left: 10px;
+				z-index: 1011;
+			}
+			#filterPopup{
+				position: absolute;
+				top: 35px;
+				left: 10px;
+				z-index: 1010;
+				background-color:#505050;
+				min-width:375px;
+				min-height:300px;
+				max-width:400px;
+				max-height:400px;
+				
+				border:5px solid black;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}
+
+			#navigation {
+				position: fixed;
+				bottom: 95px;
+				left: 10px;
+				z-index: 1000;
+			}
+			#navigation .ui-btn-icon-notext {
+				display: block;
+				padding: 7px 6px 7px 8px;
+			}
+			#screenLock{
+				position: absolute;
+				top: 40px;
+            	right: 5px;
+				z-index: 1000;
+			}
+			#screenLock .ui-btn-icon-notext {
+				display: block;
+				padding: 10px;
+				padding-top: 6px;
+			}
+			#addressSearchDiv{
+				position:absolute;
+				z-index:1000;
+				top:15px;
+				right:5px;
+				width:40%;
+			}
+			#cameraORvideoPopup {
+				display:none;
+				position:relative;
+				z-index:1000;
+				margin:auto;
+				width:300px;
+			}
+			/*#locationPopup{
+				display:none;
+				position:relative;
+				z-index:1000;
+				margin:auto;
+				background-color:#505050;
+				min-width:300px;
+				max-width:75%;
+				float:left;
+				border:5px solid black;
+				-webkit-border-radius: 10px;
+				-moz-border-radius: 10px;
+				border-radius: 10px;
+			}*/
+			.locImageMultiple{
+				position: absolute;
+				left: 49px;
+				top: 123px;
+				width: 244px;
+				height: 196px;
+			}
+			.locImage{
+				width: 300px;
+				height: 300px;
+				padding: 0px 0px 0px 0px;
+			}
+			.ui-page{
+				min-height:100% !important;
+			}
+			.audiojs{
+				width: 100% !important;
+			}
+			#legend-ul li {
+				display:			block;
+				height:			60px;
+				line-height:	100%;
+			}
+			#legend-ul li img {
+				vertical-align:	middle;
+			}
+			#osmAttribution{
+				position: absolute;
+				z-index: 1000;
+				bottom: 60px;
+				left: 60px;
+			}
+	</style>
+		<script type="text/javascript" charset="utf-8" src="json2.js"></script>
+	</head>
+
+	<body onload="onBodyLoad()">
+	
+		<!-- Map Page -->
+		<div data-role="page" id='map-page' class="mypage" data-theme='a'>
+			<!-- Map Page: Content -->
+			<div data-role="content" id="map-content" style="padding: 0px!important">
+				<!-- Map Page: Map Container -->
+				<div id="mapContainer" style="background-color:white;">
+					<!-- Map Page: OpenLayers Map -->
+					<div id="OpenLayersMap"></div>
+
+					<div id="navigation" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" data-icon="plus" id="plus" data-iconpos="notext"></a>
+						<a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext"></a>
+					</div>
+
+					<div id="heatmapLockButton" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" id="heatmapLock" data-icon="plus" data-iconpos="notext"></a>
+					</div>
+					<div id="osmAttribution"></div>
+					<div id="centerButton" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" id="center" data-icon="glyphish-location" data-iconpos="notext"></a>
+					</div>
+
+					<div id="filterButton" data-role="controlgroup" data-type="vertical">
+						<a href="#" data-role="button" id="filterToggle">Filter</a>
+					</div>
+					<div id="filterPopup" data-role="fieldcontain" style="text-align:left; display: none; padding: 4px;">
+						<fieldset data-role="controlgroup">
+							<legend>Statuses</legend>
+							<input type="checkbox" name="checkbox-StatusA" id="checkbox-StatusA" class="checkBox_Status_Operational" data-mini="true"/>
+							<label for="checkbox-StatusA">Operational</label>
+
+							<input type="checkbox" name="checkbox-StatusB" id="checkbox-StatusB" class="checkBox_Status_Limited" data-mini="true"/>
+							<label for="checkbox-StatusB">Limited Capabilities</label>
+
+							<input type="checkbox" name="checkbox-StatusC" id="checkbox-StatusC" class="checkBox_Status_Intact" data-mini="true"/>
+							<label for="checkbox-StatusC">Intact, but Uninhabited</label>
+
+							<input type="checkbox" name="checkbox-StatusD" id="checkbox-StatusD" class="checkBox_Status_NonOperational" data-mini="true"/>
+							<label for="checkbox-StatusD">Non-Operational</label>
+						</fieldset>
+
+						<fieldset data-role="controlgroup">
+							<legend>File Types</legend>
+							<input type="checkbox" name="checkbox-FileTypeA" id="checkbox-FileTypeA" class="checkBox_FileType_Image" data-mini="true"/>
+							<label for="checkbox-FileTypeA">Image</label>
+							
+							<input type="checkbox" name="checkbox-FileTypeB" id="checkbox-FileTypeB" class="checkBox_FileType_Video" data-mini="true"/>
+							<label for="checkbox-FileTypeB">Video</label>
+							
+							<input type="checkbox" name="checkbox-FileTypeC" id="checkbox-FileTypeC" class="checkBox_FileType_Audio" data-mini="true"/>
+							<label for="checkbox-FileTypeC">Audio</label>
+						</fieldset>
+						
+						<fieldset data-role="controlgroup">
+							<legend>Queue</legend>
+							<input type="checkbox" name="checkbox-QueueA" id="checkbox-QueueA" class="checkBox_Queue" data-mini="true"/>
+							<label for="checkbox-QueueA">Queued Statuses</label>
+						</fieldset>
+					</div>
+					<!--<div id="screenLock">
+						<a href="#" data-role="button" data-icon="glyphish-lock" id="screenlockbutton" data-iconpos="notext"></a>
+					</div>-->
+					<div id="addressSearchDiv">
+						<ul id='old-places-list' data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Search for address..." data-inset="true">
+						</ul>
+					</div>
+					<div id="cameraORvideoPopup" class="ui-body ui-body-a ui-corner-all ui-shadow" style="text-align:center;">
+						<span style="color:white; font-size:20px; margin-top:10px;">Select capture method</span>
+						<div data-role="controlgroup" style="padding: 20px;">
+							<a href="#" data-role="button" data-icon="glyphish-microphone" id="audioButton">Audio</a>
+							<a href="#" data-role="button" data-icon="glyphish-camera" id="cameraButton">Picture</a>
+							<a href="#" data-role="button" data-icon="glyphish-movie-1" id="videoButton">Video</a>
+						</div>
+					</div>
+					<div id="locationPopup" style="text-align:left; display: none; padding: 5px;">
+						<div style='clear:both'></div>
+						<div class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.7;position:relative !important;left:0px;top:0px;">
+							<div style="margin:8px">
+								<span id="locationName" style="color:white"></span>
+								<p style="margin:8px;margin-left:0px;color:white">
+									<time id="locationDate" class="timeago"></time>
+								</p>
+							</div>
+						</div>
+						<div style='clear:both'></div>
+						<!-- Image -->
+						<img id="locationImageStack" src="Popup/Stack.png" style="width: 300px; height: 264px padding: 20px 0px 0px 0px;"/>
+						<img id="locationImage" class="locImage" src="Popup/FileNotSupported.png" alt="Nothing set for this location." onClick="onClick_FramedCloudLocationPopup()"/>
+						<!-- Video -->
+						<div id='embedded-video'>
+							<embed type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="300" height="300"></embed>
+						</div>
+						<!-- Audio -->
+						<div id='embedded-audio'>
+							<audio preload='auto'>
+							</audio>
+						</div>
+						<div style='clear:both'></div>
+						<a id='update-status-button' data-role="button" style='float:right;color:firebrick;font-weight:normal;text-shadow:none;margin:6px;' onClick='updateStatusButtonClick()'>Update status</a>
+						<div style='clear:both'></div>
+					</div>
+				</div> <!-- /Map Page: Map Container -->
+			</div> <!-- /Map Page: Content -->
+			
+			<!-- Page Footer -->
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li class='map-tab-button'><a href="#map-page" data-icon="home" class="ui-btn-active ui-state-persist">Map</a></li>
+						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">Settings</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+					</ul>
+				</div>
+			</div> <!-- /Page Footer -->
+		</div> <!-- /Map Page -->
+
+		<!-- Metadata overlay -->
+		<div id='item-metadata-base' class="item-metadata" style="text-align:left;display:block;line-height:100%;width:100%;background-color:black;opacity:0.7;position:absolute !important;left:0px;top:0px;">
+			<div style="margin:8px">
+				<span style="color:white"></span>
+				<p style="margin:8px;margin-left:0px;color:white">
+					<time></time>
+				</p>
+			</div>
+		</div>
+
+		<div data-role='page' id='queue-dialog' class="mypage" data-theme='a'>
+			<div data-role='header' style="width:80%;margin:auto;margin-top:40px;">
+				<a href='#map-page' data-role='button' data-rel='back' data-icon='back' data-iconpos='notext' data-theme='a'></a>
+				<h1>Locations</h1>
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a'>Submit</a>
+			</div>
+			<div data-role='content' id="queue-content" style="width:80%;margin:auto;padding:0px;">
+				<ul data-role='listview' id="queue-list" style="width:100%;margin:auto;">
+					<li id='queue-list-item-archetype' class='queue-list-item' style='display: none' data-role='fieldcontain'>
+						<a href='#location-dialog' data-rel='dialog' data-transition='none' style='-webkit-touch-callout: none;'>
+							<img/>
+							<h3>Tap to Choose Location</h3>
+							<p>Tap arrow to set status.  Swipe left to Delete</p>
+						</a>
+						<a href='#status-dialog' data-rel='dialog' data-transition='none' data-theme='a'></a>
+					</li>
+				</ul>
+			</div>
+			<div data-role='footer' style="width:80%;margin:auto">
+				<a class='status-submit-button' href='#map-page' data-role='button' data-rel='back' data-icon='check' data-theme='a' style='float:right;margin:4px;margin-right:10px;'>Submit</a>
+				<a class='status-back-button' href='#map-page' data-role='button' data-rel='back' data-icon='back' style='float:right;margin:4px;'>Back</a>
+			</div>
+			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
+			<div data-role='footer' id="queue-footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li class='queue-tab-button'><a href="#queue-dialog" data-icon="grid" class="ui-btn-active ui-state-persist">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">Settings</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='location-dialog' data-theme='a'>
+			<div data-role='header'>
+				<h1>Nearby</h1>
+			</div>
+			<div data-role='content'>
+				<ul id='places-list' data-role="listview" data-filter="true" data-filter-placeholder="Building name, or description..." data-inset="true">
+				</ul>
+			</div>
+		</div>
+
+		<div data-role='dialog' id='status-dialog' data-theme='a'>
+			<div data-role='content'>
+				<a class='status-list-item' status-ref='1' data-role='button' data-rel='back'>Operational</a>
+				<a class='status-list-item' status-ref='2' data-role='button' data-rel='back'>Limited Capabilities</a>
+				<a class='status-list-item' status-ref='3' data-role='button' data-rel='back'>Intact, but Uninhabited</a>
+				<a class='status-list-item' status-ref='4' data-role='button' data-rel='back'>Non-Operational</a>
+				<a data-role='button' data-rel='back' data-icon='delete'>Cancel</a>
+			</div>
+		</div>
+
+		<div data-role='page' id='user-dialog' class="mypage" data-theme='a' onClick='$("input").blur()'>
+			<div data-role='content'>
+				<h3>Settings</h3>
+				
+				<div data-role="fieldcontain">
+				<label for="googlePlacesRadius">Search Radius (in meters):</label>
+				<input type="number" name="googlePlacesRadius" id="googlePlacesRadius" data-theme='a' value="100"/>
+				</div>
+				
+			</div>
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li class='user-tab-button'><a href="#user-dialog" data-icon="gear" class="ui-btn-active ui-state-persist">Settings</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div data-role='page' id='more-dialog' class="mypage" data-theme='a'>
+			<div data-role='content'>
+				<h2>Legend</h2>
+				<ul id='legend-ul' style='list-style-type:none;padding:0px'>
+					<li><img src="Buildings/3D_Green.png" />- Operational</li>
+					<li><img src="Buildings/3D_Yellow.png" />- Limited Capabilities</li>
+					<li><img src="Buildings/3D_Orange.png" />- Intact, but Uninhabited</li>
+					<li><img src="Buildings/3D_Red.png" />- Non-Operational</li>
+				</ul>
+				<span style='margin-top:24px'><h2>About</h2></span>
+				<div id='about-and-legal'>
+					<p>Copyright 2012 LMN Solutions, Inc.</p>
+					<p>The Company is not responsible nor liable for any content that you publish that may infringe local or international law, or that violates any intellectual property rights. If such content is detected by or reported to The Company, The Company will remove it from public view and notify you about the situation.</p>
+					<p>We are happy to share with you the software we developed for a demonstration application that is focused on collecting operational status of businesses and infrastructure in a disaster relief scenario. Please note that this is purely for demonstration purposes (such as the FOSS4G North America conference) and we have developed it as an internal R&amp;D effort to explore concepts related to mobile applications.  It is not for production purposes and no warranties or liabilities in using this software are expressed or implied.
+					</p>
+				</div>
+			</div>
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">Settings</a></li>
+						<li class='more-tab-button'><a href="#more-dialog" data-icon="info" class="ui-btn-active ui-state-persist">More</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div data-role='page' id='image-viewer' class="mypage" style='background-image: none !important; background-color: black !important'>
+			<div data-role='content' style='overflow-x: visible !important'>
+				<div id='fs-image'>
+					<a style='z-index:2000' data-role='button' data-rel='back' data-icon='delete' data-iconpos='notext' data-inline='true' data-theme='a'></a>
+					<img id='chosenImage' style='max-width:95%;max-height:100%'/>
+					<!-- metadata overlay -->
+					<div id="image-metadata">
+					</div>					
+				</div>
+			</div>
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">Settings</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div data-role='page' id='gallery-page' data-theme='a' class="mypage" style='background-image: none !important; background-color: black !important'>
+			<div data-role='content'>
+				<div id='gallery'>
+				</div>
+			</div>
+			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+					<ul>
+						<li><a href="#map-page" data-icon="home">Map</a></li>
+						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
+						<li><a href="#user-dialog" data-icon="gear">Settings</a></li>
+						<li><a href="#more-dialog" data-icon="info">More</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</body>
+
+	<script type="text/javascript" charset="utf-8" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyClELEF3P8NDUeGkiZg0qSD1I_mIejPDI0&sensor=false" defer="defer"></script>
+	<script type="text/javascript" charset="utf-8" src="../cordova-1.5.0.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-ui-1.8.18.custom.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-animate-css-rotate-scale.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery-css-transform.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.base64.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.dateFormat-1.0.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.timeago.js"></script>
+	<script type="text/javascript" charset="utf-8" src="crypto-sha1-hmac.js"></script>
+	<script type="text/javascript" charset="utf-8" src="OpenLayers-2.11/lib/OpenLayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="RotatingEvents.js"></script>
+	<script type="text/javascript" charset="utf-8" src="audio.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="Math.uuid.js"></script>
+	
+	<!-- Plugins -->
+	<script type="text/javascript" charset="utf-8" src="PhoneGap-Plugins/Badge.js"></script>
+   
+	<script type="text/javascript" charset="utf-8" src="heatmap.js"></script>
+	<script type="text/javascript" charset="utf-8" src="heatmap-openlayers.js"></script>
+	<script type="text/javascript" charset="utf-8" src="database.js"></script>
+	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.1.min.js"></script>
+
+	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+</html>
