@@ -1,3 +1,29 @@
+The Disaster Response application uses the following:
+ - XCode 4.3.2 (for iOS)
+    - App Store: http://itunes.apple.com/us/app/xcode/id497799835?ls=1&mt=12
+
+ - Eclipse
+    - Website: http://www.eclipse.org/
+    - Download: http://www.eclipse.org/downloads/
+
+ - Cordova 1.6.1
+    - Website: http://phonegap.com/
+    - Direct Download: https://github.com/phonegap/phonegap/tags
+
+ - JQuery 1.7.1
+    - Website: http://jquery.com/
+    - Direct Download: http://blog.jquery.com/2011/11/21/jquery-1-7-1-released/
+
+ - JQuery Mobile 1.0.1
+    - Website: http://jquerymobile.com/
+    - Direct Download: http://jquerymobile.com/blog/2012/01/26/jquery-mobile-1-0-1-released/
+
+ - Heatmap.js
+    - Website: http://www.patrick-wied.at/static/heatmapjs/
+    - Our Modified Version: https://github.com/JStuhr/heatmap.js
+
+/* ================================================================================ */
+
 For building and running on Android, please consult the Android developer's guide.
 
 "If you are developing in Eclipse, the ADT plugin incrementally builds your project as you make changes to the source code. Eclipse outputs an .apk file automatically to the bin folder of the project, so you do not have to do anything extra to generate the .apk.
