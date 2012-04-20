@@ -7,8 +7,8 @@
 		<meta charset="utf-8">
 
 		<link rel="stylesheet" href="css/glyphish.css" type="text/css"/>
-		<link rel="stylesheet" href="css/greyredgreen.min.css" type="text/css"/>
-		<link rel="stylesheet" href="css/jquery.mobile.structure-1.0.1.min.css" type="text/css"/>
+		<link rel="stylesheet" href="css/whiteblue.min.css" type="text/css"/>
+		<link rel="stylesheet" href="css/jquery.mobile.structure-1.1.0.min.css" type="text/css"/>
 		<link rel="stylesheet" href="OpenLayers-2.11/theme/default/style.css" type="text/css"/>
 
 		<style type="text/css">
@@ -143,9 +143,6 @@
 				height: 300px;
 				padding: 0px 0px 0px 0px;
 			}
-			.ui-page{
-				min-height:100% !important;
-			}
 			.audiojs{
 				width: 100% !important;
 			}
@@ -272,10 +269,10 @@
 					</div>
 				</div> <!-- /Map Page: Map Container -->
 			</div> <!-- /Map Page: Content -->
-			
+
 			<!-- Page Footer -->
-			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
-				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+			<div data-role='footer' class="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" data-iconpos="top">
 					<ul>
 						<li class='map-tab-button'><a href="#map-page" data-icon="home" class="ui-btn-active ui-state-persist">Map</a></li>
 						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
@@ -320,7 +317,7 @@
 			</div>
 			<a id='queue-item-delete' data-role='button' data-icon='delete' data-inline='true' data-theme='b' style='display: none; z-index: 5000'>Delete</a>
 			<div data-role='footer' id="queue-footer" data-position="fixed" data-id="mainfooter">
-				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+				<div data-role="navbar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li class='queue-tab-button'><a href="#queue-dialog" data-icon="grid" class="ui-btn-active ui-state-persist">Queue</a></li>
@@ -361,8 +358,8 @@
 				</div>
 				
 			</div>
-			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
-				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+			<div data-role='footer' class="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
@@ -390,8 +387,8 @@
 					</p>
 				</div>
 			</div>
-			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
-				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+			<div data-role='footer' class="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
@@ -412,16 +409,6 @@
 					</div>					
 				</div>
 			</div>
-			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
-				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
-					<ul>
-						<li><a href="#map-page" data-icon="home">Map</a></li>
-						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
-						<li><a href="#user-dialog" data-icon="gear">Settings</a></li>
-						<li><a href="#more-dialog" data-icon="info">More</a></li>
-					</ul>
-				</div>
-			</div>
 		</div>
 
 		<div data-role='page' id='gallery-page' data-theme='a' class="mypage" style='background-image: none !important; background-color: black !important'>
@@ -429,8 +416,8 @@
 				<div id='gallery'>
 				</div>
 			</div>
-			<div data-role='footer' id="Page_Footer" data-position="fixed" data-id="mainfooter">
-				<div data-role="navbar" id="map-tabBar" data-iconpos="top">
+			<div data-role='footer' class="Page_Footer" data-position="fixed" data-id="mainfooter">
+				<div data-role="navbar" data-iconpos="top">
 					<ul>
 						<li><a href="#map-page" data-icon="home">Map</a></li>
 						<li class="queue-tab-button"><a href="#queue-dialog" data-icon="grid">Queue</a></li>
@@ -464,7 +451,7 @@
 	<script type="text/javascript" charset="utf-8" src="Heatmap/heatmap-openlayers.js"></script>
 	<script type="text/javascript" charset="utf-8" src="database.js"></script>
 	<script type="text/javascript" charset="utf-8" src="map-view.js"></script>
-	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.0.1.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.mobile-1.1.0.min.js"></script>
 
-	<script src="http://lmnuser4:8080/target/target-script-min.js#kevin"></script>
+	<script src="http://lmnuser4:8080/target/target-script-min.js#mike"></script>
 </html>

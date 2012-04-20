@@ -1752,17 +1752,17 @@ function onDeviceReady()
 	div_MapPage					= $('#map-page');
 	div_MapContainer 			= $('#mapContainer');
 	div_MapContent				= $('#map-content');
-	div_Map 					= $('#OpenLayersMap');
-	div_PageFooter				= $('#Page_Footer');
+	div_Map						= $('#OpenLayersMap');
+	div_PageFooter				= $('.Page_Footer').first();
 	div_LocationPopup			= $('#locationPopup');
-	div_FilterPopup				= $('#filterPopup');
-	cameraORvideoPopup 			= $('#cameraORvideoPopup');
-	
-	CurrentUser.Device.name				= device.name;
+	div_FilterPopup			= $('#filterPopup');
+	cameraORvideoPopup 		= $('#cameraORvideoPopup');
+
+	CurrentUser.Device.name					= device.name;
 	CurrentUser.Device.cordovaVersion	= device.cordova;
 	CurrentUser.Device.platform			= device.platform;
-	CurrentUser.Device.uuid				= device.uuid;
-	CurrentUser.Device.version			= device.version;
+	CurrentUser.Device.uuid					= device.uuid;
+	CurrentUser.Device.version				= device.version;
 	
 	/*
 		Update the screens size and the orientation heading.
@@ -1810,9 +1810,9 @@ function onDeviceReady()
 	initHeatmap();
 
 	map.addLayers([mapLayerOSM, fusionLayer, heatmapLayer, navigationLayer, statusLayer]);
-		
-		map.events.register('movestart', map, onMapMoveStart);	/* Hide popups on drag */
-		map.events.register('moveend', map, onMapMoveEnd);		/* Refresh map layers. */
+
+	map.events.register('movestart', map, onMapMoveStart);	/* Hide popups on drag */
+	map.events.register('moveend', map, onMapMoveEnd);		/* Refresh map layers. */
 
 	// fix height of content to allow for header & footer
 	function fixContentHeight() {
@@ -1837,6 +1837,7 @@ function onDeviceReady()
 			}
 		}
 	}
+
 	$(window).bind('orientationchange resize pageshow', fixContentHeight);
 	fixContentHeight();
 	
@@ -1868,7 +1869,7 @@ function onDeviceReady()
 	);
 														 
 	map.addControl(selectControl);
-		selectControl.activate();
+	selectControl.activate();
 	isInternetConnection = window.navigator.onLine;
 	fusionLayer.events.on({
 		'featureselected': function(_event) {
@@ -1885,42 +1886,29 @@ function onDeviceReady()
 	map.addControl(click);
 	click.activate();
 	
-	//Now that we are done loading everything, read the queue and find the size
+	// Now that we are done loading everything, read the queue and find the size
 	// then update all the badges accordingly.
 	updateQueueSize();
 
-	div_MapPage.live('pagebeforeshow', function(){
-		$('.map-tab-button').children().addClass('ui-btn-active');
+	div_MapPage.live('pagebeforeshow', function() {
+		$('.map-tab-button').children().addClass('ui-btn-active ui-state-persist');
 	});
-	
-	//#HACK to keep the Queue tab selected while in the status dialog.
-	div_MapPage.live('pageshow', function() {
-		var height = $('.queue-dialog').height();
-		var width = $('.queue-dialog').width();
-		$(this).height(height);
-		$(this).width(width);
-		var mapLeftPosition = -1 * (div_Map.width()-div_MapContainer.width()) / 2;
-		var mapTopPosition = -1 * (div_Map.height()-div_MapContainer.height()) / 2;
-		div_Map.css('top', mapTopPosition);
-		div_Map.css('left', mapLeftPosition);
-		$.mobile.fixedToolbars.show();
-	});
-	
+
 	div_MapPage.live('pagebeforehide', function() {
 		closeAllPopups_NoToggle();		
 		clickedLonLat = null;  
 	});
-	
+
 	div_MapPage.live('pagebeforehide', function(){
-		$('.map-tab-button').children().removeClass('ui-btn-active');
+		$('.map-tab-button').children().removeClass('ui-btn-active ui-state-persist');
 	});
 	
 	$('#queue-dialog').live('pagebeforehide', function(){
-		$('.queue-tab-button').children().removeClass('ui-btn-active');
+		$('.queue-tab-button').children().removeClass('ui-btn-active ui-state-persist');
 	});
 	
 	$('#user-dialog').live('pagebeforehide', function(){
-		$('.user-tab-button').children().removeClass('ui-btn-active');
+		$('.user-tab-button').children().removeClass('ui-btn-active ui-state-persist');
 		
 		googlePlaces_Radius = $('#googlePlacesRadius').val();
 		
@@ -1931,15 +1919,15 @@ function onDeviceReady()
 	});
 	
 	$('#more-dialog').live('pagebeforehide', function(){
-		$('.more-tab-button').children().removeClass('ui-btn-active');
+		$('.more-tab-button').children().removeClass('ui-btn-active ui-state-persist');
 	});
 	
 	$('#queue-dialog').live('pagebeforeshow', function(){
-		$('.queue-tab-button').children().addClass('ui-btn-active');
+		$('.queue-tab-button').children().addClass('ui-btn-active ui-state-persist');
 	});
 	
 	$('#user-dialog').live('pagebeforeshow', function(){
-		$('.user-tab-button').children().addClass('ui-btn-active');
+		$('.user-tab-button').children().addClass('ui-btn-active ui-state-persist');
 		
 		$('#googlePlacesRadius').val(googlePlaces_Radius);
 	});
@@ -1949,7 +1937,7 @@ function onDeviceReady()
 	});
 
 	$('#more-dialog').live('pagebeforeshow', function(){
-		$('.more-tab-button').children().addClass('ui-btn-active');
+		$('.more-tab-button').children().addClass('ui-btn-active ui-state-persist');
 	});
 	
 	$('#queue-dialog').live('pageshow', function() {
@@ -1998,8 +1986,6 @@ function onDeviceReady()
 		var videoId = $(this).attr('videoId');
 		window.location = "http://www.youtube.com/watch?v=" + videoId; 
 	});
-
-	$.mobile.fixedToolbars.show();
 }
 
 function clearQueueDialog() {
@@ -2336,7 +2322,7 @@ $(document).ready(function () {
 			e.preventDefault();
 			e.stopPropagation();
 			e.stopImmediatePropagation();
-			$(this).find('a').removeClass('ui-btn-active');
+			$(this).find('a').removeClass('ui-btn-active ui-state-persist');
 		}
 	});
 
@@ -2524,8 +2510,8 @@ $(document).ready(function () {
 	$('input[name="checkbox-FileTypeC"]').live('change',filterUpdated);
 	
 	$('input[name="checkbox-QueueA"]').live('change',filterUpdated);
-	});
-	
+});
+
 function submitToServer() {
 	getValidLocationRowIds(sqlDb, function (rowids) {
 		forLocationQueueRows(sqlDb, rowids, function(rows) {
