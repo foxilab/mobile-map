@@ -17,7 +17,7 @@
 		<string>icon-72.png</string>
 	</array>
 	<key>CFBundleIdentifier</key>
-	<string>LMN-Solutions.Disaster_Response</string>
+	<string>LMN-Solutions.DisasterResponse</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
