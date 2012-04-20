@@ -775,7 +775,7 @@ function onMapMoveEnd(_event) {
 		var bounds = map.getExtent();
 		var leftBottom = new OpenLayers.LonLat(bounds.left,bounds.bottom).transform(map.projection, map.displayProjection);
 		var rightTop= new OpenLayers.LonLat(bounds.right,bounds.top).transform(map.projection, map.displayProjection);
-	
+		
 		/* Generate the SQL to get all location statuses within the current map bounds. */
 		var sql = "SELECT Location,Name,Status,Date,MediaURL,ROWID FROM " + FusionTableId.locations() + 
 			" WHERE ST_INTERSECTS(Location, RECTANGLE(LATLNG("+leftBottom.lat+","+leftBottom.lon+"), "+
@@ -1838,7 +1838,7 @@ function onDeviceReady()
 		}
 	}
 
-	$(window).bind('orientationchange resize pageshow', fixContentHeight);
+	$(window).bind('orientationchange', fixContentHeight);
 	fixContentHeight();
 	
 	startWatch_Accelerometer();
