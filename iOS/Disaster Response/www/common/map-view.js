@@ -247,9 +247,9 @@ var screenWidth;
 var screenHeight;
 
 /* App */
-var isAutoPush 			= false;	/* If set to true, the app will try and push your local queue when you get internet.	 */
-var centered 			= false; 	/* If set to true, the map is centered on the users location. For initalization only.	 */
-var locatedSuccess 		= true;	 	/* If set to true, the app successfully found your location. For initalization only.	 */
+var isAutoPush 		= false;	/* If set to true, the app will try and push your local queue when you get internet.	 */
+var centered 		= false; 	/* If set to true, the map is centered on the users location. For initalization only.	 */
+var locatedSuccess 	= true;	 	/* If set to true, the app successfully found your location. For initalization only.	 */
 
 /* Badges */
 var itemsInQueue		= 0;		/* Holds a current queue count.										 */
@@ -1573,11 +1573,6 @@ function getAudio(lonlat) {
 	else {
 		navigator.device.capture.captureAudio(function (mediaFiles) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
-
-			// TODO: This sometimes flashes the map
-			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
-			//updateQueueSize();
-			//showQueueTab();
 		});
 	}
 }
@@ -1587,11 +1582,6 @@ function getPicture(lonlat) {
 	
 	navigator.camera.getPicture(function (imageURI) {
 		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-		
-		// TODO: This sometimes flashes the map
-		//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
-		//updateQueueSize();
-		//showQueueTab();
 	},
 	function () { }, {
 		quality : 100,
@@ -1599,14 +1589,6 @@ function getPicture(lonlat) {
 		sourceType : (isSimulator) ? Camera.PictureSourceType.SAVEDPHOTOALBUM : Camera.PictureSourceType.CAMERA,
 		allowEdit : false
 	});
-	
-	/*navigator.device.capture.captureImage(function (mediaFiles) {
-		insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
-		
-		// TODO: This sometimes flashes the map
-		updateQueueSize();
-		showQueueTab();
-	});*/
 }
 
 function getVideo(lonlat) {
@@ -1615,11 +1597,6 @@ function getVideo(lonlat) {
 	if (isSimulator) {
 		navigator.camera.getPicture(function (imageURI) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, imageURI, null);
-			
-			// TODO: This sometimes flashes the map
-			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
-			//updateQueueSize();
-			//showQueueTab();
 		},
 		function () { }, {
 			quality : 100,
@@ -1632,11 +1609,6 @@ function getVideo(lonlat) {
 	else {
 		navigator.device.capture.captureVideo(function (mediaFiles) {
 			insertToLocationQueueTable(sqlDb, lonlat.lon, lonlat.lat, null, mediaFiles[0].fullPath, null);
-			
-			// TODO: This sometimes flashes the map
-			//THIS STUFF IS CALLED FROM insertToLocationQueueTable now
-			//updateQueueSize();
-			//showQueueTab();
 		});
 	}
 }
@@ -1755,8 +1727,8 @@ function onDeviceReady()
 	div_Map						= $('#OpenLayersMap');
 	div_PageFooter				= $('.Page_Footer').first();
 	div_LocationPopup			= $('#locationPopup');
-	div_FilterPopup			= $('#filterPopup');
-	cameraORvideoPopup 		= $('#cameraORvideoPopup');
+	div_FilterPopup				= $('#filterPopup');
+	cameraORvideoPopup 			= $('#cameraORvideoPopup');
 
 	CurrentUser.Device.name					= device.name;
 	CurrentUser.Device.cordovaVersion	= device.cordova;
