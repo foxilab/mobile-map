@@ -1802,13 +1802,13 @@ function onDeviceReady()
 		}
 	}
 
-	$(window).bind('orientationchange', fixContentHeight);
+	$(window).bind('resize', fixContentHeight);
 	fixContentHeight();
-	
+
 	startWatch_Accelerometer();
 	startWatch_Compass();
 	startWatch_GeoLocation();
-	
+
 	OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
 		defaultHandlerOptions : {
 			'single' : true, 'double' : false, 'pixelTolerance' : 0, 'stopSingle' : false, 'stopDouble' : false 
