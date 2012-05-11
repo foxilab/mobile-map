@@ -1,7 +1,0 @@
-//
-// Prefix header for all source files of the 'Disaster Response' target in the 'Disaster Response' project
-//
-
-#ifdef __OBJC__
-	#import <UIKit/UIKit.h>
-#endif
